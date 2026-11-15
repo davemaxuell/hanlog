@@ -19,7 +19,15 @@ Public entry: [HanLog product walkthrough](https://hanlog-nine.vercel.app/demo).
 - Production browser suite: the 42 existing cases passed. All **7 new presentation cases passed** after correcting test synchronization for passive effects, native dialog focus, and entrance-animation completion. Seven duplicate phone accessibility sweeps are intentionally skipped. Coverage includes one actual mock submission and saved journal entry, no-write offline examples, QR loading, clip locks/Retake, local playback and track/URL cleanup, 320/390/1366/1440 layouts, projector footer fit, keyboard operation, and zero serious/critical axe findings on the settled presentation scenes and preparation dialog.
 - Production build passed through the browser runner. `npm run check:bundle` passed for the client bundle and staged repository. **47 server traces contained zero private `.env`, `.data`, test, or documentation paths.**
 - Manual Chromium review: projector screenshots at 1366×768, phone screenshots at 390×844, all four example scenes, consent layout, fullscreen enter/exit, and stable local development navigation. Reduced-motion CSS was reviewed. Screenshots remain in ignored `output/playwright/`.
-- Hosted deployment and read-only verification are recorded after publication below. No paid AI requests were made.
+- No paid AI requests were made.
+
+## Hosted release
+
+- Application commit: `288054eee68fe3d76b93a71f325452afdd75ae0f` on `main` in the private GitHub repository.
+- Vercel production deployment: `dpl_3D6WpMvmZ54f6rBHTAjrUZdK3qUW`, **READY**, serving the public alias `hanlog-nine.vercel.app` from that commit.
+- On 16 November 2026, read-only production smoke passed: empty anonymous session, 24 missions, security headers, and refusal of unauthenticated cleanup. `/demo`, its QR SVG, `/c/SMPL24`, and `/app/progress` returned HTTP 200; app routes still enforce their existing client/session flow.
+- Public Chromium rehearsal visited all four example scenes at 1366×768, displayed the QR, and reported **zero console errors and no API requests**. The intentional QR preload emitted one advisory before the Progress scene used it. No profile, recording, AI request, or community activity was created on production for this release.
+- GitHub check: [run 43750736896](https://github.com/davemaxuell/hanlog/actions/runs/43750736896) **passed**, including clean-install type/lint/tests, production build, and bundle/repository checks. Subsequent documentation-only commits record this evidence without changing the validated application.
 
 ## Limits
 

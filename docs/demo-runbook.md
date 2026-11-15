@@ -152,8 +152,8 @@ An already-loaded example view is the network fallback. Neither launcher nor the
 
 Local implementation and acceptance are complete. Exact results and hosted release evidence are in the [presentation release handoff](handoffs/presentation-demo.md). Chromium uses synthetic microphone input; this does not replace the venue or real-device rehearsal.
 
-- [ ] Record application commit/deployment, verification date, and presenter browser.
-- [ ] Public `/demo` loads directly, and all main-app links route correctly.
+- [x] Application commit/deployment, verification date, and tested browser are recorded in the release handoff.
+- [x] Public `/demo` loads directly, its QR asset and linked routes respond, and the journal link works in the mock browser flow.
 - [x] Practice → Feedback → People → Progress works by controls and keyboard; input interactions do not unintentionally change scenes.
 - [x] Fullscreen enter/exit works in tested Chromium, with a usable non-fullscreen view.
 - [x] Example walkthrough labels all authored results/activity and makes no scoring, profile-creation, or other API write requests.
