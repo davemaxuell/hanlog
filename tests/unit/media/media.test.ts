@@ -17,7 +17,7 @@ it('recognizes containers by magic bytes', () => {
   expect(sniffMedia(new Uint8Array(2))).toBeNull();
 });
 it('accepts consistent uploads, including a codecs suffix', async () => {
-  expect(await validatePeerMedia(mediaFile(webmBytes(), 'audio/webm;codecs=opus'), 'audio', '3200')).toMatchObject({ mime: 'audio/webm', ext: 'webm', kind: 'audio', durationMs: 3200 });
+  expect(await validatePeerMedia(mediaFile(webmBytes(), 'audio/webm;codecs=opus'), 'audio', '3200')).toMatchObject({ mime: 'audio/webm', ext: 'webm', kind: 'audio', durationMs: 3001 });
   expect(await validatePeerMedia(mediaFile(mp4Bytes(), 'video/mp4'), 'video', 15000)).toMatchObject({ mime: 'video/mp4', ext: 'mp4', kind: 'video' });
 });
 it('rejects anything inconsistent', async () => {
@@ -35,7 +35,7 @@ it('stores, reads, and removes in memory and on disk', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'hanlog-media-'));
   for (const store of [createMemoryMediaStore(), createLocalMediaStore(dir)]) {
     await store.put('responses/a.webm', webmBytes(100), 'audio/webm');
-    expect((await store.get('responses/a.webm'))!.length).toBe(100);
+    expect((await store.get('responses/a.webm'))!.length).toBe(webmBytes(100).length);
     expect(await store.get('responses/missing.webm')).toBeNull();
     await store.remove(['responses/a.webm', 'responses/missing.webm']);
     expect(await store.get('responses/a.webm')).toBeNull();

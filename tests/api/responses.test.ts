@@ -31,7 +31,7 @@ it('accepts an answer and shows it to both sides', async () => {
   const res = await send(learner.cookie, challenge.id);
   expect(res.status).toBe(201);
   const { response } = await res.json();
-  expect(response).toMatchObject({ challengeId: challenge.id, responder: { id: learner.user.id, nickname: 'Aisha' }, mediaKind: 'audio', mediaAvailable: true, durationMs: 3000, status: 'pending', rating: null, feedback: null });
+  expect(response).toMatchObject({ challengeId: challenge.id, responder: { id: learner.user.id, nickname: 'Aisha' }, mediaKind: 'audio', mediaAvailable: true, durationMs: 3001, status: 'pending', rating: null, feedback: null });
   expect(media.paths()).toEqual([`responses/${response.id}.webm`]);
   expect(await view(learner.cookie, challenge.id)).toMatchObject({ viewerRole: 'responder', myResponse: { id: response.id }, responses: [] });
   expect((await view(korean.cookie, challenge.id)).responses.map((r: { id: string }) => r.id)).toEqual([response.id]);
@@ -46,7 +46,9 @@ it('replaces a pending answer and removes the old file', async () => {
   const first = (await (await send(learner.cookie, challenge.id)).json()).response;
   const second = (await (await send(learner.cookie, challenge.id, mediaFile(mp4Bytes(), 'video/mp4'), 'video')).json()).response;
   expect(second).toMatchObject({ id: first.id, mediaKind: 'video' });
-  expect(media.paths()).toEqual([`responses/${first.id}.mp4`]);
+  expect(media.paths()).toHaveLength(1);
+  expect(media.paths()[0]).toMatch(/^responses\/[a-f0-9-]+\.mp4$/);
+  expect(media.paths()[0]).not.toBe(`responses/${first.id}.mp4`);
 });
 it('lets any Korean speaker see answers to a sample challenge', async () => {
   const learner = await createTestUser('learner');

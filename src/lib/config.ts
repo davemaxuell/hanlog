@@ -22,6 +22,8 @@ export function getConfig(env: Record<string, string | undefined> = process.env)
     if (!supabaseUrl) throw new Error('SUPABASE_URL is required on Vercel');
     if (!supabaseSecretKey) throw new Error('SUPABASE_SECRET_KEY is required on Vercel');
   }
+  if (isProd && !databaseUrl && !value('PGLITE_DIR')) throw new Error('DATABASE_URL or an explicit PGLITE_DIR is required in production');
+  if (isProd && Boolean(supabaseUrl) !== Boolean(supabaseSecretKey)) throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEY must both be configured');
   const openaiApiKey = value('OPENAI_API_KEY');
   const provider = value('SCORING_PROVIDER') ?? (openaiApiKey ? 'openai' : 'mock');
   if (provider !== 'openai' && provider !== 'mock') throw new Error('SCORING_PROVIDER must be openai or mock');

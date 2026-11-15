@@ -6,7 +6,7 @@ const queryWith = async <T>(client: Executor, text: string, params?: unknown[]):
   return (await client.exec(text)).flatMap(result => result.rows) as T[];
 };
 export async function createPgliteDb(dir?: string): Promise<Db & { close(): Promise<void> }> {
-  const client = dir ? new PGlite(dir) : new PGlite();
+  const client = dir && dir !== 'memory://' ? new PGlite(dir) : new PGlite();
   await client.waitReady;
   return {
     query: <T>(text: string, params?: unknown[]) => queryWith<T>(client, text, params),

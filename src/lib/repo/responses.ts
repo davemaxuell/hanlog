@@ -4,6 +4,7 @@ import { getDb, type Db } from '../db';
 import { ApiError } from '../errors';
 import { kstDayStartIso } from '../http';
 import { getMediaStore } from '../media';
+import { finishMediaRemoval, queueMediaRemoval } from '../media/pending';
 import { mediaWithinRetention } from './challenges';
 import { addPointEvent } from './points';
 import { PEER_FEEDBACK_GIVER_AWARD, PEER_RATING_AWARD, POINT_LABELS, peerFeedbackAuthorAward, peerResponseAward } from '../points/rules';
@@ -56,7 +57,12 @@ export async function countResponsesSince(responderId: string, sinceIso: string)
 // Bytes are supplied here so the row lock covers storage as well as the SQL update.
 // Cleanup and rating take the same row lock and cannot observe a partial replacement.
 export async function upsertResponse(input: { challengeId: string; responderId: string; mediaKind: MediaKind; mediaMime: string; ext: string; durationMs: number; bytes: Uint8Array }): Promise<{ record: ResponseRecord; replacedPath: string | null }> {
-  return (await getDb()).tx(async db => {
+  // A fresh path for every upload keeps the previous file intact until the SQL switch commits.
+  const uploadId = randomUUID();
+  const path = `responses/${uploadId}.${input.ext}`;
+  await queueMediaRemoval(path);
+  let result: { record: ResponseRecord; replacedPath: string | null };
+  try { result = await (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [input.responderId]);
     const challenges = await db.query<{ author_id: string; status: string }>('select author_id, status from hanlog.challenges where id = $1 for share', [input.challengeId]);
     if (!challenges[0] || challenges[0].status !== 'open') throw new ApiError('not_found');
@@ -65,29 +71,24 @@ export async function upsertResponse(input: { challengeId: string; responderId: 
     const old = (await db.query<Row>(`${select} where r.challenge_id = $1 and r.responder_id = $2 for update of r`, [input.challengeId, input.responderId]))[0];
     if (old?.flagged) throw new ApiError('not_found');
     if (old?.status === 'rated') throw new ApiError('conflict');
-    const id = old?.id ?? randomUUID();
-    const path = `responses/${id}.${input.ext}`;
+    const id = old?.id ?? uploadId;
     const store = getMediaStore();
-    const oldBytes = old?.media_path ? await store.get(old.media_path) : null;
-    let writeStarted = false;
-    try {
-      if (old) await db.query(`update hanlog.challenge_responses set media_path = $2, media_kind = $3, media_mime = $4, duration_ms = $5, created_at = now() where id = $1`, [id, path, input.mediaKind, input.mediaMime, input.durationMs]);
-      else await db.query(`insert into hanlog.challenge_responses (id, challenge_id, responder_id, media_path, media_kind, media_mime, duration_ms) values ($1,$2,$3,$4,$5,$6,$7)`, [id, input.challengeId, input.responderId, path, input.mediaKind, input.mediaMime, input.durationMs]);
-      writeStarted = true;
-      await store.put(path, input.bytes, input.mediaMime);
-      if (old?.media_path && old.media_path !== path) await store.remove([old.media_path]);
-      const record = map((await db.query<Row>(`${select} where r.id = $1`, [id]))[0]);
-      return { record, replacedPath: old?.media_path ?? null };
-    } catch {
-      if (writeStarted) {
-        try {
-          if (old?.media_path && oldBytes) await store.put(old.media_path, oldBytes, old.media_mime);
-          if (path !== old?.media_path || !oldBytes) await store.remove([path]);
-        } catch { console.error('[media] response compensation failed', { path }); }
-      }
-      throw new ApiError('service_unavailable');
-    }
-  });
+    if (old?.media_path) await queueMediaRemoval(old.media_path, db);
+    if (old) await db.query(`update hanlog.challenge_responses set media_path = $2, media_kind = $3, media_mime = $4, duration_ms = $5, created_at = now() where id = $1`, [id, path, input.mediaKind, input.mediaMime, input.durationMs]);
+    else await db.query(`insert into hanlog.challenge_responses (id, challenge_id, responder_id, media_path, media_kind, media_mime, duration_ms) values ($1,$2,$3,$4,$5,$6,$7)`, [id, input.challengeId, input.responderId, path, input.mediaKind, input.mediaMime, input.durationMs]);
+    await store.put(path, input.bytes, input.mediaMime);
+    await db.query('delete from hanlog.pending_media_deletions where path = $1', [path]);
+    const record = map((await db.query<Row>(`${select} where r.id = $1`, [id]))[0]);
+    return { record, replacedPath: old?.media_path ?? null };
+  }); } catch (error) {
+    try { await finishMediaRemoval(path); } catch { /* The pre-upload queue entry survives rollback. */ }
+    if (error instanceof ApiError) throw error;
+    throw new ApiError('service_unavailable');
+  }
+  if (result.replacedPath) {
+    try { await finishMediaRemoval(result.replacedPath); } catch { /* Retry the old, now unreferenced file in cleanup. */ }
+  }
+  return result;
 }
 
 async function lockedResponse(db: Db, id: string): Promise<ResponseRecord> {
