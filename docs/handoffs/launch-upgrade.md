@@ -26,6 +26,16 @@ The existing Vercel project, private Supabase bucket, daily retention cron, stri
 
 Read-only monitoring: `node scripts/smoke.mjs https://hanlog-nine.vercel.app`. Community operator command: `npx tsx scripts/review-community-reports.ts list`. Review mutations require the explicit `--apply` flag and a server-only PostgreSQL environment; never put a connection URL in command history or documentation.
 
+## Hosted release evidence
+
+Application release `5939bc2b5f53f685819d5012d6556383da4a8df6` reached Ready as Vercel deployment `dpl_AGp4oWzDwtDHy4go11H9Jx6fz8bp` and was assigned to [hanlog-nine.vercel.app](https://hanlog-nine.vercel.app). The three migrations were applied before the Git push. The existing server-only OpenAI configuration was retained. [GitHub CI passed for that application commit](https://github.com/davemaxuell/hanlog/actions/runs/43741217867), including types, lint, tests, a mock production build, and the bundle check. The follow-up release-note commit changes documentation only and skips a redundant GitHub run.
+
+Live synthetic checks passed: recovery-key creation, restore plus identical retry, old-session refusal, saved-expression persistence, progress/history contracts, community pagination, inbox ownership, reporter-only hiding with a second observer, and a credential-free owned-data export. Both temporary profiles were deleted and their old sessions rejected.
+
+A separate live media check passed upload to the private bucket, byte-identical playback, private/no-store caching, anonymous refusal, silence rejection before AI, and deletion. Direct SQL over verified TLS confirmed the temporary media profile, attempts, points, responses, and pending deletions were absent; the private bucket no longer contained the test file. No scoring call was recorded for that fixture.
+
+Public route/header checks, help, manifest, and the new landing content passed. The actual Paperlogy font loaded in the production browser; desktop and 390px screenshots were reviewed with zero horizontal overflow and no console errors. The ignored production environment download was removed after verification. No new paid scoring request was made.
+
 ## Remaining launch work
 
 This is a public beta, not a claim of validated pronunciation assessment. Native-speaker review, consented learner calibration, and real iPhone Safari/Android checks remain. Peer roles are self-selected, not verified credentials. Reference audio was not bulk-generated, and partner rewards are not offered. The privacy operator is HanLog team. The manifest supports installation where the browser permits it; private responses and recordings are not cached for offline use.

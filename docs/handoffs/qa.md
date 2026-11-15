@@ -1,5 +1,7 @@
 # Integrated QA handoff
 
+This records the first implementation and deployment. The newer PowerPoint-led release, account recovery, and 386-test/38-browser verification are documented in [launch upgrade](launch-upgrade.md).
+
 Final QA ran on main after all feature branches and the detail-review fixes were merged, on 16 November 2026. No paid API request was made during integration, browser tests, or the detail pass.
 
 ## Results

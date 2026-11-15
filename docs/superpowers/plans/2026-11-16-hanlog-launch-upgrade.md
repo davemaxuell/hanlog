@@ -1,6 +1,6 @@
 # HanLog launch upgrade — implementation plan
 
-Status: implementation and local verification complete; production rollout pending. Authorized by the owner to plan and execute automatically, including deployment to the existing Vercel project after verification.
+Status: implemented, locally verified, migrated, and deployed. Production account/community/storage checks passed; evidence is in docs/handoffs/launch-upgrade.md. Authorized by the owner to plan and execute automatically, including deployment to the existing Vercel project after verification.
 
 ## Product direction
 
@@ -27,7 +27,7 @@ Independent feature work runs in parallel after contracts are agreed. Workers le
 - [x] New queries are bounded, ownership checked, stable under pagination, and work on PGlite and production PostgreSQL.
 - [x] Accessibility, loading/empty/error states, keyboard/dialog focus, recording recovery and reduced-motion behavior pass appropriate checks.
 - [x] Types, lint, unit/API/component tests, production build, bundle checks and meaningful browser journeys pass.
-- [ ] Additive production migrations applied before code rollout; deployed read-only and synthetic account/storage smoke pass. No additional paid scoring calls needed for this upgrade.
+- [x] Additive production migrations applied before code rollout; deployed read-only and synthetic account/storage smoke pass. No additional paid scoring calls needed for this upgrade.
 
 ## Launch boundary
 
