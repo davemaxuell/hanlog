@@ -109,7 +109,7 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-live-video { aspect-ratio:3/4; }
 .hl-upload { display:grid; gap:8px; padding:12px 0; color:var(--color-text-secondary); font-size:13px; }
 .hl-upload input { display:block; width:100%; min-width:0; min-height:48px; font-size:13px; }
-.hl-upload input::file-selector-button { min-height:44px; border:1px solid var(--color-control-edge); border-radius:var(--radius-field); background:var(--color-surface); color:var(--color-ink); padding:8px 12px; margin-right:8px; }
+.hl-upload input::file-selector-button { min-height:48px; border:1px solid var(--color-control-edge); border-radius:var(--radius-field); background:var(--color-surface); color:var(--color-ink); padding:8px 12px; margin-right:8px; }
 .hl-score-heading { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; }
 .hl-page-heading { display:grid; gap:12px; }
 .hl-eyebrow { font-size:12px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--color-text-secondary); }

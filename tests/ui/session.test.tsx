@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, vi } from 'vitest';
 
@@ -8,12 +8,28 @@ vi.mock('@/lib/api-client', async (original) => ({ ...(await original<typeof imp
 import Onboarding from '@/app/app/onboarding/page';
 import { AppShell } from '@/components/ui/AppShell';
 import { ApiClientError } from '@/lib/api-client';
-import { SessionProvider, safeNext, useSession } from '@/lib/ui/session-context';
+import { SessionProvider, safeNext, useSession, useOptionalSession } from '@/lib/ui/session-context';
+import type { User } from '@/lib/contracts';
 import { samples } from '../fixtures/api/samples';
 import { mockApi, nav, resetMocks } from './_helpers';
 
 beforeEach(resetMocks);
 const Who = () => <p>Hello {useSession().user.nickname}</p>;
+const CurrentProfile = () => <p>Current profile: {useOptionalSession().user?.nickname ?? 'none'}</p>;
+
+it('keeps a newly created profile when the initial session lookup finishes late', async () => {
+  let finishLookup!: (user: User | null) => void;
+  mockApi.getSession.mockReturnValue(new Promise<User | null>(resolve => { finishLookup = resolve; }));
+  mockApi.createSession.mockResolvedValue(samples.user);
+  nav.pathname = '/app/onboarding';
+  render(<SessionProvider><Onboarding /><CurrentProfile /></SessionProvider>);
+  await userEvent.type(screen.getByLabelText('Nickname'), 'Aisha');
+  await userEvent.click(screen.getByRole('checkbox'));
+  await userEvent.click(screen.getByRole('button', { name: 'Start' }));
+  expect(await screen.findByText('Current profile: Aisha')).toBeInTheDocument();
+  await act(async () => { finishLookup(null); });
+  expect(screen.getByText('Current profile: Aisha')).toBeInTheDocument();
+});
 
 it('only follows safe next paths', () => {
   expect(safeNext('/app/challenges/abc')).toBe('/app/challenges/abc');

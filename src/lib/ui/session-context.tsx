@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api, ApiClientError } from '@/lib/api-client';
 import type { User } from '@/lib/contracts';
@@ -19,15 +19,16 @@ export function safeNext(next: string | null): string {
 }
 export function SessionProvider({ children }: { children: ReactNode }) {
   const router = useRouter(); const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null); const [balance, setBalance] = useState<number | null>(null);
+  const [user, setUserState] = useState<User | null>(null); const [balance, setBalance] = useState<number | null>(null); const userRevision = useRef(0);
   const [loading, setLoading] = useState(true); const [error, setError] = useState<ApiClientError | null>(null); const [revision, setRevision] = useState(0);
   const refreshBalance = useCallback(async () => { try { setBalance((await api.getPoints()).balance); } catch (cause) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') router.replace(`/app/onboarding?next=${encodeURIComponent(pathname)}`); } }, [pathname, router]);
+  const setUser = useCallback((updated: User) => { userRevision.current++; setUserState(updated); setLoading(false); setError(null); void refreshBalance(); }, [refreshBalance]);
   useEffect(() => {
-    let current = true;
+    let current = true; const version = userRevision.current;
     void api.getSession().then(async found => {
-      if (!current) return; setUser(found); setLoading(false);
-      if (found) { try { const points = await api.getPoints(); if (current) setBalance(points.balance); } catch { /* A balance refresh can recover later without discarding the session. */ } }
-    }).catch(cause => { if (current) { setError(cause instanceof ApiClientError ? cause : new ApiClientError('internal', 0, '')); setLoading(false); } });
+      if (!current || version !== userRevision.current) return; setUserState(found); setLoading(false);
+      if (found) { try { const points = await api.getPoints(); if (current && version === userRevision.current) setBalance(points.balance); } catch { /* A balance refresh can recover later without discarding the session. */ } }
+    }).catch(cause => { if (current && version === userRevision.current) { setError(cause instanceof ApiClientError ? cause : new ApiClientError('internal', 0, '')); setLoading(false); } });
     return () => { current = false; };
   }, [revision]);
   useEffect(() => { if (!loading && !error && !user && pathname !== '/app/onboarding') router.replace(`/app/onboarding?next=${encodeURIComponent(pathname)}`); }, [loading, error, user, pathname, router]);
