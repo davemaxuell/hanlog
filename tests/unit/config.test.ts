@@ -40,3 +40,6 @@ it('reads numeric overrides and rejects nonsense', () => {
   expect(getConfig({ USER_DAILY_ATTEMPTS: '5', RETENTION_DAYS: '7' })).toMatchObject({ limits: { userDailyAttempts: 5 }, retentionDays: 7 });
   expect(() => getConfig({ USER_DAILY_ATTEMPTS: 'many' })).toThrow(/USER_DAILY_ATTEMPTS/);
 });
+it('can isolate local test recordings from the demo folder', () => {
+  expect(getConfig({ MEDIA_DIR: '.data/e2e-media' }).mediaDir).toBe('.data/e2e-media');
+});

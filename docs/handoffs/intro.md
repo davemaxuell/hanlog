@@ -13,3 +13,5 @@ Root owns final production build and browser verification at 320, 390, 768 and 1
 Validation: each task's tests failed before implementation. `npm run check` passed before the task 1 commit (218 tests), task 2 commit (223 tests), and final task 3 commit (225 tests across 44 passing files; three live tests skipped). TypeScript and ESLint passed. Introduction tests cover fixed copy, forbidden claims, section order, metadata, consent, recording through a mocked API, session reuse, failure/retry and rapid toggles.
 
 The official link [OpenAI's privacy policy](https://openai.com/policies/privacy-policy/) was opened successfully on 2026-11-15. Privacy implementation should describe the actual local demo and intended production services accurately, avoid provider-retention claims, and mention the short-lived detached abuse counters specified by backend integration.
+
+Integration update: root completed privacy and public assets, confirmed the operator name, fixed CSS Module compilation, and verified the production page in both browser projects. See `qa.md` for viewport, accessibility, screenshot and local-launcher results.

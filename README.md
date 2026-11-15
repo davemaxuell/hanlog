@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HanLog · 한로그
 
-## Getting Started
+HanLog is a Korean speaking practice demo with 24 missions, voice/video recording, feedback, points, and peer challenges. Learners can answer Korean speakers and exchange ratings. Rewards are examples only; partners and redemption are not available.
 
-First, run the development server:
+## Run the finished local demo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Use Node 24. From this folder:
+
+```sh
+npm ci
+npm run build
+npm run demo
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open **http://localhost:3000**. No accounts or external services are needed. The demo launcher always uses clearly labelled mock scoring and disables OpenAI calls, including when `.env.local` contains a key.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For development, stop the running demo and use `npm run dev:demo`. Profiles and recordings persist in ignored `.data/demo-db` and `.data/demo-media`. The launcher runs expiry cleanup at startup and hourly while open. Stop with Ctrl+C.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Real scoring
 
-## Learn More
+The OpenAI provider is implemented and passed one small compatibility check. Pronunciation accuracy and calibration remain unverified. To deliberately enable it, configure the server-only `OPENAI_API_KEY` in ignored `.env.local` and use the regular `npm run dev` command. This can make paid scoring and moderation calls; `demo` and `dev:demo` stay offline.
 
-To learn more about Next.js, take a look at the following resources:
+Diagnostic and reference-generation scripts default to dry runs and require explicit `--live` opt-in. They do not automatically load `.env.local`. Reference clips were not bulk-generated under the owner's spending constraint.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | Purpose |
+| --- | --- |
+| `npm run check` | TypeScript, lint, unit/API/component tests |
+| `npm run test:e2e` | Production build and Chromium phone/desktop flows; mock scoring only |
+| `npm run build` | Production build |
+| `npm run check:bundle` | Check built browser files and tracked files for server secrets |
+| `npm run spike:scoring` | Preview the guarded scoring compatibility check |
+| `npm run eval:scoring` | Preview evaluation and report missing fixtures |
+| `npm run content:audio` | Preview reference generation |
+| `npm run db:migrate` | Migrate a configured PostgreSQL database |
 
-## Deploy on Vercel
+The browser suite uses an in-memory database and separate `.data/e2e-media` folder. `E2E_SKIP_BUILD=1` is only for rerunning tests against an already-current production build.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [project handoff](docs/HANDOFF.md), [device checklist](docs/device-check.md), [content review](docs/content-review.md), and [.env.example](.env.example). The source spec and ordered implementation plans are in [docs/superpowers](docs/superpowers/). The implemented palette is Open Window v0.4, Sky, Buttercream & Berry.

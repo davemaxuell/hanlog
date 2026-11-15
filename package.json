@@ -14,7 +14,10 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "spike:scoring": "tsx scripts/spike-scoring.ts",
     "eval:scoring": "tsx scripts/eval-scoring.ts",
-    "content:audio": "tsx scripts/gen-reference-audio.ts"
+    "content:audio": "tsx scripts/gen-reference-audio.ts",
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "demo": "node scripts/run-demo.mjs",
+    "dev:demo": "node scripts/run-demo.mjs --dev"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.16",
@@ -28,6 +31,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.65.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@testing-library/jest-dom": "7.0.1",

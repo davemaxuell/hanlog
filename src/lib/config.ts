@@ -36,7 +36,7 @@ export function getConfig(env: Record<string, string | undefined> = process.env)
   return {
     isProd, sessionSecret, cronSecret, databaseUrl, dbDriver: databaseUrl ? 'pg' : 'pglite', pgliteDir: value('PGLITE_DIR'),
     supabaseUrl, supabaseSecretKey, mediaDriver: supabaseUrl && supabaseSecretKey ? 'supabase' : 'local',
-    mediaDir: '.data/media', mediaBucket: value('MEDIA_BUCKET') ?? 'recordings',
+    mediaDir: value('MEDIA_DIR') ?? '.data/media', mediaBucket: value('MEDIA_BUCKET') ?? 'recordings',
     openaiApiKey, scoringProvider: provider, scoringModel: value('OPENAI_SCORING_MODEL') ?? 'gpt-audio-1.5', moderation: openaiApiKey ? 'openai' : 'rules',
     limits: { userDailyAttempts: numeric('USER_DAILY_ATTEMPTS', 30), ipDailyAttempts: numeric('IP_DAILY_ATTEMPTS', 600), globalDailyAttempts: numeric('GLOBAL_DAILY_ATTEMPTS', 1500), ipDailySessions: numeric('IP_DAILY_SESSIONS', 200) },
     retentionDays: numeric('RETENTION_DAYS', 14),

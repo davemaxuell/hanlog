@@ -598,6 +598,8 @@ Tone everywhere: warm, specific, encouraging, never cute at the cost of clarity.
 
 ## 14. Design
 
+Implementation note (16 November 2026): the newer user-selected Open Window v0.4 **Sky, Buttercream & Berry** palette supersedes the earlier warm palette below. The copied [design rules](../../design/open-window/DESIGN.md) and [tokens](../../design/open-window/tokens.json) are the implemented color source.
+
 Use the Open Window direction (`Sky, Buttercream & Berry` · `v0.4`) in `../design/open-window/DESIGN.md` and `tokens.json` (one level above this repository). Mapped tokens:
 
 | Token | Value | Use |

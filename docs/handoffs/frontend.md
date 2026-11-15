@@ -39,3 +39,5 @@ Every task's prescribed tests were first run failing, then implemented. `npm run
 Styles use the copied v0.4 Sky, Buttercream & Berry tokens, dark ink on pink actions with berry borders, berry links/focus/state markers, and the margin/serif hierarchy. Korean expressions and feedback are language tagged. Layout includes narrow-screen stacking, flexible controls, reduced-motion rules, and visible keyboard focus.
 
 No browser width/device walkthrough was completed in this worktree. The orchestrator owns final integrated checks at 320, 390, and 1440 px, microphone/mock-scoring walkthrough, production build, and device follow-up. The task 8 integrated production build already passed in main according to the orchestrator. Do not treat JSDOM recorder tests as iPhone/Android verification.
+
+Integration update: root completed task 13 and the production browser walkthrough. See `qa.md` for the final 277 code tests, 31 browser tests, width/accessibility results and remaining device boundary.
