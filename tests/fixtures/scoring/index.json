@@ -1,0 +1,52 @@
+[
+  {
+    "file": "native-cafe.wav",
+    "missionId": "cafe-iced-americano",
+    "kind": "native"
+  },
+  {
+    "file": "native-receipt.wav",
+    "missionId": "store-no-receipt",
+    "kind": "native"
+  },
+  {
+    "file": "native-group.wav",
+    "missionId": "campus-group-roles",
+    "kind": "native"
+  },
+  {
+    "file": "wrong-cafe.wav",
+    "missionId": "cafe-iced-americano",
+    "kind": "wrong"
+  },
+  {
+    "file": "english-cafe.wav",
+    "missionId": "cafe-iced-americano",
+    "kind": "english"
+  },
+  {
+    "file": "accent-cafe.wav",
+    "missionId": "cafe-iced-americano",
+    "kind": "accent"
+  },
+  {
+    "file": "inject-cafe.wav",
+    "missionId": "cafe-iced-americano",
+    "kind": "inject"
+  },
+  {
+    "file": "use-daebak.wav",
+    "missionId": "slang-daebak",
+    "kind": "use-ok"
+  },
+  {
+    "file": "use-missing.wav",
+    "missionId": "slang-daebak",
+    "kind": "use-missing"
+  },
+  {
+    "file": "noise.wav",
+    "missionId": "cafe-iced-americano",
+    "kind": "noise"
+  }
+]
