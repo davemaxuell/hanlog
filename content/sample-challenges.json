@@ -1,4 +1,50 @@
 [
-  { "code": "SMPL22", "korean": "오늘 점메추 좀 해 줘.", "meaningEn": "점메추 is short for 점심 메뉴 추천: \"recommend a lunch menu\". You are asking a friend to pick lunch.", "situationEn": "Asking a friend right before lunch." },
-  { "code": "SMPL23", "korean": "나 요즘 갓생 살고 있어.", "meaningEn": "갓생 means living a diligent, productive life.", "situationEn": "Telling a friend about your new routine: gym, study, early mornings." }
+  {
+    "code": "SMPL22",
+    "korean": "오늘 점메추 좀 해 줘.",
+    "meaningEn": "점메추 is short for 점심 메뉴 추천: \"recommend a lunch menu\". You are asking a friend to pick lunch.",
+    "situationEn": "Asking a friend right before lunch."
+  },
+  {
+    "code": "SMPL23",
+    "korean": "나 요즘 갓생 살고 있어.",
+    "meaningEn": "갓생 means living a diligent, productive life.",
+    "situationEn": "Telling a friend about your new routine: gym, study, early mornings."
+  },
+  {
+    "code": "SMPL24",
+    "korean": "이 영화 완전 꿀잼이야.",
+    "meaningEn": "꿀잼 means really fun: 꿀 (honey) plus a short form of 재미 (fun).",
+    "situationEn": "Telling a close friend how much you enjoyed a film."
+  },
+  {
+    "code": "SMPL25",
+    "korean": "운동 끝났어. 오늘도 오운완!",
+    "meaningEn": "오운완 is short for 오늘 운동 완료: today’s workout is done.",
+    "situationEn": "After a workout, sharing a small achievement with a friend. A casual spoken or message-style expression."
+  },
+  {
+    "code": "SMPL26",
+    "korean": "이 노래는 완전 내 취향 저격이야.",
+    "meaningEn": "취향 저격 means something is exactly your taste: it hits the spot for you.",
+    "situationEn": "Listening to music with a close friend and saying why you want to hear it again."
+  },
+  {
+    "code": "SMPL27",
+    "korean": "이 식당은 가성비가 좋아.",
+    "meaningEn": "가성비 means value for money, short for 가격 대비 성능: quality compared with the price.",
+    "situationEn": "Recommending an affordable restaurant to a classmate after eating there."
+  },
+  {
+    "code": "SMPL28",
+    "korean": "이번 주말에는 집콕할래.",
+    "meaningEn": "집콕 means staying home: 집 (home) plus 콕, suggesting staying put in one place.",
+    "situationEn": "Telling a close friend that you want a quiet weekend at home."
+  },
+  {
+    "code": "SMPL29",
+    "korean": "시험 공부 꿀팁 좀 알려 줘.",
+    "meaningEn": "꿀팁 means a really useful tip: 꿀 (honey) plus 팁 (tip).",
+    "situationEn": "Asking a close classmate for helpful study advice before exams."
+  }
 ]

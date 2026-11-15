@@ -1,8 +1,396 @@
 [
-  { "id": "cafe-iced-americano", "mode": "repeat", "korean": "아이스 아메리카노 한 잔 주세요.", "keyword": null, "romanization": "aiseu amerikano han jan juseyo", "meaningEn": "One iced americano, please.", "situationEn": "At a café counter, when the barista asks for your order.", "promptEn": "Say this to the barista.", "level": 1, "basePoints": 10, "referenceAudio": null, "tags": ["cafe"] },
-  { "id": "greet-nice-to-meet", "mode": "repeat", "korean": "만나서 반갑습니다.", "keyword": null, "romanization": "mannaseo bangapseumnida", "meaningEn": "Nice to meet you.", "situationEn": "When you meet a classmate or a new teammate for the first time.", "promptEn": "Say this to someone you are meeting for the first time.", "level": 1, "basePoints": 10, "referenceAudio": null, "tags": ["friends", "campus"] },
-  { "id": "store-no-receipt", "mode": "repeat", "korean": "영수증은 버려 주세요.", "keyword": null, "romanization": "yeongsujeungeun beoryeo juseyo", "meaningEn": "Please throw the receipt away.", "situationEn": "At a convenience store checkout, when the cashier asks if you want the receipt.", "promptEn": "Say this to the cashier.", "level": 2, "basePoints": 20, "referenceAudio": null, "tags": ["shopping"] },
-  { "id": "transit-this-stop", "mode": "repeat", "korean": "이번 역에서 내려요.", "keyword": null, "romanization": "ibeon yeogeseo naeryeoyo", "meaningEn": "I'm getting off at this station.", "situationEn": "On a crowded subway, when you need people to let you through.", "promptEn": "Say this to the person standing by the door.", "level": 2, "basePoints": 20, "referenceAudio": null, "tags": ["transit"] },
-  { "id": "slang-daebak", "mode": "use", "korean": "대박, 이 노래 진짜 좋다!", "keyword": "대박", "romanization": "daebak, i norae jinjja jota", "meaningEn": "\"Wow, amazing\": said when something is surprisingly great.", "situationEn": "With friends, reacting to a song, food, or news that amazed you.", "promptEn": "Make your own sentence with 대박 about something that amazed you today.", "level": 2, "basePoints": 20, "referenceAudio": null, "tags": ["slang", "friends"] },
-  { "id": "campus-group-roles", "mode": "repeat", "korean": "조별 과제 역할을 어떻게 나눌까요?", "keyword": null, "romanization": "jobyeol gwaje yeokhareul eotteoke nanulkkayo", "meaningEn": "How should we divide the roles for the group project?", "situationEn": "In the first meeting of a group project.", "promptEn": "Say this to your teammates.", "level": 3, "basePoints": 30, "referenceAudio": null, "tags": ["campus"] }
+  {
+    "id": "cafe-iced-americano",
+    "mode": "repeat",
+    "korean": "아이스 아메리카노 한 잔 주세요.",
+    "keyword": null,
+    "romanization": "aiseu amerikano han jan juseyo",
+    "meaningEn": "One iced americano, please.",
+    "situationEn": "At a café counter, when the barista asks for your order.",
+    "promptEn": "Say this to the barista.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "cafe"
+    ]
+  },
+  {
+    "id": "greet-nice-to-meet",
+    "mode": "repeat",
+    "korean": "만나서 반갑습니다.",
+    "keyword": null,
+    "romanization": "mannaseo bangapseumnida",
+    "meaningEn": "Nice to meet you.",
+    "situationEn": "When you meet a classmate or a new teammate for the first time.",
+    "promptEn": "Say this to someone you are meeting for the first time.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "friends",
+      "campus"
+    ]
+  },
+  {
+    "id": "friends-thank-you",
+    "mode": "repeat",
+    "korean": "정말 감사합니다.",
+    "keyword": null,
+    "romanization": "jeongmal gamsahamnida",
+    "meaningEn": "Thank you so much.",
+    "situationEn": "At the campus office, after someone helps you find the right classroom.",
+    "promptEn": "Say this to the person who helped you.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "campus",
+      "friends"
+    ]
+  },
+  {
+    "id": "transit-sorry",
+    "mode": "repeat",
+    "korean": "죄송해요, 괜찮으세요?",
+    "keyword": null,
+    "romanization": "joesonghaeyo, gwaenchaneuseyo",
+    "meaningEn": "I am sorry. Are you okay?",
+    "situationEn": "On the bus, just after you accidentally bump into another passenger.",
+    "promptEn": "Apologize and check that the other person is okay.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "transit"
+    ]
+  },
+  {
+    "id": "campus-restroom",
+    "mode": "repeat",
+    "korean": "화장실이 어디에 있어요?",
+    "keyword": null,
+    "romanization": "hwajangsiri eodie isseoyo",
+    "meaningEn": "Where is the restroom?",
+    "situationEn": "In a campus building you are visiting for the first time.",
+    "promptEn": "Ask a person at the information desk.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "campus"
+    ]
+  },
+  {
+    "id": "shopping-price",
+    "mode": "repeat",
+    "korean": "이거 얼마예요?",
+    "keyword": null,
+    "romanization": "igeo eolmayeyo",
+    "meaningEn": "How much is this?",
+    "situationEn": "At a small market stall, pointing to an item without a price tag.",
+    "promptEn": "Ask the seller how much the item costs.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "shopping"
+    ]
+  },
+  {
+    "id": "store-pay-card",
+    "mode": "repeat",
+    "korean": "카드로 계산할게요.",
+    "keyword": null,
+    "romanization": "kadeuro gyesanhalgeyo",
+    "meaningEn": "I will pay by card.",
+    "situationEn": "At a convenience store, when the cashier asks how you would like to pay.",
+    "promptEn": "Tell the cashier you are paying by card.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "store"
+    ]
+  },
+  {
+    "id": "food-water",
+    "mode": "repeat",
+    "korean": "물 한 잔 주실 수 있어요?",
+    "keyword": null,
+    "romanization": "mul han jan jusil su isseoyo",
+    "meaningEn": "Could I have a glass of water?",
+    "situationEn": "At a restaurant table, when a staff member comes over.",
+    "promptEn": "Ask the server for a glass of water.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "food"
+    ]
+  },
+  {
+    "id": "friends-speak-slowly",
+    "mode": "repeat",
+    "korean": "천천히 다시 말해 주세요.",
+    "keyword": null,
+    "romanization": "cheoncheonhi dasi malhae juseyo",
+    "meaningEn": "Please say that again slowly.",
+    "situationEn": "After class, when a classmate explains something too quickly.",
+    "promptEn": "Ask your classmate to repeat what they said.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "friends",
+      "campus"
+    ]
+  },
+  {
+    "id": "friends-from-indonesia",
+    "mode": "repeat",
+    "korean": "저는 인도네시아에서 왔어요.",
+    "keyword": null,
+    "romanization": "jeoneun indonesiaeseo wasseoyo",
+    "meaningEn": "I am from Indonesia.",
+    "situationEn": "At a campus welcome event, when a new friend asks where you are from.",
+    "promptEn": "Introduce yourself to a new classmate.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "friends",
+      "campus"
+    ]
+  },
+  {
+    "id": "friends-jinjja",
+    "mode": "use",
+    "korean": "오늘 날씨 진짜 좋네요.",
+    "keyword": "진짜",
+    "romanization": "oneul nalssi jinjja jonneyo",
+    "meaningEn": "진짜 means really: add emphasis to something you feel.",
+    "situationEn": "Outside a café with a friend, sharing what you like about the day.",
+    "promptEn": "Make your own sentence with 진짜 about something you like today.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "friends"
+    ]
+  },
+  {
+    "id": "campus-hwaiting",
+    "mode": "use",
+    "korean": "오늘 발표도 화이팅!",
+    "keyword": "화이팅",
+    "romanization": "oneul balpyodo hwaiting",
+    "meaningEn": "화이팅 is a friendly cheer: you can do it.",
+    "situationEn": "Outside a classroom, encouraging a friend before their presentation.",
+    "promptEn": "Make your own sentence with 화이팅 to cheer on a friend.",
+    "level": 1,
+    "basePoints": 10,
+    "referenceAudio": null,
+    "tags": [
+      "campus",
+      "friends"
+    ]
+  },
+  {
+    "id": "store-no-receipt",
+    "mode": "repeat",
+    "korean": "영수증은 버려 주세요.",
+    "keyword": null,
+    "romanization": "yeongsujeungeun beoryeo juseyo",
+    "meaningEn": "Please throw the receipt away.",
+    "situationEn": "At a convenience store checkout, when the cashier asks if you want the receipt.",
+    "promptEn": "Say this to the cashier.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "shopping"
+    ]
+  },
+  {
+    "id": "transit-this-stop",
+    "mode": "repeat",
+    "korean": "이번 역에서 내려요.",
+    "keyword": null,
+    "romanization": "ibeon yeogeseo naeryeoyo",
+    "meaningEn": "I'm getting off at this station.",
+    "situationEn": "On a crowded subway, when you need people to let you through.",
+    "promptEn": "Say this to the person standing by the door.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "transit"
+    ]
+  },
+  {
+    "id": "slang-daebak",
+    "mode": "use",
+    "korean": "대박, 이 노래 진짜 좋다!",
+    "keyword": "대박",
+    "romanization": "daebak, i norae jinjja jota",
+    "meaningEn": "\"Wow, amazing\": said when something is surprisingly great.",
+    "situationEn": "With friends, reacting to a song, food, or news that amazed you.",
+    "promptEn": "Make your own sentence with 대박 about something that amazed you today.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "slang",
+      "friends"
+    ]
+  },
+  {
+    "id": "food-less-spicy",
+    "mode": "repeat",
+    "korean": "음식을 조금 덜 맵게 해 주세요.",
+    "keyword": null,
+    "romanization": "eumsigeul jogeum deol maepge hae juseyo",
+    "meaningEn": "Please make the food a little less spicy.",
+    "situationEn": "At the campus cafeteria, before the server prepares your meal.",
+    "promptEn": "Ask the server to make your food less spicy.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "food"
+    ]
+  },
+  {
+    "id": "campus-share-notes",
+    "mode": "repeat",
+    "korean": "오늘 수업 필기를 보여 줄 수 있어요?",
+    "keyword": null,
+    "romanization": "oneul sueop pilgireul boyeo jul su isseoyo",
+    "meaningEn": "Could you show me your notes from class today?",
+    "situationEn": "After a lecture, when you missed part of the explanation.",
+    "promptEn": "Ask a classmate if you can look at their notes.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "campus"
+    ]
+  },
+  {
+    "id": "shopping-change-size",
+    "mode": "repeat",
+    "korean": "이 옷을 큰 사이즈로 바꿀 수 있어요?",
+    "keyword": null,
+    "romanization": "i oseul keun saijeuro bakkul su isseoyo",
+    "meaningEn": "Could I exchange this for a larger size?",
+    "situationEn": "At a clothing shop counter, after trying on an item that is too small.",
+    "promptEn": "Ask the shop assistant for a larger size.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "shopping"
+    ]
+  },
+  {
+    "id": "friends-hoksi",
+    "mode": "use",
+    "korean": "혹시 내일 시간 있어요?",
+    "keyword": "혹시",
+    "romanization": "hoksi naeil sigan isseoyo",
+    "meaningEn": "혹시 means by any chance: soften a question or a request.",
+    "situationEn": "In the library, before asking a classmate for help with an assignment.",
+    "promptEn": "Make your own sentence with 혹시 to ask a classmate a small favor.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "friends",
+      "campus"
+    ]
+  },
+  {
+    "id": "friends-heol",
+    "mode": "use",
+    "korean": "헐, 벌써 수업이 끝났어?",
+    "keyword": "헐",
+    "romanization": "heol, beolsseo sueobi kkeunnasseo",
+    "meaningEn": "헐 is a casual reaction to surprise: no way or wow.",
+    "situationEn": "Outside class with a close friend, reacting to unexpected news.",
+    "promptEn": "Make your own sentence with 헐 about a small surprise. Use it with a close friend.",
+    "level": 2,
+    "basePoints": 20,
+    "referenceAudio": null,
+    "tags": [
+      "slang",
+      "friends"
+    ]
+  },
+  {
+    "id": "campus-group-roles",
+    "mode": "repeat",
+    "korean": "조별 과제 역할을 어떻게 나눌까요?",
+    "keyword": null,
+    "romanization": "jobyeol gwaje yeokhareul eotteoke nanulkkayo",
+    "meaningEn": "How should we divide the roles for the group project?",
+    "situationEn": "In the first meeting of a group project.",
+    "promptEn": "Say this to your teammates.",
+    "level": 3,
+    "basePoints": 30,
+    "referenceAudio": null,
+    "tags": [
+      "campus"
+    ]
+  },
+  {
+    "id": "campus-deadline",
+    "mode": "repeat",
+    "korean": "교수님, 과제 제출을 하루만 미뤄도 될까요?",
+    "keyword": null,
+    "romanization": "gyosunim, gwaje jechureul haruman mirwodo doelkkayo",
+    "meaningEn": "Professor, could I submit the assignment one day later?",
+    "situationEn": "During office hours, explaining that you need a short extension.",
+    "promptEn": "Politely ask your professor for one more day.",
+    "level": 3,
+    "basePoints": 30,
+    "referenceAudio": null,
+    "tags": [
+      "campus"
+    ]
+  },
+  {
+    "id": "work-interview",
+    "mode": "repeat",
+    "korean": "주말에도 일할 수 있고 한국어로 주문을 받을 수 있어요.",
+    "keyword": null,
+    "romanization": "jumaredo ilhal su itgo hangugeoro jumuneul badeul su isseoyo",
+    "meaningEn": "I can work weekends and take orders in Korean.",
+    "situationEn": "At a café job interview, when the manager asks what you can do.",
+    "promptEn": "Tell the interviewer about your availability and Korean skills.",
+    "level": 3,
+    "basePoints": 30,
+    "referenceAudio": null,
+    "tags": [
+      "cafe"
+    ]
+  },
+  {
+    "id": "daily-sohwakhaeng",
+    "mode": "use",
+    "korean": "수업 끝나고 마시는 차가 제 소확행이에요.",
+    "keyword": "소확행",
+    "romanization": "sueop kkeunnago masineun chaga je sohwakaengieyo",
+    "meaningEn": "소확행 means a small but certain happiness in everyday life.",
+    "situationEn": "At a campus café after class, telling a friend about your favorite small comfort.",
+    "promptEn": "Make your own sentence with 소확행 about a small joy in your daily routine.",
+    "level": 3,
+    "basePoints": 30,
+    "referenceAudio": null,
+    "tags": [
+      "slang",
+      "cafe",
+      "friends"
+    ]
+  }
 ]
