@@ -1,0 +1,2 @@
+import type { ReactNode } from 'react';
+export function MarginRow({ label, marker, children }: { label: ReactNode; marker?: 'empty' | 'filled'; children: ReactNode }) { return <div className="hl-margin-row"><div className="hl-margin-label">{marker && <span aria-hidden="true" className={`hl-marker hl-marker--${marker}`}>{marker === 'filled' ? '✓' : ''}</span>}{label}</div><div className="hl-margin-content">{children}</div></div>; }
