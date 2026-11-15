@@ -23,9 +23,13 @@ Only these four local-buffer formats are enabled. Malformed containers and misma
 
 ## Durable media recovery
 
-Migration `002_pending_media_deletions.sql` adds an RLS-enabled private queue. New file paths are registered before storage receives bytes. A successful metadata transaction clears the new-path marker and, on replacement, queues the old path in the same transaction. Replacements use fresh file paths, so a failed write cannot overwrite the earlier recording. Removal failure leaves the durable marker for cleanup. The queue holds paths only, with no profile foreign key, so profile deletion cannot erase the recovery record.
+Migration `002_pending_media_deletions.sql` adds an RLS-enabled private queue. Migration `003_pending_media_ownership.sql` adds uploader, challenge, and challenge-author IDs without cascading foreign keys. New file paths are registered under owner/parent locks before storage receives bytes. A successful metadata transaction clears the new-path marker and, on replacement, queues the old path in the same transaction. Replacements use fresh file paths, so a failed write cannot overwrite the earlier recording. Removal failure leaves the durable marker for cleanup. Profile deletion includes its abandoned/replaced paths and paths from its authored challenges; a removal failure keeps identity and queue metadata for retry.
 
-Cleanup waits one hour before retrying abandoned uploads and excludes all paths referenced by challenges or responses. Expired referenced recordings continue through the existing locked expiry path. The grace period exceeds the upload request deadline. New, unreferenced files are never exposed by playback routes.
+Cleanup waits one hour before retrying abandoned uploads and excludes all paths referenced by challenges or responses. Expired referenced recordings continue through the existing locked expiry path. The grace period exceeds the upload request deadline. New, unreferenced files are never exposed by playback routes. Metadata attachment, compensation, cleanup, and profile deletion share per-path advisory locks; compensation rechecks references after acquiring the lock. A lost COMMIT reply therefore returns a retriable error without destroying a file whose metadata actually committed.
+
+Reference writes hold owner and parent locks through storage and metadata attachment. Incomplete-challenge compensation locks the parent first, then uses a separate statement to check for a committed reference or answers. This avoids a stale DELETE snapshot cascading a newly committed answer while waiting for its parent share lock.
+
+Migration 003 backfills ownership where existing metadata or a first-upload path identifies it. Older unreferenced replacement paths from migration 002 alone cannot always be attributed retrospectively; they retain the existing timed cleanup behavior. The new queue was introduced during this unreleased refinement, and all new writes record ownership.
 
 ## Validation
 
@@ -35,3 +39,10 @@ Cleanup waits one hour before retrying abandoned uploads and excludes all paths 
 - Boundary-duration test observed failing before the approved tolerance adjustment; final duration/origin/config verification passed all **22 cases**. TypeScript and ESLint pass for the touched backend/tests.
 - Root runs the final integrated check/build in main. No dependency files were modified here; root's audited checkpoint `dd03858` was merged.
 - The disposable PostgreSQL container was stopped and auto-removed after verification. Docker Desktop remains available; existing containers/volumes were not stopped or deleted.
+
+## Review follow-up
+
+- Commit-then-throw DB wrappers reproduced and then verified preservation of committed response bytes and reference metadata/bytes.
+- Queued replacement files are included when either their learner or challenge author deletes their profile; failure returns 503 and retry removes every owned path. An abandoned reference is also included after its incomplete challenge row is gone.
+- A gated real-PostgreSQL test reproduced the incomplete-challenge stale-snapshot cascade before the fix. It and the other five concurrency cases pass after the fix.
+- Final full `npm run check`: **294 passed, 7 gated skips**, with TypeScript and ESLint green. The six PostgreSQL cases passed separately against the disposable PostgreSQL 17 container; the other skip is the paid OpenAI smoke test. The review follow-up container was stopped and auto-removed.

@@ -4,7 +4,7 @@ import { GET as detail } from '@/app/api/challenges/[id]/route';
 import { DELETE as deleteSession } from '@/app/api/session/route';
 import { SHARE_CODE_ALPHABET } from '@/lib/contracts';
 import { getSampleChallenges } from '@/lib/content';
-import { getDb } from '@/lib/db';
+import { getDb, setDbForTests } from '@/lib/db';
 import { createMemoryMediaStore, setMediaStoreForTests } from '@/lib/media';
 import { createTestUser, makeRequest, useTestDb } from '../helpers/api';
 import { call, mediaFile, mp4Bytes, useMemoryMedia, webmBytes } from './_helpers';
@@ -89,12 +89,16 @@ it('removes an incomplete challenge when reference storage fails', async () => {
   expect((await post(cookie, { media: mediaFile(webmBytes(), 'audio/webm'), durationMs: '1000' })).status).toBe(503);
   expect((await (await getDb()).query<{ n: number }>('select count(*)::int as n from hanlog.challenges where author_id = $1', [user.id]))[0].n).toBe(0);
 });
-it('removes a reference uploaded after its owner deletes their profile', async () => {
+it('does not upload a reference if its owner deletes their profile after registration', async () => {
   const { user, cookie } = await createTestUser('korean');
   const store = createMemoryMediaStore();
-  setMediaStoreForTests({ ...store, put: async (path, bytes, mime) => {
-    expect((await call(deleteSession, makeRequest('DELETE', '/api/session', { cookie }))).status).toBe(204);
-    await store.put(path, bytes, mime);
+  setMediaStoreForTests(store);
+  const db = await getDb(); let deleted = false;
+  setDbForTests({ query: db.query.bind(db), tx: async fn => {
+    let registered = false;
+    const result = await db.tx(tx => fn({ query: async (sql, params) => { registered ||= sql.startsWith('insert into hanlog.pending_media_deletions'); return tx.query(sql, params); }, tx: tx.tx.bind(tx) }));
+    if (registered && !deleted) { deleted = true; expect((await call(deleteSession, makeRequest('DELETE', '/api/session', { cookie }))).status).toBe(204); }
+    return result;
   } });
   expect((await post(cookie, { media: mediaFile(webmBytes(), 'audio/webm'), durationMs: '1000' })).status).toBe(503);
   expect(store.paths()).toEqual([]);

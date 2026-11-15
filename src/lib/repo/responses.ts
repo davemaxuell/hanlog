@@ -4,8 +4,8 @@ import { getDb, type Db } from '../db';
 import { ApiError } from '../errors';
 import { kstDayStartIso } from '../http';
 import { getMediaStore } from '../media';
-import { finishMediaRemoval, queueMediaRemoval } from '../media/pending';
-import { mediaWithinRetention } from './challenges';
+import { finishMediaRemoval, lockMediaPaths, queueMediaRemoval } from '../media/pending';
+import { getChallengeRecord, mediaWithinRetention } from './challenges';
 import { addPointEvent } from './points';
 import { PEER_FEEDBACK_GIVER_AWARD, PEER_RATING_AWARD, POINT_LABELS, peerFeedbackAuthorAward, peerResponseAward } from '../points/rules';
 
@@ -60,7 +60,10 @@ export async function upsertResponse(input: { challengeId: string; responderId: 
   // A fresh path for every upload keeps the previous file intact until the SQL switch commits.
   const uploadId = randomUUID();
   const path = `responses/${uploadId}.${input.ext}`;
-  await queueMediaRemoval(path);
+  const initialChallenge = await getChallengeRecord(input.challengeId);
+  if (!initialChallenge) throw new ApiError('not_found');
+  const ownership = { ownerId: input.responderId, challengeId: input.challengeId, challengeAuthorId: initialChallenge.authorId };
+  await queueMediaRemoval(path, ownership);
   let result: { record: ResponseRecord; replacedPath: string | null };
   try { result = await (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [input.responderId]);
@@ -73,7 +76,8 @@ export async function upsertResponse(input: { challengeId: string; responderId: 
     if (old?.status === 'rated') throw new ApiError('conflict');
     const id = old?.id ?? uploadId;
     const store = getMediaStore();
-    if (old?.media_path) await queueMediaRemoval(old.media_path, db);
+    await lockMediaPaths(db, [path, ...(old?.media_path ? [old.media_path] : [])]);
+    if (old?.media_path) await queueMediaRemoval(old.media_path, ownership, db);
     if (old) await db.query(`update hanlog.challenge_responses set media_path = $2, media_kind = $3, media_mime = $4, duration_ms = $5, created_at = now() where id = $1`, [id, path, input.mediaKind, input.mediaMime, input.durationMs]);
     else await db.query(`insert into hanlog.challenge_responses (id, challenge_id, responder_id, media_path, media_kind, media_mime, duration_ms) values ($1,$2,$3,$4,$5,$6,$7)`, [id, input.challengeId, input.responderId, path, input.mediaKind, input.mediaMime, input.durationMs]);
     await store.put(path, input.bytes, input.mediaMime);

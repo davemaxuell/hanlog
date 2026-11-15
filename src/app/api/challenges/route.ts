@@ -1,11 +1,10 @@
 import { ChallengeScopeSchema, CreateChallengeFieldsSchema, LIMITS } from '@/lib/contracts';
-import { getDb } from '@/lib/db';
 import { ApiError } from '@/lib/errors';
 import { json, kstDayStartIso, readFormData, route } from '@/lib/http';
 import { getMediaStore, validatePeerMedia } from '@/lib/media';
 import { finishMediaRemoval, queueMediaRemoval } from '@/lib/media/pending';
 import { assertTextAllowed } from '@/lib/moderation';
-import { CHALLENGES_PER_DAY, countChallengesSince, createChallenge, getChallengeRecord, listChallenges, setChallengeReference, toChallenge } from '@/lib/repo/challenges';
+import { CHALLENGES_PER_DAY, countChallengesSince, createChallenge, getChallengeRecord, listChallenges, removeIncompleteChallenge, setChallengeReference, toChallenge } from '@/lib/repo/challenges';
 import { requireUser } from '@/lib/session';
 
 export const runtime = 'nodejs';
@@ -31,11 +30,11 @@ export const POST = route(async req => {
     const path = `references/${record.id}.${media.ext}`;
     try {
       // Register the path durably before storage can accept bytes.
-      await queueMediaRemoval(path);
-      await getMediaStore().put(path, media.bytes, media.mime);
-      await setChallengeReference(record.id, path, media.mime);
+      await queueMediaRemoval(path, { ownerId: user.id, challengeId: record.id, challengeAuthorId: user.id });
+      await setChallengeReference(record.id, path, media.mime, () => getMediaStore().put(path, media.bytes, media.mime));
     } catch {
-      await (await getDb()).query('delete from hanlog.challenges where id = $1', [record.id]);
+      // Preserve a committed reference after an ambiguous COMMIT result, and any concurrently submitted answers.
+      await removeIncompleteChallenge(record.id);
       try { await finishMediaRemoval(path); } catch { /* The durable queue lets cleanup retry. */ }
       throw new ApiError('service_unavailable');
     }

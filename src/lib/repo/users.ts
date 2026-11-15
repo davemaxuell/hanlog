@@ -1,6 +1,7 @@
 import { getDb } from '../db';
 import { ApiError } from '../errors';
 import { SYSTEM_USER_ID, type Role, type User } from '../contracts';
+import { lockMediaPaths } from '../media/pending';
 type UserRow = { id: string; nickname: string; role: Role; created_at: Date | string };
 const toUser = (r: UserRow): User => ({ id: r.id, nickname: r.nickname, role: r.role, createdAt: new Date(r.created_at).toISOString() });
 const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -32,10 +33,14 @@ export async function deleteUserCascade(id: string, removeMedia?: (paths: string
     const paths = await db.query<{ path: string | null }>(`
       select reference_path as path from hanlog.challenges where author_id = $1
       union select media_path as path from hanlog.challenge_responses
-      where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1)`, [id]);
+      where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1)
+      union select path from hanlog.pending_media_deletions where owner_id = $1 or challenge_author_id = $1`, [id]);
     const mediaPaths = paths.flatMap(r => r.path ? [r.path] : []);
+    await lockMediaPaths(db, mediaPaths);
+    await db.query('select path from hanlog.pending_media_deletions where owner_id = $1 or challenge_author_id = $1 order by path for update', [id]);
     // Keep identity and pointers on failure so a partial storage deletion can be retried.
     if (removeMedia) await removeMedia(mediaPaths);
+    await db.query('delete from hanlog.pending_media_deletions where owner_id = $1 or challenge_author_id = $1', [id]);
     // Preserve address/global spending limits without retaining the deleted profile ID.
     await db.query('update hanlog.scoring_calls set user_id = $2 where user_id = $1', [id, SYSTEM_USER_ID]);
     await db.query('delete from hanlog.users where id = $1', [id]);
