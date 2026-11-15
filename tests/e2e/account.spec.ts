@@ -1,27 +1,31 @@
 import { expect, test, type Page } from '@playwright/test';
 import { onboard, recordFor } from './helpers';
 
+// Suppress automatic failure copy-prompts. While a key may be on screen, use
+// boolean polling below: locator/page matchers can independently capture DOM.
+process.env.PLAYWRIGHT_NO_COPY_PROMPT = '1';
+
 // These tests create synthetic credentials. Keep them only in memory and out of
 // traces, screenshots, attachments, downloaded files, and assertion diffs.
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 
 async function saveDisplayedKey(page: Page, doneLabel = 'I saved my key') {
   const notice = page.getByRole('region', { name: 'Keep this key somewhere safe.' });
-  await expect(notice).toBeVisible();
-  await expect(notice.getByRole('heading')).toBeFocused();
+  await expect.poll(() => notice.isVisible(), { message: 'the recovery notice is visible' }).toBe(true);
+  await expect.poll(() => notice.getByRole('heading').evaluate(element => element === document.activeElement), { message: 'the recovery heading has focus' }).toBe(true);
   const key = (await notice.locator('code').textContent())?.trim() ?? '';
   expect(/^hlk_[A-Za-z0-9_-]{43}$/.test(key), 'a private recovery key was created').toBe(true);
-  await expect(notice.getByRole('button', { name: doneLabel, exact: true })).toBeDisabled();
+  await expect.poll(() => notice.getByRole('button', { name: doneLabel, exact: true }).isDisabled(), { message: 'saving the key requires acknowledgment' }).toBe(true);
   await notice.getByRole('checkbox', { name: 'I saved this key in a safe place.' }).check();
   await notice.getByRole('button', { name: doneLabel, exact: true }).click();
-  await expect(notice).toHaveCount(0);
+  await expect.poll(async () => await notice.count() === 0, { message: 'the acknowledged key is no longer rendered' }).toBe(true);
   return key;
 }
 
 async function submitRecovery(page: Page, key: string) {
   await page.goto('/app/onboarding?mode=restore');
   const input = page.getByLabel('Recovery key', { exact: true });
-  await expect(input).toBeEditable();
+  await expect.poll(() => input.isEditable(), { message: 'the recovery field is editable' }).toBe(true);
   // Setting the controlled field in-page avoids including the key in a failed
   // locator.fill call log. The user-facing submit button still drives restore.
   await input.evaluate((element, value) => {
@@ -31,6 +35,30 @@ async function submitRecovery(page: Page, key: string) {
   }, key);
   await page.getByRole('button', { name: 'Restore my profile', exact: true }).click();
 }
+
+test('an unsaved recovery key survives browser Back and warns before a reload', async ({ page }) => {
+  await page.goto('/app');
+  await onboard(page, { nickname: 'Key navigation check', role: 'learner' });
+  await page.getByRole('link', { name: 'Me', exact: true }).click();
+  await page.getByRole('button', { name: 'Create recovery key', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Keep this key somewhere safe.' });
+  await expect.poll(() => dialog.isVisible(), { message: 'the private key dialog opened' }).toBe(true);
+  const key = await dialog.locator('code').textContent();
+  await page.goBack();
+  await expect.poll(() => /\/app$/.test(page.url()), { message: 'browser Back reached the app home' }).toBe(true);
+  await expect.poll(() => dialog.isVisible(), { message: 'browser Back kept the private key dialog' }).toBe(true);
+  expect((await dialog.locator('code').textContent()) === key, 'navigation retained the same private key in memory').toBe(true);
+  await page.keyboard.press('Escape');
+  await expect.poll(() => dialog.isVisible(), { message: 'Escape kept the unacknowledged key dialog' }).toBe(true);
+  const warning = page.waitForEvent('dialog', { timeout: 10_000 }).then(async event => {
+    expect(event.type()).toBe('beforeunload'); await event.dismiss();
+  });
+  await Promise.all([warning, page.evaluate(() => window.location.reload())]);
+  await expect.poll(() => dialog.isVisible(), { message: 'cancelled reload kept the private key dialog' }).toBe(true);
+  expect((await dialog.locator('code').textContent()) === key, 'cancelled reload retained the private key').toBe(true);
+  await saveDisplayedKey(page);
+  expect((await page.request.delete('/api/session')).status()).toBe(204);
+});
 
 test('saved practice survives recovery, replacement, export, and deliberate deletion', async ({ page, browser }, testInfo) => {
   test.setTimeout(90_000);
@@ -89,7 +117,7 @@ test('saved practice survives recovery, replacement, export, and deliberate dele
     const thirdKey = await saveDisplayedKey(restored);
     expect(thirdKey !== secondKey, 'explicit replacement creates a different key').toBe(true);
     await submitRecovery(replacement, secondKey);
-    await expect(replacement.getByRole('main').getByRole('alert')).toContainText('That recovery key is invalid or has already been replaced.');
+    await expect.poll(async () => (await replacement.getByRole('main').getByRole('alert').textContent())?.includes('That recovery key is invalid or has already been replaced.') === true, { message: 'the consumed key is rejected' }).toBe(true);
     await submitRecovery(replacement, thirdKey);
     const currentKey = await saveDisplayedKey(replacement, 'Continue to my profile');
     await expect(replacement.getByRole('heading', { name: '안녕하세요, Continuity check', exact: true })).toBeVisible();
@@ -120,7 +148,7 @@ test('saved practice survives recovery, replacement, export, and deliberate dele
     await expect(replacement).toHaveURL(/\/app\/onboarding/);
     expect((await replacement.request.get('/api/account/export')).status()).toBe(401);
     await submitRecovery(replacement, currentKey);
-    await expect(replacement.getByRole('main').getByRole('alert')).toContainText('That recovery key is invalid or has already been replaced.');
+    await expect.poll(async () => (await replacement.getByRole('main').getByRole('alert').textContent())?.includes('That recovery key is invalid or has already been replaced.') === true, { message: 'the deleted profile key is rejected' }).toBe(true);
   } finally {
     await context.close();
     await replacementContext.close();

@@ -22,6 +22,9 @@ function PastAttempt({ attempt, mission }: { attempt: Attempt; mission?: Mission
 }
 
 export function AttemptJournal({ missions, missionId }: { missions: MissionWithProgress[]; missionId?: string }) {
+  return <JournalForMission key={missionId ?? 'all'} missions={missions} missionId={missionId} />;
+}
+function JournalForMission({ missions, missionId }: { missions: MissionWithProgress[]; missionId?: string }) {
   const first = useApi(() => progressApi.history({ limit: 10, missionId }), [missionId]);
   const [pages, setPages] = useState<AttemptHistory[]>([]); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const lock = useRef(false); const alive = useRef(true); const sessionExpired = useSessionExpired();

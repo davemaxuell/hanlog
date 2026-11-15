@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { ConvertError, blobToScoringWav, toMono16k } from '@/lib/audio/to-wav';
 import { validateScoringWav } from '@/lib/audio/wav';
 
@@ -22,4 +22,10 @@ it('reports undecodable and too-short input', async () => {
   await expect(blobToScoringWav(blob, async () => { throw new Error('bad data'); })).rejects.toMatchObject({ code: 'undecodable' });
   await expect(blobToScoringWav(blob, async () => ({ sampleRate: 16000, channels: [new Float32Array(3200)] }))).rejects.toMatchObject({ code: 'too_short' });
   await expect(blobToScoringWav(blob, async () => ({ sampleRate: 16000, channels: [] }))).rejects.toBeInstanceOf(ConvertError);
+});
+it('rejects oversized input before allocating bytes or decoding', async () => {
+  const decode = vi.fn(); const arrayBuffer = vi.fn();
+  const blob = { size: 4_000_001, arrayBuffer } as unknown as Blob;
+  await expect(blobToScoringWav(blob, decode)).rejects.toMatchObject({ code: 'audio_too_large' });
+  expect(arrayBuffer).not.toHaveBeenCalled(); expect(decode).not.toHaveBeenCalled();
 });

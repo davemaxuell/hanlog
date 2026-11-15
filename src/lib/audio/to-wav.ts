@@ -2,8 +2,8 @@ import { LIMITS } from '../contracts';
 import { encodeWavPcm16, resampleLinear } from './wav';
 export type Decoder = (data: ArrayBuffer) => Promise<{ sampleRate: number; channels: Float32Array[] }>;
 export class ConvertError extends Error {
-  readonly code: 'undecodable' | 'too_short';
-  constructor(code: 'undecodable' | 'too_short') { super(code); this.name = 'ConvertError'; this.code = code; }
+  readonly code: 'undecodable' | 'too_short' | 'audio_too_large';
+  constructor(code: 'undecodable' | 'too_short' | 'audio_too_large') { super(code); this.name = 'ConvertError'; this.code = code; }
 }
 export function toMono16k(channels: Float32Array[], sampleRate: number, maxMs: number = LIMITS.scoringWav.maxMs): Float32Array {
   if (!channels.length || !Number.isFinite(sampleRate) || sampleRate <= 0 || !channels[0].length) throw new ConvertError('undecodable');
@@ -18,8 +18,9 @@ const browserDecode: Decoder = async data => {
   const context = new AudioContextClass();
   try {
     const decoded = await context.decodeAudioData(data);
-    return { sampleRate: decoded.sampleRate, channels: Array.from({ length: decoded.numberOfChannels }, (_, i) => decoded.getChannelData(i).slice()) };
-  } finally { await context.close(); }
+    const needed = Math.ceil(decoded.sampleRate * LIMITS.scoringWav.maxMs / 1000);
+    return { sampleRate: decoded.sampleRate, channels: Array.from({ length: decoded.numberOfChannels }, (_, i) => decoded.getChannelData(i).slice(0, needed)) };
+  } finally { await context.close().catch(() => {}); }
 };
 async function bytesOf(blob: Blob): Promise<ArrayBuffer> {
   if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
@@ -27,6 +28,7 @@ async function bytesOf(blob: Blob): Promise<ArrayBuffer> {
 }
 export async function blobToScoringWav(blob: Blob, decode: Decoder = browserDecode): Promise<Uint8Array> {
   try {
+    if (blob.size > LIMITS.peerMedia.maxBytes) throw new ConvertError('audio_too_large');
     const decoded = await decode(await bytesOf(blob));
     const samples = toMono16k(decoded.channels, decoded.sampleRate);
     if (samples.length / LIMITS.scoringWav.sampleRate * 1000 < LIMITS.recorder.minMs) throw new ConvertError('too_short');

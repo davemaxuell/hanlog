@@ -78,3 +78,13 @@ it('locks retake while an asynchronous submit is pending even without a busy pro
   await userEvent.click(await screen.findByRole('button', { name: 'Send answer' }));
   expect(screen.getByRole('button', { name: 'Retake' })).toBeDisabled();
 });
+it('retries a network failure using the same recording', async () => {
+  const deps = fakeDeps(); const onSubmit = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined);
+  render(<Recorder modes={['audio']} submitLabel="Send answer" onSubmit={onSubmit} deps={deps} />);
+  await record(deps);
+  await userEvent.click(await screen.findByRole('button', { name: 'Send answer' }));
+  await screen.findByRole('alert');
+  await userEvent.click(screen.getByRole('button', { name: 'Send answer' }));
+  expect(onSubmit).toHaveBeenCalledTimes(2);
+  expect(onSubmit.mock.calls[1][0].blob).toBe(onSubmit.mock.calls[0][0].blob);
+});

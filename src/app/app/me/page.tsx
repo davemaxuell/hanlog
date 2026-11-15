@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Key, DownloadSimple, UserCircle, SignOut, CheckCircle } from '@phosphor-icons/react';
 import { api, ApiClientError } from '@/lib/api-client';
 import { accountApi } from '@/lib/account-client';
@@ -10,45 +9,48 @@ import { countChars, isValidNickname, type Role } from '@/lib/contracts';
 import { useSession, useSessionExpired } from '@/lib/ui/session-context';
 import { errorCopy } from '@/lib/ui/error-copy';
 import { Button, Field, Ko, StatusNote } from '@/components/ui';
-import { RecoveryKeyNotice, downloadBlob } from '@/components/account/RecoveryKeyNotice';
+import { downloadBlob } from '@/components/account/RecoveryKeyNotice';
+import { useRecoveryKey } from '@/components/account/RecoveryKeyProvider';
 import styles from '@/components/account/account.module.css';
 
 export default function Me() {
-  const { user, setUser, clearSession } = useSession(); const sessionExpired = useSessionExpired(); const router = useRouter();
+  const { user, setUser, endSession } = useSession(); const sessionExpired = useSessionExpired();
   const [nickname, setNickname] = useState(user.nickname); const [busy, setBusy] = useState(false); const [saved, setSaved] = useState(false);
   const [error, setError] = useState(''); const [deleteError, setDeleteError] = useState('');
   const [account, setAccount] = useState<AccountStatus | null>(null); const [accountError, setAccountError] = useState(''); const [accountRevision, setAccountRevision] = useState(0);
-  const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
+  const { pending: recoveryKey, showRecoveryKey } = useRecoveryKey();
   const lock = useRef(false); const dialog = useRef<HTMLDialogElement>(null); const rotateDialog = useRef<HTMLDialogElement>(null); const logoutDialog = useRef<HTMLDialogElement>(null);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => {
     let current = true;
-    void accountApi.status().then(value => { if (current) { setAccount(value); setAccountError(''); } }).catch(() => { if (current) setAccountError('We could not check your recovery settings.'); });
+    void accountApi.status().then(value => { if (current) { setAccount(value); setAccountError(''); } }).catch(cause => { if (current) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setAccountError('We could not check your recovery settings.'); } });
     return () => { current = false; };
-  }, [user.id, accountRevision]);
-  function handle(cause: unknown) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
+  }, [user.id, accountRevision, sessionExpired]);
+  function handle(cause: unknown) { if (!alive.current) return; if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
   async function update(patch: Parameters<typeof api.updateSession>[0]) {
     if (lock.current) return; lock.current = true; setBusy(true); setSaved(false); setError('');
-    try { setUser(await api.updateSession(patch)); setSaved(true); } catch (cause) { handle(cause); } finally { lock.current = false; setBusy(false); }
+    try { const updated = await api.updateSession(patch); if (alive.current) { setUser(updated); setSaved(true); } } catch (cause) { handle(cause); } finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   async function generateKey() {
     if (lock.current) return; lock.current = true; setBusy(true); setError('');
-    try { const result = await accountApi.createRecoveryKey(); setRecoveryKey(result.recoveryKey); setAccount({ recoveryEnabled: true, recoveryUpdatedAt: new Date().toISOString() }); rotateDialog.current?.close(); }
-    catch (cause) { handle(cause); } finally { lock.current = false; setBusy(false); }
+    try { const result = await accountApi.createRecoveryKey(); if (alive.current) { setAccount({ recoveryEnabled: true, recoveryUpdatedAt: new Date().toISOString() }); rotateDialog.current?.close(); } showRecoveryKey(result.recoveryKey); }
+    catch (cause) { handle(cause); } finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   async function exportData() {
     if (lock.current) return; lock.current = true; setBusy(true); setError('');
-    try { downloadBlob(await accountApi.exportData(), `hanlog-data-${new Date().toISOString().slice(0, 10)}.json`); } catch (cause) { handle(cause); } finally { lock.current = false; setBusy(false); }
+    try { const data = await accountApi.exportData(); if (alive.current) downloadBlob(data, `hanlog-data-${new Date().toISOString().slice(0, 10)}.json`); } catch (cause) { handle(cause); } finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   async function logout() {
     if (lock.current) return; lock.current = true; setBusy(true); setError('');
-    try { await accountApi.logout(); logoutDialog.current?.close(); clearSession(); router.replace('/app/onboarding?mode=restore'); }
-    catch (cause) { handle(cause); } finally { lock.current = false; setBusy(false); }
+    try { await accountApi.logout(); if (alive.current) { logoutDialog.current?.close(); endSession('/app/onboarding?mode=restore'); } }
+    catch (cause) { handle(cause); } finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   async function remove() {
     if (lock.current) return; lock.current = true; setBusy(true); setDeleteError('');
-    try { await api.deleteSession(); dialog.current?.close(); router.replace('/'); }
-    catch (cause) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setDeleteError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
-    finally { lock.current = false; setBusy(false); }
+    try { await api.deleteSession(); if (alive.current) { dialog.current?.close(); endSession('/'); } }
+    catch (cause) { if (alive.current) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setDeleteError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); } }
+    finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   const roleChoice = (role: Role) => { if (role !== user.role) void update({ role }); };
   return <div className="hl-stack">
@@ -58,15 +60,15 @@ export default function Me() {
       <section className={styles.section} aria-labelledby="profile-heading"><div className={styles.sectionHeader}><UserCircle size={28} aria-hidden="true" /><h2 id="profile-heading">Make it yours</h2></div><form className="hl-stack" onSubmit={event => { event.preventDefault(); if (isValidNickname(nickname)) void update({ nickname: nickname.trim() }); }}><Field label="Nickname" value={nickname} onChange={event => { setNickname(event.target.value); setSaved(false); }} autoComplete="nickname" hint="2 to 20 characters." counter={{ value: countChars(nickname), max: 20 }} disabled={busy} /><div><Button type="submit" disabled={!isValidNickname(nickname)} busy={busy} busyLabel="Saving…">Save</Button></div></form>{saved && <StatusNote tone="success">Saved.</StatusNote>}
         <fieldset className="hl-role-options" disabled={busy}><legend>Your role</legend><label><input type="radio" name="role" checked={user.role === 'learner'} onChange={() => roleChoice('learner')} /><span>I&apos;m learning Korean</span></label><label><input type="radio" name="role" checked={user.role === 'korean'} onChange={() => roleChoice('korean')} /><span>I speak Korean · <Ko>한국어 화자예요</Ko></span></label></fieldset><p className="hl-caption">Choose how you want to participate. Roles are self-selected, not a language qualification.</p>
       </section>
-      <section id="recovery" className={styles.section} aria-labelledby={recoveryKey ? undefined : "recovery-heading"}>
-        {recoveryKey ? <RecoveryKeyNotice recoveryKey={recoveryKey} onDone={() => setRecoveryKey(null)} /> : <>
+      <section id="recovery" className={styles.section} aria-labelledby="recovery-heading">
+        <>
           <div className={styles.sectionHeader}><Key size={28} aria-hidden="true" /><h2 id="recovery-heading">Keep your progress</h2></div>
           <p>A private recovery key lets you bring this profile to another device. No email or password required.</p>
           {accountError ? <><StatusNote tone="error">{accountError}</StatusNote><Button variant="secondary" onClick={() => setAccountRevision(n => n + 1)}>Retry recovery settings</Button></> : account ? <>
             {account.recoveryEnabled ? <><p className={styles.savedMark}><CheckCircle size={21} weight="fill" aria-hidden="true" />Recovery is set up</p><p className="hl-caption">We cannot show your old key. If you lost it, replace it here while you are still signed in.</p><Button variant="secondary" disabled={busy} onClick={() => { setError(''); rotateDialog.current?.showModal(); }}>Replace recovery key</Button></> : <><StatusNote tone="info">This profile currently depends on this browser. Save a key before clearing cookies or signing out.</StatusNote><Button disabled={busy} onClick={() => void generateKey()}>Create recovery key</Button></>}
           </> : <p role="status">Checking recovery settings…</p>}
           <Link href="/help#recovery">How recovery works</Link>
-        </>}
+        </>
       </section>
       <section className={styles.section} aria-labelledby="data-heading"><div className={styles.sectionHeader}><DownloadSimple size={28} aria-hidden="true" /><h2 id="data-heading">Your learning, to keep</h2></div><p>Download your profile, practice history, points, and written contributions as a JSON file. Recovery keys and recordings are not included.</p><div><Button variant="secondary" disabled={busy} onClick={() => void exportData()}>Download my data</Button></div><div className={styles.inlineLinks}><Link href="/app/progress">View my progress →</Link><Link href="/app/rewards">Points & milestones →</Link></div></section>
       <section className={styles.section} aria-labelledby="session-heading"><div className={styles.sectionHeader}><SignOut size={28} aria-hidden="true" /><h2 id="session-heading">Take a break</h2></div><p>Sign out on every device without deleting your progress. You will need your saved recovery key to come back.</p><div><Button variant="secondary" disabled={busy || !account?.recoveryEnabled || !!recoveryKey} onClick={() => { setError(''); logoutDialog.current?.showModal(); }}>Sign out everywhere</Button></div>{!account?.recoveryEnabled && <p className="hl-caption">Set up recovery first so you can find your way back.</p>}</section>

@@ -7,6 +7,7 @@ vi.mock('@/lib/community-client', async () => { const { mockApi } = await import
 import { ChallengeDetailPage } from '@/components/challenge/ChallengeDetailPage';
 import { MediaPlayer } from '@/components/challenge/MediaPlayer';
 import { ApiClientError } from '@/lib/api-client';
+import { communityApi } from '@/lib/community-client';
 import { SessionProvider } from '@/lib/ui/session-context';
 import { samples } from '../fixtures/api/samples';
 import { mockApi, nav, resetMocks } from './_helpers';
@@ -31,6 +32,31 @@ it('lets a learner answer with voice or video', async () => {
   await userEvent.click(await screen.findByRole('button', { name: 'Send answer' }));
   expect(mockApi.submitResponse).toHaveBeenCalledWith(samples.challenge.id, expect.objectContaining({ kind: 'audio', durationMs: 4000 }));
   expect(await screen.findByText(`Sent. ${samples.challenge.author.nickname} will rate it.`)).toBeInTheDocument();
+});
+it('hides the previous conversation immediately when navigating to another challenge', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.getChallenge.mockResolvedValueOnce(samples.challengeDetailForLearner).mockReturnValueOnce(new Promise(() => {}));
+  nav.params = { id: samples.challenge.id };
+  const view = render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await screen.findByText(samples.challenge.korean);
+  nav.params = { id: '00000000-0000-4000-8000-000000000099' };
+  view.rerender(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  expect(screen.queryByText(samples.challenge.korean)).toBeNull();
+  expect(screen.getByText('Opening this challenge…')).toBeInTheDocument();
+});
+it('does not carry the reported state into a different challenge', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.getChallenge.mockResolvedValue(samples.challengeDetailForLearner);
+  vi.mocked(communityApi.reportChallenge).mockResolvedValue(undefined);
+  nav.params = { id: samples.challenge.id };
+  const view = render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await userEvent.click(await screen.findByRole('button', { name: 'Report challenge' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Yes, report it' }));
+  await screen.findByRole('heading', { name: 'Challenge reported.' });
+  nav.params = { id: '00000000-0000-4000-8000-000000000099' };
+  view.rerender(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  expect(await screen.findByText(samples.challenge.korean)).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Challenge reported.' })).toBeNull();
 });
 it('shows a responder the rating and takes feedback once', async () => {
   mockApi.getSession.mockResolvedValue(samples.user);

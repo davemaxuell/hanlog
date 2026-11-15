@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Microphone, ChatsCircle, Notebook } from '@phosphor-icons/react';
 import { api, ApiClientError } from '@/lib/api-client';
 import { accountApi } from '@/lib/account-client';
-import { RecoveryKeySchema, type RecoveryResult } from '@/lib/account-contracts';
+import { RecoveryKeySchema } from '@/lib/account-contracts';
 import { countChars, isValidNickname, type Role } from '@/lib/contracts';
 import { Button, Field, Ko, StatusNote } from '@/components/ui';
-import { RecoveryKeyNotice } from '@/components/account/RecoveryKeyNotice';
+import { useRecoveryKey } from '@/components/account/RecoveryKeyProvider';
 import { CONSENT_TEXT, safeNext, useOptionalSession } from '@/lib/ui/session-context';
 import { errorCopy } from '@/lib/ui/error-copy';
 import styles from '@/components/account/account.module.css';
@@ -17,15 +17,17 @@ export default function Onboarding() {
   const router = useRouter(); const search = useSearchParams(); const { user, setUser } = useOptionalSession(); const next = safeNext(search.get('next'));
   const [mode, setMode] = useState<'new' | 'restore'>(search.get('mode') === 'restore' ? 'restore' : 'new');
   const [nickname, setNickname] = useState(''); const [role, setRole] = useState<Role>('learner'); const [consent, setConsent] = useState(false);
-  const [recoveryKey, setRecoveryKey] = useState(''); const [restored, setRestored] = useState<RecoveryResult | null>(null);
+  const [recoveryKey, setRecoveryKey] = useState(''); const { pending, showRecoveryKey } = useRecoveryKey();
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const lock = useRef(false); const retryId = useRef<string | null>(null);
-  useEffect(() => { if (user && mode === 'new' && !restored) router.replace(next); }, [user, router, next, mode, restored]);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { if (user && mode === 'new' && !pending) router.replace(next); }, [user, router, next, mode, pending]);
   const start = async () => {
     if (lock.current || !consent || !isValidNickname(nickname)) return;
     lock.current = true; setBusy(true); setError('');
-    try { setUser(await api.createSession({ nickname: nickname.trim(), role })); router.replace(next); }
-    catch (cause) { setError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
-    finally { lock.current = false; setBusy(false); }
+    try { const created = await api.createSession({ nickname: nickname.trim(), role }); if (alive.current) { setUser(created); router.replace(next); } }
+    catch (cause) { if (alive.current) setError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
+    finally { lock.current = false; if (alive.current) setBusy(false); }
   };
   const restore = async () => {
     if (lock.current || !RecoveryKeySchema.safeParse(recoveryKey).success) return;
@@ -37,15 +39,14 @@ export default function Onboarding() {
         try { sessionStorage.setItem('hl_restore_request', retryId.current); } catch { /* The in-memory proof still supports retries. */ }
       }
       const result = await accountApi.restore(recoveryKey.trim(), retryId.current);
-      setRestored(result); setRecoveryKey('');
+      showRecoveryKey(result.recoveryKey, next); if (alive.current) { setRecoveryKey(''); setUser(result.user); }
       try { sessionStorage.removeItem('hl_restore_request'); } catch { /* No credential was persisted. */ }
-    } catch (cause) { setError(cause instanceof ApiClientError && ['invalid_input', 'unauthenticated', 'daily_limit'].includes(cause.code) ? cause.message : 'We could not finish restoring your profile. Keep this page open and try again.'); }
-    finally { lock.current = false; setBusy(false); }
+    } catch (cause) { if (alive.current) setError(cause instanceof ApiClientError && ['invalid_input', 'unauthenticated', 'daily_limit'].includes(cause.code) ? cause.message : 'We could not finish restoring your profile. Keep this page open and try again.'); }
+    finally { lock.current = false; if (alive.current) setBusy(false); }
   };
-  function finishRestore() { if (restored) { setUser(restored.user); setRestored(null); router.replace(next); } }
   return <div className={styles.onboarding}>
     <aside className={styles.welcome}><span className={styles.welcomeStar} aria-hidden="true">✦</span><h1>{mode === 'restore' ? 'Your words are waiting.' : 'Make room for your Korean.'}</h1><p>{mode === 'restore' ? 'Bring your expressions, feedback, and small wins with you.' : 'Start small. Speak a little. Find your people along the way.'}</p><ul className={styles.welcomeList}><li><Microphone size={23} aria-hidden="true" />Short speaking missions</li><li><ChatsCircle size={23} aria-hidden="true" />Feedback from Korean-speaking peers</li><li><Notebook size={23} aria-hidden="true" />Your own growing phrasebook</li></ul></aside>
-    <div className={styles.formPanel}>{restored ? <RecoveryKeyNotice recoveryKey={restored.recoveryKey} onDone={finishRestore} doneLabel="Continue to my profile" /> : <>
+    <div className={styles.formPanel}><>
       <div className={styles.switcher} aria-label="Profile access"><button type="button" aria-pressed={mode === 'new'} disabled={busy} onClick={() => { setMode('new'); setError(''); }}>Start fresh</button><button type="button" aria-pressed={mode === 'restore'} disabled={busy} onClick={() => { setMode('restore'); setError(''); }}>I have a recovery key</button></div>
       {mode === 'new' ? <form className="hl-stack" onSubmit={event => { event.preventDefault(); void start(); }}>
         <Field label="Nickname" value={nickname} onChange={event => setNickname(event.target.value)} hint="2 to 20 characters. Letters, numbers, spaces, dots, underscores, or hyphens." counter={{ value: countChars(nickname), max: 20 }} autoComplete="nickname" disabled={busy} />
@@ -59,6 +60,6 @@ export default function Onboarding() {
         {error && <StatusNote tone="error">{error}</StatusNote>}<Button type="submit" busy={busy} busyLabel="Restoring…" disabled={!RecoveryKeySchema.safeParse(recoveryKey).success}>Restore my profile</Button>
         <p className="hl-caption">Lost your key? We cannot recover a profile by nickname. If you still have it open on another device, create a replacement key there.</p><Link href="/help#recovery">Help with recovery</Link>
       </form>}
-    </>}</div>
+    </></div>
   </div>;
 }

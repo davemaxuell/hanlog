@@ -32,3 +32,13 @@ it('shows a focused empty state for a mission without inventing progress', async
   expect(await screen.findByText('This expression is waiting for your voice.')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Choose a practice →' })).toHaveAttribute('href', `/app/missions/${samples.missions[0].id}`);
 });
+it('does not carry earlier pages into another mission history', async () => {
+  const first = samples.attemptResult.attempt;
+  progressMock.history.mockResolvedValueOnce({ attempts: [first], nextCursor: 'older' }).mockResolvedValueOnce({ attempts: [{ ...first, id: '00000000-0000-4000-8000-000000000099' }], nextCursor: null }).mockResolvedValueOnce({ attempts: [], nextCursor: null });
+  const view = render(<AttemptJournal missions={samples.missions} missionId={samples.missions[0].id} />);
+  await userEvent.click(await screen.findByRole('button', { name: 'Load earlier attempts' }));
+  expect(screen.getByRole('list', { name: 'Past speaking attempts' }).children).toHaveLength(2);
+  view.rerender(<AttemptJournal missions={samples.missions} missionId={samples.missions[1].id} />);
+  expect(await screen.findByText('This expression is waiting for your voice.')).toBeInTheDocument();
+  expect(screen.queryByRole('list', { name: 'Past speaking attempts' })).toBeNull();
+});

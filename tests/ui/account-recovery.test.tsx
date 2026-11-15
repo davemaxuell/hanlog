@@ -1,3 +1,4 @@
+import { RecoveryKeyProvider } from '@/components/account/RecoveryKeyProvider';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -21,7 +22,7 @@ beforeEach(() => {
 it('requires saving the new recovery key before completing a restored profile', async () => {
   nav.pathname = '/app/onboarding'; nav.search = new URLSearchParams('mode=restore&next=%2Fapp%2Fprogress');
   mockApi.getSession.mockResolvedValue(null); account.restore.mockResolvedValue({ user: samples.user, recoveryKey: newKey });
-  render(<SessionProvider><Onboarding /></SessionProvider>);
+  render(<RecoveryKeyProvider><SessionProvider><Onboarding /></SessionProvider></RecoveryKeyProvider>);
   await userEvent.type(await screen.findByLabelText('Recovery key'), oldKey);
   await userEvent.click(screen.getByRole('button', { name: 'Restore my profile' }));
   expect(await screen.findByText(newKey)).toBeInTheDocument();
@@ -36,7 +37,7 @@ it('retains the same retry proof after a lost restore response and never saves t
   nav.pathname = '/app/onboarding'; nav.search = new URLSearchParams('mode=restore');
   mockApi.getSession.mockResolvedValue(null);
   account.restore.mockRejectedValueOnce(new ApiClientError('internal', 0, 'Connection lost')).mockResolvedValueOnce({ user: samples.user, recoveryKey: newKey });
-  render(<SessionProvider><Onboarding /></SessionProvider>);
+  render(<RecoveryKeyProvider><SessionProvider><Onboarding /></SessionProvider></RecoveryKeyProvider>);
   await userEvent.type(await screen.findByLabelText('Recovery key'), oldKey);
   await userEvent.click(screen.getByRole('button', { name: 'Restore my profile' }));
   await screen.findByRole('alert');
@@ -48,7 +49,7 @@ it('retains the same retry proof after a lost restore response and never saves t
 it('offers a recovery key and keeps sign-out unavailable until recovery is ready', async () => {
   nav.pathname = '/app/me'; mockApi.getSession.mockResolvedValue(samples.user);
   account.createRecoveryKey.mockResolvedValue({ user: samples.user, recoveryKey: newKey });
-  render(<SessionProvider><Me /></SessionProvider>);
+  render(<RecoveryKeyProvider><SessionProvider><Me /></SessionProvider></RecoveryKeyProvider>);
   expect(await screen.findByRole('button', { name: 'Sign out everywhere' })).toBeDisabled();
   await userEvent.click(await screen.findByRole('button', { name: 'Create recovery key' }));
   expect(await screen.findByText(newKey)).toBeInTheDocument();
@@ -57,4 +58,31 @@ it('offers a recovery key and keeps sign-out unavailable until recovery is ready
   await userEvent.click(screen.getByRole('button', { name: 'I saved my key' }));
   expect(screen.queryByText(newKey)).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Sign out everywhere' })).toBeEnabled();
+});
+it('keeps an unacknowledged replacement key when browser navigation replaces the page', async () => {
+  nav.pathname = '/app/me'; mockApi.getSession.mockResolvedValue(samples.user);
+  account.createRecoveryKey.mockResolvedValue({ user: samples.user, recoveryKey: newKey });
+  const view = render(<RecoveryKeyProvider><SessionProvider><Me /></SessionProvider></RecoveryKeyProvider>);
+  await userEvent.click(await screen.findByRole('button', { name: 'Create recovery key' }));
+  await screen.findByText(newKey);
+  nav.pathname = '/app/progress';
+  view.rerender(<RecoveryKeyProvider><SessionProvider><p>Another page</p></SessionProvider></RecoveryKeyProvider>);
+  expect(screen.getByText(newKey)).toBeInTheDocument();
+  const unload = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(unload);
+  expect(unload.defaultPrevented).toBe(true);
+  expect(JSON.stringify({ ...sessionStorage, ...localStorage })).not.toContain(newKey);
+});
+it('keeps the explicit restore destination after signing out', async () => {
+  nav.pathname = '/app/me'; mockApi.getSession.mockResolvedValue(samples.user);
+  account.status.mockResolvedValue({ recoveryEnabled: true, recoveryUpdatedAt: null });
+  account.logout.mockResolvedValue(undefined);
+  const view = render(<RecoveryKeyProvider><SessionProvider><Me /></SessionProvider></RecoveryKeyProvider>);
+  await userEvent.click(await screen.findByRole('button', { name: 'Sign out everywhere' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Yes, sign out' }));
+  await waitFor(() => expect(nav.replace.mock.calls).toEqual([['/app/onboarding?mode=restore']]));
+  nav.pathname = '/app/onboarding';
+  view.rerender(<RecoveryKeyProvider><SessionProvider><p>Signed out</p></SessionProvider></RecoveryKeyProvider>);
+  nav.pathname = '/app';
+  view.rerender(<RecoveryKeyProvider><SessionProvider><p>Private page</p></SessionProvider></RecoveryKeyProvider>);
+  await waitFor(() => expect(nav.replace).toHaveBeenLastCalledWith('/app/onboarding?next=%2Fapp'));
 });

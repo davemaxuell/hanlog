@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { isPreview, siteUrl } from '@/lib/site';
+import { RecoveryKeyProvider } from '@/components/account/RecoveryKeyProvider';
 import './globals.css';
 const paperlogy = localFont({ src: '../assets/fonts/Paperlogy-Bold.woff2', variable: '--font-paperlogy', weight: '700', display: 'swap', preload: false });
 const pretendard = localFont({ src: [
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#D2F6FC' };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en" className={`${paperlogy.variable} ${pretendard.variable}`}><body>{children}</body></html>;
+  return <html lang="en" className={`${paperlogy.variable} ${pretendard.variable}`}><body><RecoveryKeyProvider>{children}</RecoveryKeyProvider></body></html>;
 }

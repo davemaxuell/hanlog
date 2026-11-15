@@ -30,8 +30,13 @@ function AnswersList({ challengeId, responses, nextCursor }: { challengeId: stri
     {action.error && <StatusNote tone="error">{action.error}</StatusNote>}
   </section>;
 }
-export function ChallengeDetailPage({ recorderDeps, focusedResponseId }: { recorderDeps?: Partial<RecorderDeps>; focusedResponseId?: string }) {
-  const { id } = useParams<{ id: string }>(); const { user } = useSession(); const request = useApi(() => communityApi.getChallenge(id, focusedResponseId), [id, user.role, focusedResponseId]);
+type DetailProps = { recorderDeps?: Partial<RecorderDeps>; focusedResponseId?: string };
+export function ChallengeDetailPage(props: DetailProps) {
+  const { id } = useParams<{ id: string }>();
+  return <ChallengeConversation key={id} id={id} {...props} />;
+}
+function ChallengeConversation({ id, recorderDeps, focusedResponseId }: DetailProps & { id: string }) {
+  const { user } = useSession(); const request = useApi(() => communityApi.getChallenge(id, focusedResponseId), [id, user.role, focusedResponseId]);
   const [reporting, setReporting] = useState(false); const [reported, setReported] = useState(false); const reportAction = useReportAction();
   const focused = useRef<string | null>(null);
   useEffect(() => {

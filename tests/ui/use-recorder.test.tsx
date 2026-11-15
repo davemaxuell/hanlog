@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { expect, it, vi } from 'vitest';
 import { pickMimeType, useRecorder } from '@/components/recorder/useRecorder';
-import { fakeDeps } from './_fakes';
+import { fakeDeps, FakeMediaRecorder, fakeStream } from './_fakes';
 
 it('picks the first supported type', () => {
   expect(pickMimeType('audio', (t) => t === 'audio/mp4')).toBe('audio/mp4');
@@ -87,4 +87,40 @@ it('still releases microphone tracks when a level meter fails during teardown', 
   expect(() => act(() => result.current.stop())).not.toThrow();
   expect(deps.streams[0].stopped()).toBe(true);
   await waitFor(() => expect(result.current.status).toBe('recorded'));
+});
+it('releases the microphone and reports failure when the browser throws while stopping', async () => {
+  const deps = fakeDeps({ createRecorder: (stream, options) => {
+    const recorder = new FakeMediaRecorder(stream, options);
+    recorder.stop = () => { throw new DOMException('Device disconnected', 'InvalidStateError'); };
+    return recorder as unknown as MediaRecorder;
+  } });
+  const { result } = renderHook(() => useRecorder({ deps }));
+  await act(() => result.current.start());
+  deps.clock.advance(1500);
+  expect(() => act(() => result.current.stop())).not.toThrow();
+  expect(deps.streams[0].stopped()).toBe(true);
+  expect(result.current.status).toBe('error');
+});
+it('releases a late permission grant after cancellation', async () => {
+  let grant!: (stream: MediaStream) => void;
+  const stream = fakeStream();
+  const { result } = renderHook(() => useRecorder({ deps: fakeDeps({ getUserMedia: () => new Promise(resolve => { grant = resolve; }) }) }));
+  act(() => { void result.current.start(); });
+  act(() => result.current.reset());
+  await act(async () => grant(stream));
+  expect(stream.stopped()).toBe(true);
+  expect(result.current.status).toBe('idle');
+});
+it('does not allow a second recording while stop is waiting for final browser data', async () => {
+  const deps = fakeDeps({ createRecorder: (stream, options) => {
+    const recorder = new FakeMediaRecorder(stream, options);
+    recorder.stop = () => { recorder.state = 'inactive'; };
+    return recorder as unknown as MediaRecorder;
+  } });
+  const { result } = renderHook(() => useRecorder({ deps }));
+  await act(() => result.current.start());
+  act(() => { deps.clock.advance(1500); result.current.stop(); });
+  await act(() => result.current.start());
+  expect(deps.streams).toHaveLength(1);
+  expect(result.current.status).toBe('stopping');
 });

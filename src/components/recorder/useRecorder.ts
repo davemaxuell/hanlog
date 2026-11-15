@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LIMITS, type MediaKind } from '@/lib/contracts';
-export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'recorded' | 'denied' | 'unsupported' | 'error';
+export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'stopping' | 'recorded' | 'denied' | 'unsupported' | 'error';
 export type RecorderResult = { blob: Blob; audioBlob: Blob; kind: MediaKind; mimeType: string; durationMs: number };
 export type RecorderDeps = {
   supported: () => boolean;
@@ -57,7 +57,7 @@ export function useRecorder(opts?: { maxSeconds?: number; deps?: Partial<Recorde
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0); const [level, setLevel] = useState(0);
   const [result, setResult] = useState<RecorderResult | null>(null); const [message, setMessage] = useState<string | null>(null);
-  const alive = useRef(true); const generation = useRef(0); const active = useRef(false);
+  const alive = useRef(true); const generation = useRef(0); const active = useRef(false); const finishing = useRef(false);
   const resources = useRef<{ stream?: MediaStream; full?: Bundle; audio?: Bundle; meter?: ReturnType<RecorderDeps['createLevelMeter']>; timer?: ReturnType<typeof setTimeout>; tick?: ReturnType<typeof setInterval>; startedAt?: number; kind?: MediaKind }>({});
   const release = useCallback(() => {
     const current = resources.current;
@@ -68,26 +68,30 @@ export function useRecorder(opts?: { maxSeconds?: number; deps?: Partial<Recorde
     if (alive.current) { setStream(null); setLevel(0); }
   }, []);
   const cancel = useCallback((note: string | null = null, next: RecorderStatus = 'idle') => {
-    generation.current++; active.current = false;
+    generation.current++; active.current = false; finishing.current = false;
     for (const item of [resources.current.full, resources.current.audio]) if (item?.recorder.state === 'recording') { try { item.recorder.stop(); } catch { /* Still release the stream on device failure. */ } }
     release(); resources.current = {};
     if (alive.current) { setResult(null); setElapsedMs(0); setStatus(next); setMessage(note); }
   }, [release]);
   const stop = useCallback(() => {
     const current = resources.current; if (!active.current || !current.full || current.startedAt === undefined) return;
-    active.current = false; const token = generation.current;
+    active.current = false; finishing.current = true; setStatus('stopping'); const token = generation.current;
     const durationMs = Math.min(maxSeconds * 1000, Math.max(0, Math.round(deps.now() - current.startedAt)));
-    for (const item of [current.full, current.audio]) if (item?.recorder.state === 'recording') item.recorder.stop();
-    release();
+    try { for (const item of [current.full, current.audio]) if (item?.recorder.state === 'recording') item.recorder.stop(); }
+    catch { cancel(MESSAGES.error, 'error'); return; }
+    finally { release(); }
+    // A disconnected browser recorder can fail to deliver its final stop event.
+    current.timer = setTimeout(() => { if (token === generation.current && finishing.current) cancel(MESSAGES.error, 'error'); }, 5000);
     void Promise.all([current.full.finished, current.audio?.finished]).then(([blob, audio]) => {
       if (!alive.current || token !== generation.current) return;
+      clearTimeout(current.timer); finishing.current = false;
       if (durationMs < LIMITS.recorder.minMs) { setStatus('idle'); setMessage(MESSAGES.short); setResult(null); return; }
       if (!blob.size || (audio && !audio.size)) { setStatus('error'); setMessage(MESSAGES.error); return; }
       setElapsedMs(durationMs); setResult({ blob, audioBlob: audio ?? blob, kind: current.kind!, mimeType: blob.type, durationMs }); setStatus('recorded');
     });
-  }, [deps, maxSeconds, release]);
+  }, [deps, maxSeconds, release, cancel]);
   const start = useCallback(async () => {
-    if (active.current) return;
+    if (active.current || finishing.current) return;
     if (!deps.supported()) { setStatus('unsupported'); setMessage(MESSAGES.unsupported); return; }
     active.current = true; const token = ++generation.current;
     setStatus('requesting'); setMessage(null); setResult(null); setElapsedMs(0);
@@ -105,7 +109,7 @@ export function useRecorder(opts?: { maxSeconds?: number; deps?: Partial<Recorde
       for (const item of [full, resources.current.audio]) if (item) { item.recorder.onerror = () => cancel(MESSAGES.error, 'error'); item.recorder.start(); }
       resources.current.startedAt = deps.now();
       try { resources.current.meter = deps.createLevelMeter(media); } catch { /* Recording remains usable without a level meter. */ }
-      resources.current.tick = setInterval(() => { if (alive.current && active.current) { setElapsedMs(Math.min(maxSeconds * 1000, deps.now() - (resources.current.startedAt ?? deps.now()))); setLevel(resources.current.meter?.read() ?? 0); } }, 100);
+      resources.current.tick = setInterval(() => { if (alive.current && active.current) { setElapsedMs(Math.min(maxSeconds * 1000, deps.now() - (resources.current.startedAt ?? deps.now()))); try { setLevel(resources.current.meter?.read() ?? 0); } catch { setLevel(0); } } }, 100);
       resources.current.timer = setTimeout(stop, maxSeconds * 1000);
       setStream(media); setStatus('recording');
     } catch (error) {
@@ -121,6 +125,6 @@ export function useRecorder(opts?: { maxSeconds?: number; deps?: Partial<Recorde
     return () => { alive.current = false; document.removeEventListener('visibilitychange', hidden); cancel(); };
   }, [cancel]);
   const reset = useCallback(() => cancel(), [cancel]);
-  const setMode = useCallback((kind: MediaKind) => { if (!active.current) { cancel(); setModeState(kind); } }, [cancel]);
+  const setMode = useCallback((kind: MediaKind) => { if (!active.current && !finishing.current) { cancel(); setModeState(kind); } }, [cancel]);
   return { status, mode, setMode, stream, elapsedMs, level, result, message, start, stop, reset };
 }
