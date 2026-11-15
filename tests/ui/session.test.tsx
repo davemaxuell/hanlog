@@ -4,6 +4,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', async () => (await import('./_helpers')).navigationMock);
 vi.mock('@/lib/api-client', async (original) => ({ ...(await original<typeof import('@/lib/api-client')>()), api: (await import('./_helpers')).mockApi }));
+vi.mock('@/lib/account-client', () => ({ accountApi: { status: vi.fn().mockResolvedValue({ recoveryEnabled: true, recoveryUpdatedAt: null }) } }));
 
 import Onboarding from '@/app/app/onboarding/page';
 import { AppShell } from '@/components/ui/AppShell';
@@ -100,12 +101,13 @@ it('sends a visitor to onboarding and remembers where they were going', async ()
 it('renders the app for a signed-in user with balance and navigation', async () => {
   mockApi.getSession.mockResolvedValue(samples.user);
   mockApi.getPoints.mockResolvedValue({ balance: 120, events: [] });
-  nav.pathname = '/app/rewards';
+  nav.pathname = '/app/progress';
   render(<SessionProvider><AppShell><Who /></AppShell></SessionProvider>);
   expect(await screen.findByText(`Hello ${samples.user.nickname}`)).toBeInTheDocument();
   expect(await screen.findByText('★ 120 points')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: 'Rewards' })).toHaveAttribute('aria-current', 'page');
-  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(expect.arrayContaining(['/app', '/app/challenges', '/app/rewards', '/app/me']));
+  expect(screen.getByRole('link', { name: 'Progress' })).toHaveAttribute('aria-current', 'page');
+  expect(screen.getByRole('link', { name: 'Your points and milestones' })).toHaveAttribute('href', '/app/rewards');
+  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(expect.arrayContaining(['/app', '/app/missions', '/app/challenges', '/app/progress', '/app/me']));
 });
 it('onboards with nickname, role, and consent', async () => {
   mockApi.getSession.mockResolvedValue(null);

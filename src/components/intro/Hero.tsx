@@ -1,5 +1,26 @@
-import { CornerMark } from '@/components/ui';
+﻿import Link from 'next/link';
+import { ArrowUpRight, ArrowRight, Microphone } from '@phosphor-icons/react/ssr';
 import styles from './intro.module.css';
 export function Hero() {
-  return <section data-section="hero" className={styles.hero} aria-labelledby="hero-heading"><div className={styles.heroText}><CornerMark><p className={styles.eyebrow}>A little Korean. A little more confidence.</p><h1 id="hero-heading">Speak Korean out in the world. Get a score that actually helps.</h1></CornerMark><p className={styles.heroLead}>Real expressions, your real voice, feedback in seconds, and points you can spend.</p><div className={styles.actions}><a className="hl-link-button" href="#try">Try a mission now</a><a className={styles.textLink} href="#how">How it works</a></div></div><svg className={styles.window} viewBox="0 0 320 360" fill="none" aria-hidden="true"><rect x="24" y="20" width="272" height="304" rx="20" fill="var(--color-surface)" stroke="var(--color-control-edge)"/><rect x="48" y="44" width="224" height="232" rx="8" fill="var(--color-canvas)" stroke="var(--color-control-edge)"/><path d="M160 44v232M48 160h224" stroke="var(--color-control-edge)"/><path d="m100 78 7 20 21 1-17 13 6 20-17-12-17 12 6-20-17-13 21-1z" fill="var(--color-action)"/><path d="M184 212h64v40h-64z" fill="var(--color-buttercream)"/><path d="M80 208h40v44H80z" fill="var(--color-blush-star)"/><path d="M48 300h224" stroke="var(--color-control-edge)"/><path d="M12 336h296" stroke="var(--color-control-edge)"/></svg></section>;
+  return <section data-section="hero" className={styles.hero} aria-labelledby="hero-heading">
+    <div className={styles.heroText}>
+      <p className={styles.heroLabel}>Everyday Korean. Real connection.</p>
+      <h1 id="hero-heading">Your day.<br /><span>In Korean.</span></h1>
+      <p className={styles.heroLead}>The café order. The group chat. The thing you finally say out loud. Make a little Korean part of your everyday.</p>
+      <div className={styles.actions}><a className="hl-link-button" href="#try">Try a mission now <ArrowUpRight size={21} aria-hidden="true" /></a><Link className={styles.heroLink} href="/app/onboarding?mode=restore">Already here? Come back <ArrowRight size={17} aria-hidden="true" /></Link></div>
+    </div>
+    <div className={styles.heroArt}>
+      <div className={styles.window}>
+        <div className={styles.windowSky} aria-hidden="true"><span className={styles.starLarge}>✦</span><span className={styles.sun} /><span className={styles.starSmall}>✦</span></div>
+        <div className={styles.phraseCard}>
+          <span className={styles.phraseContext}>A moment at the café</span>
+          <p lang="ko">아이스 아메리카노<br />한 잔 주세요.</p>
+          <span>One iced Americano, please.</span>
+          <Link href="/app/missions/cafe-iced-americano"><Microphone size={20} weight="fill" aria-hidden="true" /> Practise this phrase <ArrowUpRight size={18} aria-hidden="true" /></Link>
+        </div>
+        <div className={styles.windowCaption}><span lang="ko">한록</span> Little moments. More you.</div>
+      </div>
+      <div className={styles.artNote}><span aria-hidden="true">✦</span> You don&apos;t need perfect Korean.<br />You just need a place to start.</div>
+    </div>
+  </section>;
 }

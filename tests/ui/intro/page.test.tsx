@@ -6,16 +6,17 @@ vi.mock('@/lib/api-client', async (original) => ({ ...(await original<typeof imp
 
 import IntroPage, { metadata } from '@/app/page';
 
-it('lays the sections out in the spec order with the live panel third', () => {
+it('introduces the everyday practice loop and keeps a linked live practice panel', () => {
   render(<IntroPage />);
   const order = [...document.querySelectorAll('header, main > section, footer')].map((el) => el.getAttribute('data-section'));
-  expect(order).toEqual(['header', 'hero', 'try', 'why', 'how', 'peer', 'rewards', 'questions', 'footer']);
+  expect(order).toEqual(['header', 'hero', 'how', 'why', 'peer', 'try', 'rewards', 'questions', 'footer']);
   expect(document.getElementById('try')).not.toBeNull();
   expect(document.getElementById('how')).not.toBeNull();
   expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-  expect(screen.getByText('아이스 아메리카노 한 잔 주세요.')).toBeInTheDocument();
+  expect(document.getElementById('try')).toHaveTextContent('아이스 아메리카노 한 잔 주세요.');
 });
 it('describes itself for links and search', () => {
-  expect(metadata.title).toBe('HanLog · Speak Korean out in the world');
-  expect(String(metadata.description)).toContain('Real expressions, your real voice');
+  expect(metadata.title).toBe('HanLog · Your day, in Korean');
+  expect(String(metadata.description)).toContain('Short speaking missions');
+  expect(String(metadata.description)).not.toContain('points you can spend');
 });

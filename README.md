@@ -1,8 +1,8 @@
-# HanLog · 한로그
+# HanLog · 한록
 
-HanLog is a Korean speaking practice demo with 24 missions, voice/video recording, feedback, points, and peer challenges. Learners can answer Korean speakers and exchange ratings. Rewards are examples only; partners and redemption are not available.
+HanLog is a Korean speaking practice app with 24 searchable missions, saved expressions, a practice journal, voice/video recording, AI feedback, and peer challenges. Learners can exchange recordings and ratings with Korean-speaking peers, track real progress, and restore their profile on another device. Points mark participation; commercial redemption is not available.
 
-Hosted demo: **https://hanlog-nine.vercel.app**.
+Public beta: **https://hanlog-nine.vercel.app**.
 
 ## Run the finished local demo
 
@@ -38,7 +38,13 @@ Diagnostic and reference-generation scripts default to dry runs and require expl
 | `npm run db:migrate` | Migrate a configured PostgreSQL database |
 | `node scripts/smoke.mjs <origin>` | Read-only deployment checks; no profiles or scoring calls |
 
-The browser suite uses an in-memory database and separate `.data/e2e-media` folder. `E2E_SKIP_BUILD=1` is only for rerunning tests against an already-current production build.
+The browser suite uses an in-memory database and separate `.data/e2e-media` folder. `E2E_SKIP_BUILD=1` is only for rerunning tests against an already-current production build. Recovery tests keep credentials in memory and disable traces/screenshots.
+
+## Profiles and community operations
+
+Profiles use a browser session rather than email/password. In **Me**, create and privately save a recovery key before changing devices or signing out. Restoring rotates the key and ends previous sessions; save its replacement. A dropped restore response can be retried on the same screen within five minutes. Only hashes are stored. Me also supports JSON export, key replacement, sign-out everywhere, and complete deletion.
+
+Community reports have a private audit trail and a per-user daily cap. A challenge report hides it from that reporter's view; an answer report immediately hides its recording. The operator can inspect and resolve reports with `npx tsx scripts/review-community-reports.ts list`. The command defaults to a dry run and requires explicit `--apply` for PostgreSQL writes. See [community operations](docs/handoffs/community-launch.md).
 
 ## Deployment details
 
@@ -48,10 +54,10 @@ The free Supabase project `hanlog-db` is provisioned in Seoul. All schema migrat
 
 Production scoring limits are 30 calls per user, 100 per network address, and 100 globally per Korea-time day. Failed provider calls also consume reservations. These production overrides are lower than the code defaults. The GitHub workflow runs Node 24 type checks, lint, tests, a mock production build, and bundle checks; deployment is handled separately through Vercel.
 
-Set `SITE_URL` before building to the production origin, for example `https://your-domain.example`, without a path. Vercel system hosts provide a fallback. Preview builds use their own host and request no search indexing; private app and share-link pages also request no indexing. The share image includes its licensed local serif font and makes no font request at runtime.
+Set `SITE_URL` before building to the production origin, for example `https://your-domain.example`, without a path. Vercel system hosts provide a fallback. Preview builds use their own host and request no search indexing; private app and share-link pages also request no indexing. Licensed Paperlogy and Pretendard fonts are served locally; the share image includes its own Paperlogy font. The install manifest provides a home-screen experience without caching private API responses or recordings offline.
 
 The default smoke command only reads public routes. `node scripts/smoke.mjs <origin> --live --max-attempts=2` deliberately creates a temporary profile, submits one speech fixture and one silence check, checks points, and deletes the profile. It can invoke OpenAI scoring and nickname moderation, never retries, and stops after a failed live step. If deletion reports failure, retry deletion from that environment before treating the smoke as complete. The existing synthetic café fixture checks compatibility only; it is not evidence of pronunciation accuracy. Review future changes in a configured preview before production promotion.
 
 The scoped `minimatch` override fixes a tooling advisory. The unused Vercel configuration SDK was replaced by static JSON, removing its vulnerable transitive dependencies. `npm audit` currently reports no vulnerabilities; review this again when updating packages.
 
-See [project handoff](docs/HANDOFF.md), [device checklist](docs/device-check.md), [content review](docs/content-review.md), and [.env.example](.env.example). The source spec and ordered implementation plans are in [docs/superpowers](docs/superpowers/). The implemented palette is Open Window v0.4, Sky, Buttercream & Berry.
+See [launch upgrade](docs/handoffs/launch-upgrade.md), [project handoff](docs/HANDOFF.md), [device checklist](docs/device-check.md), [content review](docs/content-review.md), and [.env.example](.env.example). The source spec and ordered implementation plans are in [docs/superpowers](docs/superpowers/). Open Window v0.5 follows the final project PowerPoint's navy, sky, buttercream, and pink palette, bold typography, and window motifs.

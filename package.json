@@ -21,14 +21,15 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.16",
+    "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "2.119.0",
     "jose": "6.2.17",
+    "mediabunny": "1.66.0",
     "next": "16.4.6",
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.7",
-    "mediabunny": "1.66.0"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",

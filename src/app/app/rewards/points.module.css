@@ -1,0 +1,13 @@
+﻿.overview { display:grid; grid-template-columns:.8fr 1.2fr; gap:32px; align-items:center; }
+.explainer { display:grid; justify-items:start; gap:18px; padding:16px 8px; }
+.explainer h2 { font-size:30px; }
+.explainer p { font-size:14px; line-height:1.7; color:var(--color-text-secondary); }
+.milestones { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin:12px 0; }
+.milestone { display:grid; gap:12px; padding:24px 20px; background:var(--color-surface); border:1.5px solid var(--color-ink); border-radius:18px; }
+.milestone h3 { font:700 19px/1.3 var(--font-title); }
+.milestone p, .milestone > span:last-child { font-size:13px; color:var(--color-text-secondary); }
+.milestoneIcon { color:var(--color-action-stroke); }
+.milestone progress { width:100%; height:6px; accent-color:var(--color-action-stroke); }
+.reached { background:var(--color-buttercream); box-shadow:3px 3px 0 var(--color-ink); }
+@media(max-width:767px) { .overview { grid-template-columns:1fr; gap:20px; } .milestones { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .milestone { padding:20px 16px; } }
+@media(max-width:359px) { .milestone h3 { font-size:17px; } .milestone { padding:18px 12px; } }

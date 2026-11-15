@@ -1,5 +1,7 @@
 # HanLog project handoff
 
+The latest product and design work is documented in the [16 November launch upgrade](handoffs/launch-upgrade.md). It adds account recovery, saved expressions, journals, community follow-up, operator reporting, and a redesign based on the final PowerPoint. The sections below preserve the first deployment history; use the upgrade handoff for current behavior and verification.
+
 Implementation finished locally on 16 November 2026, followed by a detail and reliability pass and hosted deployment at the owner's request. The demo is live at **https://hanlog-nine.vercel.app**. Public routes, private media, deletion, and one real AI request were checked, with the evidence limits recorded below. Calibration and owner reviews remain separate release work. The public operator name is **HanLog team**.
 
 ## What runs

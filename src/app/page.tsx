@@ -5,12 +5,12 @@ import { TryNow } from '@/components/intro/TryNow';
 import styles from '@/components/intro/intro.module.css';
 
 export const metadata: Metadata = {
-  title: 'HanLog · Speak Korean out in the world',
-  description: 'Real expressions, your real voice, feedback in seconds, and points you can spend.',
+  title: 'HanLog · Your day, in Korean',
+  description: 'Short speaking missions, useful AI feedback, and everyday Korean with peers. Make a little practice part of your day.',
   alternates: { canonical: '/' },
-  openGraph: { type: 'website', siteName: 'HanLog', url: '/', title: 'HanLog · Speak Korean out in the world', description: 'Real expressions, your real voice, feedback in seconds, and points you can spend.' },
+  openGraph: { type: 'website', siteName: 'HanLog', url: '/', title: 'HanLog · Your day, in Korean', description: 'Short speaking missions, useful AI feedback, and everyday Korean with peers.' },
 };
 export default function IntroPage() {
   const mission = getMission('cafe-iced-americano')!;
-  return <div className={styles.page}><a className="hl-skip-link" href="#try">Skip to the practice mission</a><IntroHeader /><main><Hero /><TryNow mission={mission} /><Why /><HowItWorks /><PeerExchange /><RewardsPreview rewards={getRewards()} /><Questions /></main><IntroFooter /></div>;
+  return <div className={styles.page}><a className="hl-skip-link" href="#try">Skip to the practice mission</a><IntroHeader /><main><Hero /><HowItWorks /><Why /><PeerExchange /><TryNow mission={mission} /><RewardsPreview rewards={getRewards()} /><Questions /></main><IntroFooter /></div>;
 }

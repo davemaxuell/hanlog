@@ -17,6 +17,7 @@ it('declares every design color exactly as the token file has it', () => {
 });
 it('declares the radii, the font stacks, and reduced motion', () => {
   for (const [name, px] of Object.entries(tokens.radius)) expect(css).toMatch(new RegExp(`--radius-${name}:\\s*${px}px`));
-  expect(css).toContain('georgia');
+  expect(css).toContain('--font-paperlogy');
+  expect(css).toContain('--font-pretendard');
   expect(css).toContain('prefers-reduced-motion');
 });
