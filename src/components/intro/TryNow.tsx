@@ -8,6 +8,7 @@ import { MissionFlow } from '@/components/mission/MissionFlow';
 import type { RecorderDeps } from '@/components/recorder/useRecorder';
 import { Button, Ko, StatusNote, Surface } from '@/components/ui';
 import styles from './intro.module.css';
+import { IntroReveal } from './IntroReveal';
 
 const consentCopy = 'I agree that my voice recordings are sent to OpenAI to be scored, and that recordings I send to other people are stored for up to 14 days. I am 14 or older.';
 export function TryNow({ mission, convert, deps }: { mission: Mission; convert?: (blob: Blob) => Promise<Uint8Array>; deps?: Partial<RecorderDeps> }) {
@@ -34,7 +35,7 @@ export function TryNow({ mission, convert, deps }: { mission: Mission; convert?:
       } finally { pending.current = null; if (alive.current) setBusy(false); }
     })();
   };
-  return <section id="try" data-section="try" className={styles.section} aria-labelledby="try-heading"><div className={styles.tryPanel}>
+  return <IntroReveal id="try" data-section="try" className={styles.section} aria-labelledby="try-heading"><div className={styles.tryPanel}>
     <div className={styles.sectionHead}><p className={styles.eyebrow}>Your first everyday expression</p><h2 id="try-heading">Try it now</h2><p className={styles.muted}>Start with a cafe order. Take your time; you can always try again.</p></div>
     {!consent || !ready ? <Surface tone="apricot"><div className={styles.tryIntro}><Ko className={styles.trySentence}>{mission.korean}</Ko><p>{mission.meaningEn}</p></div></Surface> : null}
     <div><label className={styles.consent}><input type="checkbox" checked={consent} onChange={event => { const checked = event.target.checked; setConsent(checked); if (checked) prepare(); else setScored(false); }} /><span>{consentCopy}</span></label><Link className={styles.textLink} href="/privacy">Read the privacy notice</Link></div>
@@ -43,5 +44,5 @@ export function TryNow({ mission, convert, deps }: { mission: Mission; convert?:
     {consent && error && <div className="hl-stack-sm"><StatusNote tone="error">{errorCopy(error) || errorCopy('internal')}</StatusNote>{error === 'daily_limit' && <p className={styles.muted}>The guest limit can be shared by people on the same network. You can still explore this page.</p>}<div><Button variant="secondary" onClick={prepare}>Try again</Button></div></div>}
     {consent && ready && <MissionFlow mission={mission} convert={convert} deps={deps} onScored={() => setScored(true)} {...{ headingLevel: 2 as const }} />}
     {consent && scored && <Link className="hl-link-button" href="/app">Keep going in the app</Link>}
-  </div></section>;
+  </div></IntroReveal>;
 }

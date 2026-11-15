@@ -79,3 +79,22 @@ it('clears a completed presentation result when another app tab announces a prof
   expect(screen.getByRole('button', { name: 'Example walkthrough' })).toHaveAttribute('aria-pressed', 'true');
   expect(mockApi.deleteSession).not.toHaveBeenCalled();
 });
+it('keeps rapid scene changes immediate and uses motion only for pointer navigation', () => {
+  setup();
+  const navigation = screen.getByRole('navigation', { name: 'Walkthrough scenes' });
+  const sceneButtons = navigation.querySelectorAll('button');
+  fireEvent.click(sceneButtons[1], { detail: 1 });
+  fireEvent.click(sceneButtons[3], { detail: 1 });
+  fireEvent.click(sceneButtons[2], { detail: 1 });
+  expect(screen.getByRole('main')).toHaveAttribute('aria-label', 'Scene 3 of 4: People');
+  expect(screen.getByRole('main')).toHaveAttribute('data-scene-direction', 'backward');
+  expect(sceneButtons[2]).toHaveAttribute('aria-current', 'step');
+  expect(screen.getByRole('main')).toHaveFocus();
+  fireEvent.keyDown(window, { key: 'ArrowRight' });
+  expect(screen.getByRole('main')).toHaveAttribute('aria-label', 'Scene 4 of 4: Progress');
+  expect(screen.getByRole('main').closest('[data-demo-motion]')).toHaveAttribute('data-demo-motion', 'keyboard');
+  fireEvent.click(sceneButtons[0], { detail: 0 });
+  expect(screen.getByRole('main')).toHaveAttribute('aria-label', 'Scene 1 of 4: Practice');
+  expect(screen.getByRole('main').closest('[data-demo-motion]')).toHaveAttribute('data-demo-motion', 'keyboard');
+  expect(mockApi.submitAttempt).not.toHaveBeenCalled();
+});

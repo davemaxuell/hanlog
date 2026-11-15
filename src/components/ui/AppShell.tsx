@@ -7,6 +7,8 @@ import { useOptionalSession } from '@/lib/ui/session-context';
 import { accountApi } from '@/lib/account-client';
 import { Button, Ko, PointsChip, StatusNote } from './index';
 import { BrandMark } from './BrandMark';
+import { MotionToggle } from '@/components/motion/MotionPreference';
+import { RouteEntrance } from '@/components/motion/RouteEntrance';
 const links = [
   { label: 'Today', href: '/app', icon: HouseLine },
   { label: 'Practice', href: '/app/missions', icon: Books },
@@ -47,8 +49,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       {!online && <div className="hl-offline"><StatusNote tone="info">You&apos;re offline. Keep this page open; reconnect before saving or sending a recording.</StatusNote></div>}
       {!onboarding && balanceError && <div className="hl-stack-sm hl-balance-error"><StatusNote tone="error"><strong>Points unavailable.</strong> {balanceError}</StatusNote><Button variant="secondary" className="hl-fit" busy={balanceLoading} onClick={() => void refreshBalance()}>Retry points</Button></div>}
       {!onboarding && needsRecovery && pathname === '/app' && <aside className="hl-recovery-nudge"><span>Make your progress yours. Save a recovery key for your next device.</span><Link href="/app/me#recovery">Keep my progress →</Link></aside>}
-      {children}
-      {!onboarding && <footer className="hl-app-footer"><span>A little Korean, every day.</span><Link href="/help">Help & community guide</Link><Link href="/privacy">Privacy</Link></footer>}
+      <RouteEntrance>{children}</RouteEntrance>
+      {!onboarding && <footer className="hl-app-footer"><span>A little Korean, every day.</span><MotionToggle /><Link href="/help">Help & community guide</Link><Link href="/privacy">Privacy</Link></footer>}
     </main>
   </div>;
 }

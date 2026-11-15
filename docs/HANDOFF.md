@@ -1,5 +1,7 @@
 # HanLog project handoff
 
+The [calm motion upgrade](handoffs/calm-motion.md) adds shared animation/interaction feedback and a persistent reduced-motion preference without changing scoring or recording behavior.
+
 For the live presentation, use [/demo](https://hanlog-nine.vercel.app/demo) and the [presentation runbook](demo-runbook.md). The [presentation release handoff](handoffs/presentation-demo.md) records its behavior and verification; the [deck reference](handoffs/presentation-deck-reference.md) explains the visual source and supported pitch claims.
 
 The latest reliability and privacy work is documented in the [current build audit](handoffs/current-build-audit.md). It follows the [16 November launch upgrade](handoffs/launch-upgrade.md), which adds account recovery, saved expressions, journals, community follow-up, operator reporting, and a redesign based on the final PowerPoint. The sections below preserve the first deployment history; use those newer handoffs for current behavior and verification.

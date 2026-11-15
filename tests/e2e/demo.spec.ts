@@ -109,6 +109,11 @@ test('live practice submits once and keeps its actual attempt through scene chan
   // The helper records the synthetic WAV configured by the existing E2E runner.
   const recording = recordFor(page, 4000);
   await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+  // Changing the presentation's motion preference must not replace an active recorder.
+  await page.getByRole('button', { name: 'Reduce animations' }).click();
+  await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+  expect((await mediaState(page)).live).toBe(1);
+  expect((await mediaState(page)).requests).toBe(1);
   for (const name of ['Practice', 'Feedback', 'People', 'Progress']) await expect(scenes.getByRole('button', { name, exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Example walkthrough', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Prepare demo', exact: true })).toBeDisabled();

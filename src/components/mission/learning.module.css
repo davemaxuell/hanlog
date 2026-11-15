@@ -23,23 +23,24 @@
 .stat dd { font-family: var(--font-title); font-size: 30px; line-height: 1.1; font-weight: 700; margin: 0; font-variant-numeric: tabular-nums; }
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 0; list-style: none; margin: 0; }
 .grid > li { min-width: 0; }
-.card { display: flex; flex-direction: column; height: 100%; border: 1.5px solid var(--color-ink); border-radius: 18px; background: var(--color-surface); box-shadow: 3px 3px 0 var(--color-ink); overflow: hidden; }
+.card { display: flex; flex-direction: column; height: 100%; border: 1.5px solid var(--color-ink); border-radius: 18px; background: var(--color-surface); box-shadow: 3px 3px 0 var(--color-ink); overflow: hidden; transition: transform var(--motion-ui, 220ms) var(--ease-out, ease-out); }
 .cardTop { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--color-ink); background: var(--color-canvas); }
 .card[data-level="2"] .cardTop { background: var(--color-action-soft); }
 .card[data-level="3"] .cardTop { background: var(--color-buttercream); }
 .cardLabel { font-size: 12px; font-weight: 700; }
-.save { display: inline-grid; place-items: center; min-width: 48px; min-height: 48px; padding: 6px; margin: -5px -5px -5px 0; border: 0; background: transparent; color: var(--color-ink); font-size: 25px; line-height: 1; border-radius: 10px; transition: background 150ms ease, transform 150ms ease; }
+.save { display: inline-grid; place-items: center; min-width: 48px; min-height: 48px; padding: 6px; margin: -5px -5px -5px 0; border: 0; background: transparent; color: var(--color-ink); font-size: 25px; line-height: 1; border-radius: 10px; transition: background var(--motion-fast, 140ms) ease, transform var(--motion-fast, 140ms) var(--ease-out, ease-out); }
 .save[aria-pressed="true"] { color: var(--color-action-stroke); }
-.save:hover { background: var(--color-surface); }
-.save:active { transform: scale(.96); }
+.save > span { display: inline-block; }
+.save[aria-pressed="true"] > span { animation: saved-settle var(--motion-ui, 220ms) var(--ease-out, ease-out); }
+.save:active:not(:disabled):not(:focus-visible) { transform: scale(.96); }
+.save:focus-visible > span { animation: none; }
 .cardLink { display: flex; flex: 1; flex-direction: column; gap: 14px; padding: 22px; color: var(--color-ink); text-decoration: none; }
-.cardLink:hover .cardExpression { color: var(--color-action-stroke); }
 .cardExpression { font-family: var(--font-title); font-size: clamp(21px, 2.5vw, 25px); font-weight: 700; line-height: 1.45; word-break: keep-all; overflow-wrap: anywhere; transition: color 150ms; }
 .cardMeaning { color: var(--color-text-secondary); font-size: 14px; line-height: 1.6; }
 .cardFooter { margin-top: auto; padding-top: 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; font-size: 12px; }
 .cardFooter > span:first-child { display: grid; gap: 4px; }
 .cardFooter b { font-weight: 700; }
-.arrow { display: grid; place-items: center; border: 1px solid var(--color-ink); border-radius: 50%; width: 32px; height: 32px; flex-shrink: 0; font-size: 20px; background: var(--color-buttercream); }
+.arrow { display: grid; place-items: center; border: 1px solid var(--color-ink); border-radius: 50%; width: 32px; height: 32px; flex-shrink: 0; font-size: 20px; background: var(--color-buttercream); transition: transform var(--motion-ui, 220ms) var(--ease-out, ease-out); }
 .filters { display: grid; gap: 18px; padding: 24px; border: 1.5px solid var(--color-ink); border-radius: 20px; background: var(--color-surface); }
 .search { display: grid; gap: 8px; font-size: 14px; font-weight: 600; }
 .search input { width: 100%; min-width: 0; min-height: 52px; padding: 12px 16px; border: 1px solid var(--color-control-edge); border-radius: 12px; color: var(--color-ink); background: var(--color-surface); font-weight: 400; font-size: 16px; }
@@ -74,6 +75,8 @@
 .historyTitle strong { font-size: 16px; word-break: keep-all; overflow-wrap: anywhere; }
 .historyTitle small { color: var(--color-text-secondary); font-size: 12px; }
 .historyBody { padding: 0 24px 24px; display: grid; gap: 18px; }
+.historyItem[open] .historyBody { animation: journal-open var(--motion-ui, 220ms) var(--ease-out, ease-out); }
+.historyItem:has(summary:focus-visible) .historyBody { animation: none; }
 .historyBody dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
 .historyBody dl > div { padding: 12px; border-radius: 10px; background: var(--color-canvas); }
 .historyBody dt { font-size: 11px; }
@@ -93,4 +96,13 @@
 .loading span:last-child { width: 65%; }
 @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .page { gap: 26px; } .hero { grid-template-columns: 1fr; gap: 22px; } .heroArt { display: none; } .twoColumns { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } .stats { gap: 9px; } .stat { padding: 16px 12px; } .stat dd { font-size: 26px; } .stat dt { font-size: 11px; } .filterRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .filters { padding: 20px; } .panel { padding: 22px; } .historyItem summary { padding: 16px; gap: 12px; } .historyBody { padding: 0 18px 20px; } .historyBody dl { gap: 6px; } .historyBody dl > div { padding: 10px 8px; } }
-@media (prefers-reduced-motion: reduce) { .save, .cardExpression { transition: none; } .save:active { transform: none; } }
+@keyframes saved-settle { from { transform: scale(.85) rotate(-8deg); } to { transform: scale(1) rotate(0); } }
+@keyframes journal-open { from { transform: translateY(6px); } to { transform: translateY(0); } }
+@media (hover: hover) and (pointer: fine) {
+  .save:hover:not(:disabled) { background: var(--color-surface); }
+  .card:has(.cardLink:hover) { transform: translateY(-2px); }
+  .cardLink:hover .cardExpression { color: var(--color-action-stroke); }
+  .cardLink:hover .arrow { transform: translateX(3px); }
+}
+:global(html[data-motion="reduce"]) .card, :global(html[data-motion="reduce"]) .save, :global(html[data-motion="reduce"]) .arrow { transform: none !important; }
+@media (prefers-reduced-motion: reduce) { .save, .cardExpression, .card, .arrow { transition: none; } .save, .card, .arrow { transform: none !important; } .save > span, .historyBody { animation: none !important; } }

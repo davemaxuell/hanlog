@@ -6,6 +6,8 @@ Public beta: **https://hanlog-nine.vercel.app**.
 
 For presenting alongside the PowerPoint, open **[the product walkthrough](https://hanlog-nine.vercel.app/demo)**. It has four projector-friendly scenes, a local microphone check, real live practice, a clearly labelled example fallback, and an audience QR code. Follow the [three-minute presentation runbook](docs/demo-runbook.md).
 
+Gentle motion and interaction feedback run throughout the app. **Reduce animations** in the footer or presentation toolbar remembers your browser preference and always respects device settings. See the [motion release notes](docs/handoffs/calm-motion.md).
+
 ## Run the finished local demo
 
 Use Node 24. From this folder:

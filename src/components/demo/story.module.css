@@ -70,6 +70,22 @@
 .emptyPanel { display: flex; align-items: center; gap: 20px; max-width: 720px; font-size: 20px; }
 .emptyPanel svg { flex-shrink: 0; color: var(--color-action-stroke); }
 
+/* One quiet beat for the explanation, then its supporting visual. Values stay final. */
+.heading, .feedbackCopy, .connectionCopy, .progressCopy, .scorePanel, .exchangePanel, .journalPanel {
+  animation: settle var(--motion-scene,320ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) both;
+}
+.scorePanel, .exchangePanel, .journalPanel { animation-delay:40ms; }
+.meters :global(.hl-meter-track) { transform-origin:center; animation: meterSettle var(--motion-scene,320ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 60ms both; }
+.textLink svg, .linkGroup > a svg, .audienceButton svg { transition:transform var(--motion-fast,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)); }
+@keyframes settle { from { transform:translateY(6px); } to { transform:translateY(0); } }
+@keyframes meterSettle { from { transform:scaleY(.6); } to { transform:scaleY(1); } }
+@media (hover:hover) and (pointer:fine) {
+  .textLink:hover svg, .linkGroup > a:hover svg, .audienceButton:hover svg { transform:translate(2px,-2px); }
+}
+.textLink:focus-visible svg, .linkGroup > a:focus-visible svg, .audienceButton:focus-visible svg { transition:none; transform:none !important; }
+:global([data-demo-motion=keyboard]) .story, :global([data-demo-motion=keyboard]) .story * { animation:none; transition:none; }
+:global(html[data-motion=reduce]) .textLink svg, :global(html[data-motion=reduce]) .linkGroup > a svg, :global(html[data-motion=reduce]) .audienceButton svg { transform:none !important; }
+
 @media (max-width: 760px) {
   .feedbackGrid, .connectionGrid, .progressGrid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .connectionCopy, .progressCopy { padding: 0; }
@@ -160,4 +176,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .story *, .story *::before, .story *::after { animation: none; transition: none; }
+  .textLink svg, .linkGroup > a svg, .audienceButton svg { transform:none !important; }
 }

@@ -31,6 +31,13 @@
   --font-body: var(--font-pretendard), 'Malgun Gothic', 'Segoe UI', sans-serif;
 }
 
+:root {
+  --motion-fast: 140ms;
+  --motion-ui: 220ms;
+  --motion-scene: 320ms;
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+}
+
 body {
   margin: 0;
   background: var(--color-canvas);
@@ -49,11 +56,11 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 h1, h2, h3, p { margin: 0; }
 .hl-ko { overflow-wrap: anywhere; letter-spacing: normal; }
-.hl-button, .hl-link-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 20px; border: 1.5px solid var(--color-ink); border-radius: var(--radius-button); background: var(--color-action); color: var(--color-ink); font-weight: 600; line-height: 1.375; text-align: center; text-decoration: none; box-shadow: 0 3px 0 var(--color-ink); transition: background 160ms, transform 160ms, box-shadow 160ms; }
-.hl-button:active, .hl-link-button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--color-ink); }
-.hl-button--primary:hover:not(:disabled), .hl-link-button:hover { background: var(--color-action-hover); }
+.hl-button, .hl-link-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 20px; border: 1.5px solid var(--color-ink); border-radius: var(--radius-button); background: var(--color-action); color: var(--color-ink); font-weight: 600; line-height: 1.375; text-align: center; text-decoration: none; box-shadow: 0 3px 0 var(--color-ink); transition: background var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
+.hl-button:active:not(:disabled):not(:focus-visible), .hl-link-button:active:not(:focus-visible) { transform: translateY(2px) scale(.985); box-shadow: 0 1px 0 var(--color-ink); }
+@media (hover:hover) and (pointer:fine) { .hl-button--primary:hover:not(:disabled), .hl-link-button:hover { background: var(--color-action-hover); } }
 .hl-button--secondary { background: var(--color-surface); border-color: var(--color-ink); box-shadow: none; }
-.hl-button--secondary:hover:not(:disabled) { background: var(--color-buttercream); }
+@media (hover:hover) and (pointer:fine) { .hl-button--secondary:hover:not(:disabled) { background: var(--color-buttercream); } }
 .hl-button--text { border-color: transparent; background: transparent; color: var(--color-action-stroke); text-decoration: underline; box-shadow: none; }
 .hl-button--text:active, .hl-button--secondary:active { box-shadow: none; }
 .hl-field { display: grid; gap: 8px; }
@@ -88,7 +95,7 @@ h1, h2, h3, p { margin: 0; }
 .hl-meter { display: grid; gap: 8px; }
 .hl-meter-label { display: flex; justify-content: space-between; gap: 16px; }
 .hl-meter-track { height: 8px; border-radius: 4px; background: var(--color-action-soft); overflow: hidden; }
-.hl-meter-track > span { display: block; height: 100%; border-radius: 4px; background: var(--color-action-stroke); }
+.hl-meter-track > span { display: block; width:100%; height: 100%; border-radius: 4px; background: var(--color-action-stroke); transform-origin:left center; transition:transform var(--motion-scene) var(--ease-out); }
 .hl-points { display: inline-flex; align-items: center; min-height: 32px; padding: 4px 10px; border-radius: var(--radius-badge); background: var(--color-buttercream); color: var(--color-ink); font-size: 13px; font-weight: 600; white-space: nowrap; }
 .hl-stack { display: grid; gap: 24px; }
 .hl-stack-sm { display: grid; gap: 12px; }
@@ -105,7 +112,7 @@ h1, h2, h3, p { margin: 0; }
 .hl-recording-status { color:var(--color-text-secondary); font-size:14px; }
 .hl-timer { font-variant-numeric:tabular-nums; font-size:24px; }
 .hl-level { max-width:240px; height:6px; border-radius:3px; background:var(--color-line); }
-.hl-level span { display:block; height:100%; border-radius:3px; background:var(--color-action-stroke); }
+.hl-level span { display:block; width:100%; height:100%; border-radius:3px; background:var(--color-action-stroke); transform-origin:left center; transition:transform 110ms linear; }
 .hl-stop-icon { width:12px; height:12px; background:currentColor; }
 .hl-media { display:block; width:100%; max-width:100%; border-radius:var(--radius-media); }
 video.hl-media { max-height:420px; object-fit:contain; background:var(--color-ink); }
@@ -198,9 +205,52 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-points-link .hl-points { border:1.5px solid var(--color-ink); border-radius:100px; min-height:38px; padding:6px 12px; }
 .hl-app-footer { display:flex; gap:20px; flex-wrap:wrap; align-items:center; margin-top:48px; padding-top:24px; border-top:1px solid var(--color-line); color:var(--color-text-secondary); font-size:13px; }
 .hl-app-footer a { min-height:44px; display:flex; align-items:center; }
-.hl-app-footer span { margin-right:auto; }
+.hl-app-footer > span { margin-right:auto; }
 .hl-offline { margin-bottom:24px; }
 .hl-recovery-nudge { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; margin-bottom:28px; border:1px solid var(--color-ink); border-radius:12px; background:var(--color-buttercream); font-size:13px; }
 .hl-recovery-nudge a { display:flex; align-items:center; min-height:44px; font-weight:600; flex-shrink:0; }
 @media (min-width:1024px) { .hl-app-header { padding:16px 32px; flex-wrap:nowrap; } .hl-app-nav { position:static; border:0; padding:0; background:transparent; display:flex; gap:4px; order:0; } .hl-app-nav a { flex-direction:row; gap:7px; padding:8px 12px; font-size:13px; min-height:44px; } .hl-app-main { padding:40px 32px 64px; } }
 @media (max-width:359px) { .hl-app-header { padding:12px 16px; gap:8px; } .hl-app-main { padding:24px 16px 112px; } .hl-wordmark { font-size:24px; } .hl-wordmark .hl-ko { display:none; } .hl-points-link .hl-points { font-size:12px; padding:4px 8px; } .hl-recovery-nudge { align-items:flex-start; flex-direction:column; gap:4px; } }
+
+/* A small, shared motion vocabulary. Controls never wait for these effects. */
+.hl-route-content { min-width:0; }
+.hl-motion-toggle { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:44px; padding:8px 10px; border:1px solid transparent; border-radius:8px; background:transparent; color:var(--color-text-secondary); font-size:12px; line-height:1.4; white-space:nowrap; transition:background var(--motion-fast) ease; }
+.hl-motion-toggle[aria-pressed=true] { background:var(--color-surface); border-color:var(--color-line); }
+.hl-motion-toggle:disabled { opacity:1; cursor:default; }
+.hl-motion-toggle svg { flex-shrink:0; }
+.hl-busy-indicator { display:inline-block; flex:0 0 15px; width:15px; height:15px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:hl-spin 800ms linear infinite; }
+.hl-field input, .hl-field textarea, .hl-role-options label, .hl-mode-switch label, .hl-stars label { transition:background var(--motion-ui) ease, border-color var(--motion-fast) ease; }
+.hl-field input:focus, .hl-field textarea:focus { background:var(--color-surface); border-color:var(--color-action-stroke); }
+.hl-app-nav a svg, .hl-row-meta > span { transition:transform var(--motion-ui) var(--ease-out); }
+.hl-app-nav a[aria-current=page] svg { animation:hl-settle var(--motion-ui) var(--ease-out); }
+.hl-status:not(.hl-status--error), .hl-score-card { animation:hl-arrive var(--motion-scene) var(--ease-out); }
+.hl-status--success .hl-status-icon { animation:hl-settle var(--motion-scene) var(--ease-out); }
+.hl-score-card .hl-meter-track { transform-origin:left center; animation:hl-fill 480ms var(--ease-out) both; }
+.hl-score-card .hl-meter:nth-child(2) .hl-meter-track { animation-delay:45ms; }
+.hl-score-card .hl-meter:nth-child(3) .hl-meter-track { animation-delay:90ms; }
+.hl-dialog[open] { animation:hl-dialog-enter var(--motion-ui) var(--ease-out); }
+.hl-dialog[open]::backdrop { animation:hl-backdrop var(--motion-ui) ease; }
+.hl-capture-panel { transition:border-color var(--motion-ui) ease, background var(--motion-ui) ease; }
+.hl-capture-panel[data-state=recording] { border-color:var(--color-action-stroke); background:var(--color-action-soft); }
+.hl-capture-panel[data-state=ready] { border-color:var(--color-action-stroke); }
+.hl-capture-panel[data-state=busy] { background:var(--color-buttercream); }
+.hl-recording-dot { display:inline-block; width:8px; height:8px; margin-right:8px; vertical-align:middle; border-radius:50%; background:var(--color-action-stroke); animation:hl-recording 1600ms ease-in-out infinite; }
+@media (hover:hover) and (pointer:fine) {
+  .hl-motion-toggle:hover:not(:disabled) { background:var(--color-surface); }
+  .hl-button:hover:not(:disabled):not(:active):not(:focus-visible), .hl-link-button:hover:not(:active):not(:focus-visible) { transform:translateY(-1px); }
+  .hl-button--text:hover:not(:disabled):not(:active) { transform:none; }
+  .hl-app-nav a:hover:not(:focus-visible) svg { transform:translateY(-2px); }
+  .hl-mission-row:hover:not(:focus-visible) .hl-row-meta > span { transform:translate(2px,-2px); }
+}
+@keyframes hl-spin { to { transform:rotate(360deg); } }
+@keyframes hl-arrive { from { transform:translateY(7px); } to { transform:translateY(0); } }
+@keyframes hl-settle { from { transform:scale(.91); } to { transform:scale(1); } }
+@keyframes hl-fill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@keyframes hl-dialog-enter { from { transform:translateY(8px) scale(.985); } to { transform:translateY(0) scale(1); } }
+@keyframes hl-backdrop { from { opacity:0; } to { opacity:1; } }
+@keyframes hl-recording { 50% { transform:scale(1.25); opacity:.65; } }
+html[data-motion=reduce] *, html[data-motion=reduce] *::before, html[data-motion=reduce] *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+html[data-motion=reduce] :is(.hl-button,.hl-link-button):is(:active,:hover), html[data-motion=reduce] .hl-app-nav a svg, html[data-motion=reduce] .hl-row-meta > span { transform:none !important; }
+@media (prefers-reduced-motion:reduce) {
+  :is(.hl-button,.hl-link-button):is(:active,:hover), .hl-app-nav a svg, .hl-row-meta > span { transform:none !important; }
+}

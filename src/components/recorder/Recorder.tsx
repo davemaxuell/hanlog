@@ -28,6 +28,8 @@ export function Recorder({ modes, submitLabel, onSubmit, onReset, onActivityChan
   const lock = useRef(false); const alive = useRef(true); const activityCallback = useRef(onActivityChange);
   useEffect(() => { alive.current = true; return () => { alive.current = false; activityCallback.current?.(false); }; }, []);
   const recorded = upload ?? recorder.result; const capturing = ['recording', 'requesting', 'stopping'].includes(recorder.status);
+  const captureState = blocked ? 'busy' : capturing ? recorder.status : recorded ? 'ready' : 'idle';
+  const inputLevel = Number.isFinite(recorder.level) ? Math.min(1, Math.max(0, recorder.level)) : 0;
   const active = capturing || blocked || (guardPendingRecording && !!recorded);
   useEffect(() => { activityCallback.current = onActivityChange; onActivityChange?.(active); }, [active, onActivityChange]);
   const reset = () => { recorder.reset(); setUpload(null); lock.current = false; setSubmitted(false); setSubmissionError(null); onReset?.(); };
@@ -48,9 +50,9 @@ export function Recorder({ modes, submitLabel, onSubmit, onReset, onActivityChan
     {recorder.message && <StatusNote tone={recorder.status === 'idle' ? 'info' : 'error'}>{allowUpload ? recorder.message : recorder.message.replace(' Allow it in your browser settings, or upload a voice file.', ' Allow it in your browser settings.').replace(' You can upload a voice file instead.', ' Try a recent browser with microphone access.')}</StatusNote>}
     {recorder.stream && recorder.mode === 'video' && <LiveVideo stream={recorder.stream} />}
     {recorded && <Preview blob={recorded.blob} kind={recorded.kind} />}
-    <div className="hl-capture-panel">
-      <div aria-live="polite" className="hl-recording-status">{recorder.status === 'requesting' ? 'Allow microphone access to begin.' : recorder.status === 'recording' ? 'Recording your voice…' : recorded ? guardPendingRecording ? `Choose ${submitLabel}, or Retake to discard this clip before changing scenes.` : 'Ready when you are. Listen back before sending.' : 'Your next conversation starts here.'}</div>
-      {recorder.status === 'recording' && <><span className="hl-timer">0:{String(Math.floor(recorder.elapsedMs / 1000)).padStart(2, '0')} / 0:15</span><div className="hl-level" role="meter" aria-label="Microphone level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(recorder.level * 100)}><span style={{ width: `${recorder.level * 100}%` }} /></div></>}
+    <div className="hl-capture-panel" data-state={captureState}>
+      <div aria-live="polite" className="hl-recording-status">{recorder.status === 'recording' && <span className="hl-recording-dot" aria-hidden="true" />}{recorder.status === 'requesting' ? 'Allow microphone access to begin.' : recorder.status === 'recording' ? 'Recording your voice…' : recorded ? guardPendingRecording ? `Choose ${submitLabel}, or Retake to discard this clip before changing scenes.` : 'Ready when you are. Listen back before sending.' : 'Your next conversation starts here.'}</div>
+      {recorder.status === 'recording' && <><span className="hl-timer">0:{String(Math.floor(recorder.elapsedMs / 1000)).padStart(2, '0')} / 0:15</span><div className="hl-level" role="meter" aria-label="Microphone level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(inputLevel * 100)}><span style={{ transform: `scaleX(${inputLevel})` }} /></div></>}
       <div className="hl-actions">
         {recorder.status === 'recording' ? <Button onClick={recorder.stop}><span aria-hidden="true" className="hl-stop-icon" />Stop</Button> : !recorded && <Button busy={recorder.status === 'requesting' || recorder.status === 'stopping'} busyLabel={recorder.status === 'stopping' ? 'Finishing recording…' : 'Asking for permission…'} disabled={busy} onClick={() => void recorder.start()}><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="7" y="2" width="6" height="10" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v3m-3 0h6" stroke="currentColor" strokeWidth="1.5"/></svg>Record</Button>}
         {recorder.status === 'requesting' && <Button variant="secondary" onClick={reset}>Cancel microphone request</Button>}

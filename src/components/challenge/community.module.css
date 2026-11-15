@@ -10,3 +10,6 @@
 @media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{grid-template-columns:1fr}.hero{gap:22px}.inboxAction{max-width:10ch}}
 @media(max-width:640px){.hero{grid-template-columns:1fr;gap:20px}.heroCopy{padding:0}.invitation{min-height:190px;border-radius:80px 80px 20px 20px;padding:16px;box-shadow:3px 3px 0 var(--color-ink)}.voiceMark{height:40px;font-size:70px}.note{margin-top:10px;max-width:none}.grid{grid-template-columns:1fr}.challengeCard{min-height:190px}.tools,.inbox{padding:18px}.sectionHeading{align-items:flex-start;gap:8px}.sectionHeading button{padding-inline:8px}.inboxItem{flex-wrap:wrap;gap:10px}.inboxAction{max-width:none;margin-left:44px;align-self:auto}.inboxCopy{flex-basis:calc(100% - 44px)}.detailIntro{grid-template-columns:1fr;padding:20px}.detailActions{gap:8px}.newForm{padding:20px}}
 @media(prefers-reduced-motion:reduce){.challengeCard{transition:none}.challengeCard:hover,.challengeCard:active{transform:none}}
+.challengeCard:focus-visible { transform:none; transition:none; }
+:global(html[data-motion=reduce]) .challengeCard { transform:none !important; }
+@media (hover:none), (pointer:coarse) { .challengeCard:hover { transform:none; box-shadow:3px 3px 0 var(--color-ink); } }

@@ -30,6 +30,7 @@ it('locks the submit button while the parent is busy', async () => {
   await screen.findByRole('button', { name: 'Get my score' });
   rerender(<Recorder modes={['audio']} submitLabel="Get my score" onSubmit={onSubmit} deps={deps} busy busyLabel="Listening…" />);
   expect(screen.getByRole('button', { name: 'Listening…' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Listening…' }).closest('.hl-capture-panel')).toHaveAttribute('data-state', 'busy');
   expect(screen.getByRole('button', { name: 'Retake' })).toBeDisabled();
 });
 it('offers Voice and Video only when both modes are allowed', () => {
@@ -114,16 +115,28 @@ it('reports permission, recording, and stopping as active until the recording is
   }
   const deps = fakeDeps({ getUserMedia: () => new Promise(value => { resolve = value; }), createRecorder: (stream, options) => new DelayedRecorder(stream, options) as unknown as MediaRecorder });
   const { unmount } = render(<Recorder modes={['audio']} submitLabel="Send answer" onSubmit={vi.fn()} onActivityChange={activity} deps={deps} />);
+  const panel = screen.getByRole('button', { name: 'Record' }).closest('.hl-capture-panel');
+  expect(panel).toHaveAttribute('data-state', 'idle');
   expect(activity).toHaveBeenLastCalledWith(false);
   await userEvent.click(screen.getByRole('button', { name: 'Record' }));
+  expect(panel).toHaveAttribute('data-state', 'requesting');
+  expect(panel?.querySelector('.hl-recording-dot')).toBeNull();
   expect(activity).toHaveBeenLastCalledWith(true);
   await act(async () => { resolve(fakeStream()); });
   await screen.findByRole('button', { name: 'Stop' });
+  expect(panel).toHaveAttribute('data-state', 'recording');
+  expect(panel?.querySelector('.hl-recording-dot')).toHaveAttribute('aria-hidden', 'true');
+  const level = screen.getByRole('meter', { name: 'Microphone level' });
+  await waitFor(() => expect(level).toHaveAttribute('aria-valuenow', '40'));
+  expect(level.querySelector('span')).toHaveStyle({ transform: 'scaleX(0.4)' });
   deps.clock.advance(3000);
   await userEvent.click(screen.getByRole('button', { name: 'Stop' }));
   await screen.findByRole('button', { name: 'Finishing recording…' });
+  expect(panel).toHaveAttribute('data-state', 'stopping');
+  expect(panel?.querySelector('.hl-recording-dot')).toBeNull();
   expect(activity).toHaveBeenLastCalledWith(true);
   await act(async () => { finish(); });
+  expect(panel).toHaveAttribute('data-state', 'ready');
   expect(activity).toHaveBeenLastCalledWith(false);
   unmount();
   expect(activity).toHaveBeenLastCalledWith(false);
