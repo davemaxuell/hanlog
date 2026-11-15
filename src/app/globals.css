@@ -120,6 +120,9 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-instruction { font-size:18px; line-height:1.6; }
 .hl-back-link { display:inline-flex; align-items:center; min-height:48px; justify-self:start; color:var(--color-action-stroke); }
 .hl-balance { display:grid; gap:8px; }
+.hl-fit { justify-self:start; }
+.hl-empty { padding:24px; border:1px dashed var(--color-control-edge); border-radius:var(--radius-media); color:var(--color-text-secondary); }
+.hl-sample-label { display:inline-block; margin-left:8px; padding:2px 6px; border:1px solid var(--color-control-edge); border-radius:var(--radius-badge); background:var(--color-buttercream); color:var(--color-ink); font-size:12px; }
 .hl-reward-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:20px; }
 .hl-reward-card { display:grid; gap:12px; padding:24px; background:var(--color-surface); border:1px dashed var(--color-control-edge); border-radius:var(--radius-sheet); }
 .hl-reward-card h3 { font-family:var(--font-title); font-size:24px; line-height:1.25; }
