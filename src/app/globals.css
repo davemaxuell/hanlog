@@ -92,6 +92,24 @@ h1, h2, h3, p { margin: 0; }
 .hl-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .hl-heading { font-size: clamp(30px,5vw,40px); font-weight: 400; line-height: 1.22; }
 .hl-section-title { font-family: var(--font-body); font-size: 20px; font-weight: 600; line-height: 1.4; }
+.hl-recorder { min-width: 0; }
+.hl-mode-switch { display:flex; gap:8px; margin:0; padding:0; border:0; min-width:0; }
+.hl-mode-switch legend { margin-bottom:8px; }
+.hl-mode-switch label { display:flex; align-items:center; justify-content:center; gap:8px; min-height:48px; min-width:96px; padding:8px 16px; border:1px solid var(--color-control-edge); border-radius:var(--radius-field); cursor:pointer; }
+.hl-mode-switch label.is-selected { border:2px solid var(--color-action-stroke); background:var(--color-action-soft); }
+.hl-mode-switch input { accent-color:var(--color-action-stroke); width:18px; height:18px; }
+.hl-capture-panel { display:grid; gap:16px; padding:24px; border:1px solid var(--color-control-edge); border-radius:var(--radius-sheet); background:var(--color-surface); }
+.hl-recording-status { color:var(--color-text-secondary); font-size:14px; }
+.hl-timer { font-variant-numeric:tabular-nums; font-size:24px; }
+.hl-level { max-width:240px; height:6px; border-radius:3px; background:var(--color-line); }
+.hl-level span { display:block; height:100%; border-radius:3px; background:var(--color-action-stroke); }
+.hl-stop-icon { width:12px; height:12px; background:currentColor; }
+.hl-media { display:block; width:100%; max-width:100%; border-radius:var(--radius-media); }
+video.hl-media { max-height:420px; object-fit:contain; background:var(--color-ink); }
+.hl-live-video { aspect-ratio:3/4; }
+.hl-upload { display:grid; gap:8px; padding:12px 0; color:var(--color-text-secondary); font-size:13px; }
+.hl-upload input { display:block; width:100%; min-width:0; min-height:48px; font-size:13px; }
+.hl-upload input::file-selector-button { min-height:44px; border:1px solid var(--color-control-edge); border-radius:var(--radius-field); background:var(--color-surface); color:var(--color-ink); padding:8px 12px; margin-right:8px; }
 @media (min-width:768px) { .hl-margin-row { grid-template-columns:64px minmax(0,1fr); gap:24px; } }
 @media (max-width:359px) { .hl-margin-row { grid-template-columns:minmax(0,1fr); gap:8px; } .hl-margin-label { flex-direction:row; align-items:center; } .hl-surface { padding:16px; } }
 :focus-visible { outline: 3px solid var(--color-action-stroke); outline-offset: 3px; }
