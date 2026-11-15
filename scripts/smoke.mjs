@@ -69,7 +69,8 @@ export async function runSmoke(baseUrl, options = {}) {
       const res = await attempt(wav);
       assert(res.ok, 'Scoring unavailable');
       const body = await res.json();
-      assert(body.score?.scoredBy === 'ai' && body.score.overall >= 80, 'AI score outside smoke expectation');
+      const score = body.attempt?.score;
+      assert(score?.scoredBy === 'ai' && Number.isInteger(score.overall) && score.overall >= 80 && score.overall <= 100, 'AI score outside smoke expectation');
     })) return false;
     if (!await check('silence is rejected without a score', async () => {
       const res = await attempt(silenceWav());
