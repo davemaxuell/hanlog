@@ -72,7 +72,7 @@ it('serves a reference clip to any signed-in user', async () => {
   const without = await postChallenge(korean.cookie);
   const get = (cookie: string | undefined, id: string) => call(reference, makeRequest('GET', `/api/challenges/${id}/reference`, { cookie }), { id });
   const res = await get((await createTestUser('learner')).cookie, withClip.id);
-  expect([res.status, res.headers.get('content-type'), (await res.arrayBuffer()).byteLength]).toEqual([200, 'audio/webm', 500]);
+  expect([res.status, res.headers.get('content-type'), (await res.arrayBuffer()).byteLength]).toEqual([200, 'audio/webm', webmBytes(500).length]);
   expect((await get(korean.cookie, without.id)).status).toBe(404);
   expect((await get(undefined, withClip.id)).status).toBe(401);
 });

@@ -3,14 +3,19 @@ export function call(handler: (req: Request, ctx: never) => Promise<Response>, r
 }
 export function cookieFrom(res: Response): string { return res.headers.get('set-cookie')?.split(';')[0] ?? ''; }
 import { afterEach, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { createMemoryMediaStore, setMediaStoreForTests } from '@/lib/media';
 import { GET as challengeList, POST as createChallenge } from '@/app/api/challenges/route';
 import { GET as challengeDetail } from '@/app/api/challenges/[id]/route';
 import { POST as createAnswer } from '@/app/api/challenges/[id]/responses/route';
 import type { Challenge, ChallengeDetail } from '@/lib/contracts';
 import { makeRequest } from '../helpers/api';
-export function webmBytes(size = 2000): Uint8Array { const bytes = new Uint8Array(size); bytes.set([0x1a, 0x45, 0xdf, 0xa3]); return bytes; }
-export function mp4Bytes(size = 2000): Uint8Array { const bytes = new Uint8Array(size); bytes.set(new TextEncoder().encode('ftyp'), 4); return bytes; }
+function fixtureBytes(name: string, minSize = 0): Uint8Array {
+  const source = readFileSync(`tests/fixtures/media/${name}`);
+  const bytes = new Uint8Array(Math.max(source.length, minSize)); bytes.set(source); return bytes;
+}
+export function webmBytes(size?: number): Uint8Array { return fixtureBytes('audio.webm', size); }
+export function mp4Bytes(size?: number): Uint8Array { return fixtureBytes('video.mp4', size); }
 export function mediaFile(bytes: Uint8Array, type: string): File { return new File([new Uint8Array(bytes)], 'recording', { type }); }
 export function useMemoryMedia(): { paths(): string[] } {
   let store = createMemoryMediaStore();

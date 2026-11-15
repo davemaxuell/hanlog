@@ -52,5 +52,6 @@ export async function validatePeerMedia(file: File | null, kind: unknown, durati
   if (!media || media.kind !== kind) throw new ApiError('media_invalid');
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (sniffMedia(bytes) !== media.ext) throw new ApiError('media_invalid');
-  return { bytes, mime, ext: media.ext, kind, durationMs: duration };
+  const { inspectPeerMedia } = await import('./inspect');
+  return { bytes, mime, ext: media.ext, kind, durationMs: await inspectPeerMedia(bytes, kind) };
 }

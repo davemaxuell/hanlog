@@ -9,14 +9,21 @@ export async function cleanupExpiredMedia(now = new Date()): Promise<number> {
     // Parent rows first: account deletion also locks/deletes challenges before their answers.
     const references = await db.query<{ id: string; reference_path: string }>('select id, reference_path from hanlog.challenges where reference_path is not null and created_at <= $1 order by id for update', [cutoff]);
     const answers = await db.query<{ id: string; media_path: string }>('select id, media_path from hanlog.challenge_responses where media_path is not null and created_at <= $1 order by id for update', [cutoff]);
+    // Only abandoned, unreferenced paths qualify. The hour exceeds request lifetimes and protects uploads in flight.
+    const abandoned = await db.query<{ path: string }>(`select p.path from hanlog.pending_media_deletions p
+      where p.created_at <= $1
+      and not exists(select 1 from hanlog.challenges c where c.reference_path = p.path)
+      and not exists(select 1 from hanlog.challenge_responses r where r.media_path = p.path)
+      order by p.path for update`, [new Date(now.getTime() - 3_600_000).toISOString()]);
     // Spending caps only use the current Korea-time day; older counters are unnecessary.
     await db.query('delete from hanlog.scoring_calls where created_at < $1', [kstDayStartIso(now)]);
-    const paths = [...new Set([...references.map(r => r.reference_path), ...answers.map(r => r.media_path)])];
+    const paths = [...new Set([...references.map(r => r.reference_path), ...answers.map(r => r.media_path), ...abandoned.map(r => r.path)])];
     if (!paths.length) return 0;
     // Keep the DB pointers on failure, allowing the next job to retry partial removal.
     await getMediaStore().remove(paths);
     for (const row of references) await db.query('update hanlog.challenges set reference_path = null, reference_mime = null where id = $1', [row.id]);
     for (const row of answers) await db.query('update hanlog.challenge_responses set media_path = null where id = $1', [row.id]);
+    await db.query('delete from hanlog.pending_media_deletions where path = any($1::text[])', [paths]);
     return paths.length;
   });
 }

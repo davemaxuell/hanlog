@@ -1,7 +1,7 @@
 import { LIMITS, type Score } from '@/lib/contracts';
 import { getMission } from '@/lib/content';
 import { ApiError } from '@/lib/errors';
-import { clientIpHash, json, route } from '@/lib/http';
+import { clientIpHash, json, readFormData, route } from '@/lib/http';
 import { requireUser } from '@/lib/session';
 import { validateScoringWav, wavRms, WavError } from '@/lib/audio/wav';
 import { reserveScoringCall, finishScoringCall } from '@/lib/limits';
@@ -14,8 +14,7 @@ export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) 
   const user = await requireUser(req);
   const mission = getMission((await ctx.params).id);
   if (!mission) throw new ApiError('not_found');
-  let form: FormData;
-  try { form = await req.formData(); } catch { throw new ApiError('invalid_input'); }
+  const form = await readFormData(req, LIMITS.scoringWav.maxBytes);
   const file = form.get('audio');
   if (!(file instanceof File)) throw new ApiError('invalid_input');
   if (file.size > LIMITS.scoringWav.maxBytes) throw new ApiError('audio_too_large');
