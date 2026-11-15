@@ -22,3 +22,13 @@ Local `npm run check`: **489 passed, 18 gated skips**; typecheck and lint passed
 The full browser suite passed **55 cases with 7 skips**. After the final community-card reduced-motion adjustment, a fresh production build and all **8 motion browser cases** passed (6 repeated checks plus 2 new community cases), for **57 distinct passing browser cases**. Coverage includes phone/desktop preferences, tab synchronization, OS reduction, rapid and keyboard scene changes, no-JavaScript landing content, community navigation, and changing preferences during microphone capture. Production build, accessibility sweeps, and final scoped typecheck/lint passed.
 
 Visual review covered 1366×768 presentation, 320px phone toolbar wrapping, and 1440×900 landing layout. No paid AI calls were made. Physical-device frame-rate and actual venue hardware remain rehearsal checks; automated browser results do not establish them.
+
+## Production release
+
+- Application commit: `4a85a993057a57f4d20aa77bb4e0c5b83b894841`.
+- [GitHub check 43753679400](https://github.com/davemaxuell/hanlog/actions/runs/43753679400) passed on that exact commit in **6m29s**, including typecheck, lint, tests, production build with mock scoring, and bundle/repository checks.
+- Vercel production deployment: `dpl_92n36sU1sn6tQJP4d1jHFt59FM3L`, **READY**, build approximately 44 seconds. Public alias: <https://hanlog-nine.vercel.app>; walkthrough: <https://hanlog-nine.vercel.app/demo>.
+- Client bundle/repository secret scan passed. All **47 server traces** excluded private local data, environment files, tests, and documentation.
+- GET-only production smoke passed: empty session, 24 missions, security headers, and authenticated cleanup protection.
+- Live browser review passed: scene navigation, 1366px projector layout, 320px phone layout without horizontal overflow, FAQ interaction, and motion preference surviving navigation/reload. Reduced mode had no active animations. The example walkthrough made no API requests. Browser console had no errors; existing QR/prefetch preload warnings remain informational.
+- Deployment-scoped Vercel error/fatal log query returned no entries after smoke checks. External drain inventory could not be verified through the connector; this check is not an uptime-monitoring guarantee.
