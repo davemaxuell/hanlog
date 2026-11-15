@@ -5,6 +5,7 @@ import { ApiError } from '../errors';
 import { AttemptSchema, type Attempt } from '../contracts';
 import { kstDateString } from '../http';
 import type { AttemptHistory, ProgressSummary } from '../progress-contracts';
+import { lockSessionUser } from './users';
 
 type AttemptRow = { id: string; mission_id: string; overall: number; pronunciation: number; accuracy: number; usage: number; heard: string; feedback: { issues: unknown[]; praise: string; nextTip: string }; scored_by: string; points_awarded: number; created_at: Date | string; cursor_time?: string };
 const attemptFields = 'id,mission_id,overall,pronunciation,accuracy,usage,heard,feedback,scored_by,points_awarded,created_at';
@@ -68,16 +69,14 @@ export async function getProgressSummary(userId: string, now = new Date()): Prom
   };
 }
 
-export async function setSavedMission(userId: string, missionId: string, saved: boolean): Promise<void> {
+export async function setSavedMission(userId: string, missionId: string, saved: boolean, expectedVersion?: number): Promise<void> {
   if (!getMission(missionId)) throw new ApiError('not_found');
   const db = await getDb();
-  if (saved) await db.tx(async tx => {
-    // Keep the parent alive through the insert; deletion can proceed afterwards
-    // and its cascading FK then removes the saved expression as usual.
-    const owner = await tx.query('select id from hanlog.users where id = $1 for key share', [userId]);
-    if (!owner.length) throw new ApiError('unauthenticated');
-    await tx.query(`insert into hanlog.saved_missions (user_id,mission_id) values ($1,$2)
+  await db.tx(async tx => {
+    await tx.query('select pg_advisory_xact_lock(hashtext($1))', [userId]);
+    await lockSessionUser(tx, userId, expectedVersion);
+    if (saved) await tx.query(`insert into hanlog.saved_missions (user_id,mission_id) values ($1,$2)
       on conflict (user_id,mission_id) do nothing`, [userId, missionId]);
+    else await tx.query('delete from hanlog.saved_missions where user_id = $1 and mission_id = $2', [userId, missionId]);
   });
-  else await db.query('delete from hanlog.saved_missions where user_id = $1 and mission_id = $2', [userId, missionId]);
 }

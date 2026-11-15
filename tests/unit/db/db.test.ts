@@ -10,11 +10,21 @@ it('creates every table in schema hanlog with row level security on', async () =
   const rows = await db.query<{ relname: string; relrowsecurity: boolean }>(
     `select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace
      where n.nspname = 'hanlog' and c.relkind = 'r' order by c.relname`);
-  expect(rows.map((r) => r.relname)).toEqual(['attempts', 'challenge_responses', 'challenges', 'community_reports', 'pending_media_deletions', 'point_events', 'recovery_attempt_limits', 'saved_missions', 'schema_migrations', 'scoring_calls', 'users']);
+  expect(rows.map((r) => r.relname)).toEqual(['attempts', 'challenge_responses', 'challenges', 'community_reports', 'pending_media_deletions', 'point_events', 'recovery_attempt_limits', 'saved_missions', 'schema_migrations', 'scoring_calls', 'session_creation_limits', 'users']);
   expect(rows.filter((r) => r.relname !== 'schema_migrations').every((r) => r.relrowsecurity)).toBe(true);
 });
 it('is idempotent', async () => {
   expect(await applyMigrations(db)).toEqual([]);
+});
+it('backfills the active creation quota when upgrading an existing database', async () => {
+  await db.query("insert into hanlog.users(nickname,role,ip_hash) values ('First','learner','upgrade-cap'),('Second','learner','upgrade-cap')");
+  await db.query("insert into hanlog.users(nickname,role,ip_hash,created_at) values ('Old','learner','old-cap',now() - interval '2 days')");
+  await db.query('drop table hanlog.session_creation_limits');
+  await db.query("delete from hanlog.schema_migrations where name = '007_session_creation_limits.sql'");
+  expect(await applyMigrations(db)).toEqual(['007_session_creation_limits.sql']);
+  expect(await db.query("select ip_hash,sessions from hanlog.session_creation_limits where ip_hash in ('upgrade-cap','old-cap')")).toEqual([{ ip_hash: 'upgrade-cap', sessions: 2 }]);
+  await db.query("delete from hanlog.users where ip_hash = 'upgrade-cap'");
+  expect(await db.query("select sessions from hanlog.session_creation_limits where ip_hash = 'upgrade-cap'")).toEqual([{ sessions: 2 }]);
 });
 it('rolls back a failed transaction', async () => {
   await expect(db.tx(async (t) => {
