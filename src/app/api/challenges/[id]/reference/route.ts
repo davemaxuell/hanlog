@@ -5,8 +5,8 @@ import { getChallengeRecord, mediaWithinRetention } from '@/lib/repo/challenges'
 import { requireUser } from '@/lib/session';
 export const runtime = 'nodejs';
 export const GET = route(async (req, ctx: { params: Promise<{ id: string }> }) => {
-  await requireUser(req);
-  const record = await getChallengeRecord((await ctx.params).id);
+  const user = await requireUser(req);
+  const record = await getChallengeRecord((await ctx.params).id, user.id);
   if (!record?.referencePath || !record.referenceMime || !mediaWithinRetention(record.createdAt)) throw new ApiError('not_found');
   const bytes = await getMediaStore().get(record.referencePath);
   if (!bytes) throw new ApiError('not_found');

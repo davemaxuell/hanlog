@@ -5,7 +5,9 @@ test('the introduction page loads without console errors', async ({ page }, test
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Speak Korean out in the world. Get a score that actually helps.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Your day\.\s*In Korean\./);
+  await expect(page.getByRole('link', { name: 'Practise this phrase' })).toHaveAttribute('href', '/app/missions/cafe-iced-americano');
+  await expect(page.getByText(/아이스 아메리카노/).first()).toHaveAttribute('lang', 'ko');
   expect(errors).toEqual([]);
   expect(await page.getByRole('heading', { level: 1 }).evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(32);
   await page.screenshot({ path: `output/playwright/intro-${testInfo.project.name}.png`, fullPage: true });

@@ -8,6 +8,7 @@ import { errorCopy } from '@/lib/ui/error-copy';
 import { Button, Field, StatusNote, TextArea } from '@/components/ui';
 import { Recorder } from '@/components/recorder/Recorder';
 import { SharePanel } from '@/components/challenge/SharePanel';
+import styles from '@/components/challenge/community.module.css';
 export default function NewChallenge() {
   const { user } = useSession(); const sessionExpired = useSessionExpired();
   const [korean, setKorean] = useState(''); const [meaningEn, setMeaning] = useState(''); const [situationEn, setSituation] = useState('');
@@ -21,7 +22,7 @@ export default function NewChallenge() {
     finally { lock.current = false; setBusy(false); }
   };
   if (user.role !== 'korean') return <div className="hl-stack"><h1>Share your Korean.</h1><p>Only Korean speakers can post challenges. You can switch your role on the Me screen.</p><Link className="hl-back-link" href="/app/me">Go to Me</Link></div>;
-  return <div className="hl-stack"><Link className="hl-back-link" href="/app/challenges">← Challenges</Link><header className="hl-page-heading"><p className="hl-eyebrow">From your everyday Korean</p><h1>Give someone a new way to say it.</h1><p>An expression, a little context, and a chance to practice.</p></header>{result ? <><SharePanel code={result.code} /><Link className="hl-back-link" href={`/app/challenges/${result.id}`}>Open your challenge</Link></> : <form onSubmit={submit} className="hl-stack">
+  return <div className="hl-stack"><Link className="hl-back-link" href="/app/challenges">← Challenges</Link><header className={styles.newIntro}><p className="hl-eyebrow">From your everyday Korean</p><h1>Give someone a new way to say it.</h1><p>An expression, a little context, and a chance to practice. Choose something useful, explain when to use it, then invite a learner to try.</p></header>{result ? <><SharePanel code={result.code} /><Link className="hl-back-link" href={`/app/challenges/${result.id}`}>Open your challenge</Link></> : <form onSubmit={submit} className={styles.newForm}>
     <Field label="Korean expression" lang="ko" value={korean} onChange={event => setKorean(event.target.value)} counter={{ value: countChars(korean), max: LIMITS.challengeKorean.max }} error={korean && !containsHangul(korean) ? 'Write the expression in Hangul.' : countChars(korean) > LIMITS.challengeKorean.max ? 'Keep it to 60 characters.' : undefined} />
     <Field label="Meaning in English" value={meaningEn} onChange={event => setMeaning(event.target.value)} counter={{ value: countChars(meaningEn), max: LIMITS.meaningEn.max }} error={countChars(meaningEn) > LIMITS.meaningEn.max ? 'Keep it to 120 characters.' : undefined} />
     <TextArea label="Situation or example (optional)" value={situationEn} onChange={event => setSituation(event.target.value)} counter={{ value: countChars(situationEn), max: LIMITS.situationEn.max }} error={countChars(situationEn) > LIMITS.situationEn.max ? 'Keep it to 200 characters.' : undefined} />

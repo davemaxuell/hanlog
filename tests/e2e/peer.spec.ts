@@ -24,10 +24,14 @@ test('a Korean speaker and a learner complete one exchange in two browsers', asy
   await learner.getByRole('button', { name: 'Send answer' }).click();
   await expect(learner.getByText('Sent. Minji will rate it.')).toBeVisible();
 
-  await korean.getByRole('link', { name: 'Challenges', exact: true }).click();
+  await korean.getByRole('link', { name: 'Community', exact: true }).click();
   await expect(korean.getByRole('heading', { name: /To rate \([1-9]\d*\)/ })).toBeVisible();
   await korean.getByRole('region', { name: /To rate/ }).getByRole('link').filter({ hasText: '이거 완전 꿀잼이야.' }).click();
   const card = korean.getByRole('article', { name: 'Answer from Aisha' });
+  await expect(card).toBeVisible();
+  // evaluateAll does not wait for the asynchronous response list to arrive.
+  // Verify the actual rating controls before measuring their touch targets.
+  await expect(card.locator('.hl-stars label')).toHaveCount(10);
   const originalViewport = korean.viewportSize()!;
   for (const width of [320, 390]) {
     await korean.setViewportSize({ width, height: 844 });
@@ -49,6 +53,11 @@ test('a Korean speaker and a learner complete one exchange in two browsers', asy
   await expect(learner.getByRole('img', { name: 'Pronunciation: 4 out of 5' })).toBeVisible();
   await learner.getByRole('radio', { name: '5 stars' }).check();
   await learner.getByRole('button', { name: 'Send feedback' }).click();
+  await expect(learner.getByText('Thanks. Your feedback was sent.')).toBeVisible();
+
+  await learner.getByRole('link', { name: 'Community', exact: true }).click();
+  await expect(learner.getByRole('region', { name: 'Your feedback inbox' }).getByText('Your answer was rated')).toBeVisible();
+  await learner.getByRole('region', { name: 'Your feedback inbox' }).getByRole('link').click();
   await expect(learner.getByText('Thanks. Your feedback was sent.')).toBeVisible();
 
   await learner.reload();

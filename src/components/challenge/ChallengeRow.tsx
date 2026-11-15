@@ -1,6 +1,11 @@
 import Link from 'next/link';
-import type { Challenge } from '@/lib/contracts';
+import { containsHangul, type Challenge } from '@/lib/contracts';
 import { Ko } from '@/components/ui';
+import styles from './community.module.css';
 export function ChallengeRow({ challenge, status }: { challenge: Challenge; status?: string }) {
-  return <Link href={`/app/challenges/${challenge.id}`} className="hl-mission-row"><span aria-hidden="true" className={`hl-marker hl-marker--${challenge.viewer.responded ? 'filled' : 'empty'}`}>{challenge.viewer.responded ? '✓' : ''}</span><span className="hl-row-copy"><Ko className="hl-row-korean">{challenge.korean}</Ko><span>{challenge.meaningEn}</span><span className="hl-caption">From {challenge.author.nickname}{challenge.isSample && <span className="hl-sample-label">Sample</span>}</span></span><span className="hl-row-meta">{status ?? (challenge.viewer.responded ? 'Answered' : challenge.viewer.pendingToRate ? `${challenge.viewer.pendingToRate} waiting` : 'Open')}<span aria-hidden="true">↗</span></span></Link>;
+  return <Link href={`/app/challenges/${challenge.id}`} className={styles.challengeCard}>
+    <span className={styles.cardByline}><span className={styles.avatar} aria-hidden="true">{challenge.author.nickname.slice(0, 1).toUpperCase()}</span><span>From <span lang={containsHangul(challenge.author.nickname) ? 'ko' : undefined}>{challenge.author.nickname}</span></span>{challenge.isSample && <span className={styles.sample}>Sample</span>}</span>
+    <Ko className={styles.expression}>{challenge.korean}</Ko><span className={styles.meaning}>{challenge.meaningEn}</span>
+    <span className={styles.cardFooter}><span>{status ?? (challenge.viewer.responded ? 'Answered' : challenge.viewer.pendingToRate ? `${challenge.viewer.pendingToRate} waiting` : 'Open')}</span><span aria-hidden="true">↗</span></span>
+  </Link>;
 }

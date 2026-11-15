@@ -4,16 +4,20 @@ import { json, kstDayStartIso, readFormData, route } from '@/lib/http';
 import { getMediaStore, validatePeerMedia } from '@/lib/media';
 import { finishMediaRemoval, queueMediaRemoval } from '@/lib/media/pending';
 import { assertTextAllowed } from '@/lib/moderation';
-import { CHALLENGES_PER_DAY, countChallengesSince, createChallenge, getChallengeRecord, listChallenges, removeIncompleteChallenge, setChallengeReference, toChallenge } from '@/lib/repo/challenges';
+import { CHALLENGES_PER_DAY, countChallengesSince, createChallenge, getChallengeRecord, listChallengePage, removeIncompleteChallenge, setChallengeReference, toChallenge } from '@/lib/repo/challenges';
+import { communityPageInput } from '@/lib/repo/community-pagination';
 import { requireUser } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 export const GET = route(async req => {
   const user = await requireUser(req);
-  const parsed = ChallengeScopeSchema.safeParse(new URL(req.url).searchParams.get('scope') ?? 'open');
+  const url = new URL(req.url);
+  const parsed = ChallengeScopeSchema.safeParse(url.searchParams.get('scope') ?? 'open');
   if (!parsed.success) throw new ApiError('invalid_input');
-  return json({ challenges: await listChallenges(parsed.data, user) });
+  const q = (url.searchParams.get('q') ?? '').trim();
+  if (q.length > 80) throw new ApiError('invalid_input');
+  return json(await listChallengePage(parsed.data, user, { ...communityPageInput(url, 50), q }));
 });
 export const POST = route(async req => {
   const user = await requireUser(req);

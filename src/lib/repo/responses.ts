@@ -8,6 +8,8 @@ import { finishMediaRemoval, lockMediaPaths, queueMediaRemoval } from '../media/
 import { getChallengeRecord, mediaWithinRetention } from './challenges';
 import { addPointEvent } from './points';
 import { PEER_FEEDBACK_GIVER_AWARD, PEER_RATING_AWARD, POINT_LABELS, peerFeedbackAuthorAward, peerResponseAward } from '../points/rules';
+import { encodeCommunityCursor, type CommunityCursor } from './community-pagination';
+import type { ResponsePage } from '../community-contracts';
 
 export type ResponseRecord = ChallengeResponse & { mediaPath: string | null; mediaMime: string; flagged: boolean; raterId: string | null; challengeAuthorId: string; challengeIsSample: boolean };
 type Row = {
@@ -16,9 +18,9 @@ type Row = {
   status: 'pending' | 'rated'; flagged: boolean; rater_id: string | null;
   rating_pronunciation: number | null; rating_naturalness: number | null; rating_comment: string | null; rated_at: Date | string | null;
   feedback_helpfulness: number | null; feedback_comment: string | null; feedback_at: Date | string | null;
-  created_at: Date | string; author_id: string; is_sample: boolean;
+  created_at: Date | string; cursor_at: string; author_id: string; is_sample: boolean;
 };
-const select = `select r.*, u.nickname, c.author_id, c.is_sample from hanlog.challenge_responses r join hanlog.users u on u.id = r.responder_id join hanlog.challenges c on c.id = r.challenge_id`;
+const select = `select r.*, to_char(r.created_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as cursor_at, u.nickname, c.author_id, c.is_sample from hanlog.challenge_responses r join hanlog.users u on u.id = r.responder_id join hanlog.challenges c on c.id = r.challenge_id`;
 function map(row: Row): ResponseRecord {
   const createdAt = new Date(row.created_at).toISOString();
   return {
@@ -41,8 +43,16 @@ export async function getMyResponse(challengeId: string, responderId: string): P
   return rows[0] ? publicResponse(map(rows[0])) : null;
 }
 export async function listResponses(challengeId: string): Promise<ChallengeResponse[]> {
-  const rows = await (await getDb()).query<Row>(`${select} where r.challenge_id = $1 and not r.flagged and c.status = 'open' order by (r.status = 'pending') desc, r.created_at desc, r.id desc`, [challengeId]);
-  return rows.map(row => publicResponse(map(row)));
+  return (await listResponsePage(challengeId, { limit: 20 })).responses;
+}
+export async function listResponsePage(challengeId: string, options: { limit: number; cursor?: CommunityCursor | null }): Promise<ResponsePage> {
+  const values: unknown[] = [challengeId];
+  let where = '';
+  if (options.cursor) { values.push(options.cursor.at, options.cursor.id); where = ' and (r.created_at,r.id) < ($2::timestamptz,$3::uuid)'; }
+  values.push(options.limit + 1);
+  const rows = await (await getDb()).query<Row>(`${select} where r.challenge_id = $1 and not r.flagged and c.status = 'open'${where} order by r.created_at desc,r.id desc limit $${values.length}`, values);
+  const page = rows.slice(0, options.limit); const last = page.at(-1);
+  return { responses: page.map(row => publicResponse(map(row))), nextCursor: rows.length > options.limit && last ? encodeCommunityCursor(last.cursor_at, last.id) : null };
 }
 export function canRate(record: ResponseRecord, viewer: User): boolean {
   return record.responder.id !== viewer.id && (record.challengeAuthorId === viewer.id || (record.challengeIsSample && viewer.role === 'korean'));

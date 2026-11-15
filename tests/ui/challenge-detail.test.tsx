@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, vi } from 'vitest';
 vi.mock('next/navigation', async () => (await import('./_helpers')).navigationMock);
 vi.mock('@/lib/api-client', async (original) => ({ ...(await original<typeof import('@/lib/api-client')>()), api: (await import('./_helpers')).mockApi }));
+vi.mock('@/lib/community-client', async () => { const { mockApi } = await import('./_helpers'); return { communityApi: { getChallenge: (id: string) => mockApi.getChallenge(id), reportResponse: (id: string, reason: string) => mockApi.reportResponse(id, reason), reportChallenge: vi.fn(), listResponses: vi.fn() } }; });
 import { ChallengeDetailPage } from '@/components/challenge/ChallengeDetailPage';
 import { MediaPlayer } from '@/components/challenge/MediaPlayer';
 import { ApiClientError } from '@/lib/api-client';
@@ -73,8 +74,46 @@ it('reports an answer after a confirmation', async () => {
   render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
   await userEvent.click(await screen.findByRole('button', { name: 'Report' }));
   await userEvent.click(screen.getByRole('button', { name: 'Yes, report it' }));
-  expect(mockApi.reportResponse).toHaveBeenCalledWith(pending.id);
+  expect(mockApi.reportResponse).toHaveBeenCalledWith(pending.id, 'other');
   await waitFor(() => expect(screen.queryByRole('article', { name: `Answer from ${pending.responder.nickname}` })).toBeNull());
+});
+it('explains the reporting cap without hiding an unreported answer', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser);
+  mockApi.getChallenge.mockResolvedValue({ ...samples.challengeDetailForAuthor, responses: [pending] });
+  mockApi.reportResponse.mockRejectedValue(new ApiClientError('daily_limit', 429, 'Limit'));
+  nav.params = { id: samples.challenge.id };
+  render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await userEvent.click(await screen.findByRole('button', { name: 'Report' }));
+  await userEvent.selectOptions(screen.getByLabelText('Reason'), 'privacy');
+  await userEvent.click(screen.getByRole('button', { name: 'Yes, report it' }));
+  expect(await screen.findByText('You can send up to 10 reports per day. Try again after midnight in Korea.')).toBeInTheDocument();
+  expect(mockApi.reportResponse).toHaveBeenCalledWith(pending.id, 'privacy');
+  expect(screen.getByRole('article', { name: `Answer from ${pending.responder.nickname}` })).toBeInTheDocument();
+});
+it('refreshes a pending answer into its rating without a page reload', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user); nav.params = { id: samples.challenge.id };
+  mockApi.getChallenge.mockResolvedValueOnce({ ...samples.challengeDetailForLearner, viewerRole: 'responder', myResponse: pending }).mockResolvedValue({ ...samples.challengeDetailForLearner, viewerRole: 'responder', myResponse: rated });
+  render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await screen.findByText('Waiting for a rating.');
+  await userEvent.click(screen.getByRole('button', { name: 'Refresh conversation' }));
+  expect(await screen.findByRole('heading', { name: 'Your rating' })).toBeInTheDocument();
+});
+it('keeps an unfinished rating draft while refreshing the conversation', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser); nav.params = { id: samples.challenge.id };
+  mockApi.getChallenge.mockResolvedValue({ ...samples.challengeDetailForAuthor, responses: [pending] });
+  render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await userEvent.type(await screen.findByLabelText('Comment (optional)'), 'Keep this helpful thought');
+  await userEvent.click(screen.getByRole('button', { name: 'Refresh conversation' }));
+  await waitFor(() => expect(mockApi.getChallenge).toHaveBeenCalledTimes(2));
+  expect(screen.getByLabelText('Comment (optional)')).toHaveValue('Keep this helpful thought');
+});
+it('keeps responder access after a role switch without offering an invalid replacement', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser); nav.params = { id: samples.challenge.id };
+  mockApi.getChallenge.mockResolvedValue({ ...samples.challengeDetailForLearner, viewerRole: 'responder', myResponse: pending });
+  render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await screen.findByText('Waiting for a rating.');
+  expect(screen.queryByRole('button', { name: 'Record again' })).toBeNull();
+  expect(screen.getByText('Switch to the learner role in your profile to replace this answer.')).toBeInTheDocument();
 });
 it('revokes the playback URL when the player goes away', async () => {
   const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});

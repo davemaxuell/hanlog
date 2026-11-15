@@ -1,0 +1,10 @@
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { REPORT_REASONS, type ReportReason } from '@/lib/community-contracts';
+import { Button, StatusNote } from '@/components/ui';
+import styles from './community.module.css';
+export function ReportDialog({ kind = 'answer', busy, error, onCancel, onConfirm }: { kind?: 'answer' | 'challenge'; busy: boolean; error: string | null; onCancel(): void; onConfirm(reason: ReportReason): void }) {
+  const dialog = useRef<HTMLDialogElement>(null); const cancel = useRef<HTMLButtonElement>(null); const [reason, setReason] = useState<ReportReason>('other');
+  useEffect(() => { const element = dialog.current; const previous = document.activeElement as HTMLElement | null; if (element?.showModal) element.showModal(); else element?.setAttribute('open', ''); cancel.current?.focus(); return () => { if (element?.open && element.close) element.close(); previous?.focus(); }; }, []);
+  return <dialog ref={dialog} className="hl-dialog" aria-labelledby="report-title" onCancel={event => { event.preventDefault(); if (!busy) onCancel(); }}><div className="hl-stack"><h2 id="report-title">Report this {kind}?</h2><p>{kind === 'challenge' ? 'This hides the challenge from your feed and records your concern for the HanLog team. Other members can still see it unless an operator removes it.' : 'This hides the answer and records your concern for the HanLog team.'}</p><label className={styles.reportSelect}>Reason<select value={reason} disabled={busy} onChange={event => setReason(event.target.value as ReportReason)}>{Object.entries(REPORT_REASONS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>{error && <StatusNote tone="error">{error}</StatusNote>}<div className="hl-actions"><button ref={cancel} type="button" className="hl-button hl-button--secondary" disabled={busy} onClick={onCancel}>Cancel</button><Button busy={busy} busyLabel="Reporting…" onClick={() => onConfirm(reason)}>Yes, report it</Button></div></div></dialog>;
+}

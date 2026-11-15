@@ -1,25 +1,39 @@
 'use client';
 import Link from 'next/link';
-import { api } from '@/lib/api-client';
-import { useApi } from '@/lib/ui/use-api';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useSession } from '@/lib/ui/session-context';
-import { errorCopy } from '@/lib/ui/error-copy';
-import { Button, MarginRow, StatusNote } from '@/components/ui';
-import { ChallengeRow } from '@/components/challenge/ChallengeRow';
+import { SHARE_CODE_ALPHABET } from '@/lib/contracts';
+import { Button, Ko } from '@/components/ui';
+import { ChallengeSection, FeedbackInbox } from '@/components/challenge/CommunitySections';
+import styles from '@/components/challenge/community.module.css';
+
 export default function Challenges() {
-  const { user } = useSession(); const korean = user.role === 'korean';
-  const request = useApi(async () => {
-    const [first, second] = await Promise.all([api.listChallenges(korean ? 'to-rate' : 'open'), api.listChallenges(korean ? 'mine' : 'answered')]);
-    const statuses = korean ? {} : Object.fromEntries(await Promise.all(second.map(async challenge => {
-      const detail = await api.getChallenge(challenge.id); return [challenge.id, detail?.myResponse?.status === 'rated' ? 'Rated' : 'Waiting for rating'];
-    })));
-    return { first, second, statuses };
-  }, [user.role]);
-  const waiting = request.data?.first.reduce((total, item) => total + item.viewer.pendingToRate, 0) ?? 0;
-  const firstTitle = korean ? `To rate (${waiting})` : 'Open challenges'; const secondTitle = korean ? 'My challenges' : 'My answers';
-  return <div className="hl-stack"><header className="hl-page-heading"><p className="hl-eyebrow">Korean, between people</p><h1>A place to try it out.</h1><p>{korean ? 'Share an expression. Help someone make it their own.' : 'Try everyday expressions with a Korean speaker.'}</p>{korean && <Link className="hl-button hl-button--primary hl-fit" href="/app/challenges/new">Post a challenge</Link>}</header>
-    {request.loading && <StatusNote tone="info">Opening the conversation…</StatusNote>}
-    {request.error && <div className="hl-stack-sm"><StatusNote tone="error">{errorCopy(request.error.code)}</StatusNote><Button onClick={request.reload}>Try again</Button></div>}
-    {request.data && !request.loading && !request.error && <><section aria-labelledby="challenges-first" className="hl-stack-sm"><MarginRow label={korean ? 'Give back' : 'Try one'}><h2 id="challenges-first">{firstTitle}</h2></MarginRow>{request.data.first.length ? <div className="hl-mission-list">{request.data.first.map(item => <ChallengeRow key={item.id} challenge={item} />)}</div> : <p className="hl-empty">{korean ? 'Nothing to rate right now.' : 'No open challenges yet. Check back soon.'}</p>}</section><section aria-labelledby="challenges-second" className="hl-stack-sm"><MarginRow label="Your log"><h2 id="challenges-second">{secondTitle}</h2></MarginRow>{request.data.second.length ? <div className="hl-mission-list">{request.data.second.map(item => <ChallengeRow key={item.id} challenge={item} status={request.data!.statuses[item.id]} />)}</div> : <p className="hl-empty">{korean ? 'You have not posted a challenge yet.' : 'You have not answered a challenge yet.'}</p>}</section></>}
+  const { user } = useSession(); const korean = user.role === 'korean'; const router = useRouter();
+  const [search, setSearch] = useState(''); const [query, setQuery] = useState('');
+  const [code, setCode] = useState(''); const [codeError, setCodeError] = useState('');
+  const firstScope = korean ? 'to-rate' : 'open'; const secondScope = korean ? 'mine' : 'answered';
+  return <div className="hl-stack">
+    <header className={styles.hero}>
+      <div className={styles.heroCopy}><p className="hl-eyebrow">Korean, between people</p><h1>Small words.<br />Real connections.</h1><p>{korean ? 'Share the expressions you actually use. Give someone the confidence to join in.' : 'Try an everyday expression. Share your voice and learn from a Korean-speaking peer.'}</p>
+        {korean ? <Link className="hl-button hl-button--primary hl-fit" href="/app/challenges/new">Post a challenge</Link> : <a className="hl-button hl-button--primary hl-fit" href="#challenges-first">Find a challenge</a>}
+      </div>
+      <aside className={styles.invitation}><span className={styles.voiceMark} aria-hidden="true">“</span><Ko as="p" className={styles.invitationKorean}>같이 이야기해요.</Ko><p>Let&apos;s talk, together.</p><span className={styles.note}>A short voice or video answer is enough.</span></aside>
+    </header>
+    <div className={styles.tools}>
+      <form className={styles.search} role="search" onSubmit={event => { event.preventDefault(); setQuery(search.trim()); }}>
+        <label htmlFor="community-search">Find an expression</label><div className={styles.inputRow}><input id="community-search" type="search" maxLength={80} placeholder="Korean, meaning, or a friend's name" value={search} onChange={event => setSearch(event.target.value)} /><Button type="submit" variant="secondary">Search</Button></div>
+        {query && <button type="button" className={styles.clear} onClick={() => { setSearch(''); setQuery(''); }}>Clear “{query}”</button>}
+      </form>
+      <form className={styles.code} onSubmit={event => {
+        event.preventDefault(); const value = code.trim().toUpperCase();
+        if (value.length !== 6 || ![...value].every(letter => SHARE_CODE_ALPHABET.includes(letter))) { setCodeError('Enter the six-character challenge code.'); return; }
+        setCodeError(''); router.push(`/c/${value}`);
+      }}><label htmlFor="challenge-code">Have an invitation?</label><div className={styles.inputRow}><input id="challenge-code" value={code} onChange={event => { setCode(event.target.value.toUpperCase()); setCodeError(''); }} autoCapitalize="characters" autoComplete="off" maxLength={6} placeholder="ABC234" aria-invalid={!!codeError} aria-describedby={codeError ? 'code-error' : undefined} /><Button type="submit" variant="secondary">Open code</Button></div>{codeError && <p id="code-error" role="alert" className={styles.error}>{codeError}</p>}</form>
+    </div>
+    <ChallengeSection key={`${user.id}:${firstScope}:${query}`} scope={firstScope} query={query} id="challenges-first" title={korean ? 'To rate' : 'Open challenges'} description={korean ? 'A little encouragement goes a long way.' : 'Pick something you could say in your own day.'} empty={query ? 'No expressions match your search. Try a shorter phrase.' : korean ? 'Nothing to rate right now.' : 'No open challenges yet. Check back soon.'} />
+    <FeedbackInbox key={`inbox:${user.id}`} />
+    <ChallengeSection key={`${user.id}:${secondScope}:${query}`} scope={secondScope} query={query} id="challenges-second" title={korean ? 'My challenges' : 'My answers'} description="Pick up a conversation where you left it." empty={query ? 'Nothing in your log matches this search.' : korean ? 'You have not posted a challenge yet.' : 'You have not answered a challenge yet.'} />
+    <p className={styles.communityNote}>Be kind, keep personal details private, and ask before recording someone else. Korean-speaking peers choose their own role; they are not verified tutors. <Link href="/privacy">How recordings are shared</Link></p>
   </div>;
 }

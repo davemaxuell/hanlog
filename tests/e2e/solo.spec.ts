@@ -28,8 +28,12 @@ test('a new learner onboards, completes a mission, and cannot be paid twice', as
     await expect(page.getByText(expected)).toBeVisible();
     if (typeof expected !== 'string') await page.getByRole('button', { name: 'Try again' }).click();
   }
-  await page.getByRole('link', { name: 'Rewards' }).click();
-  await expect(page.getByText(/^Mission: /)).toHaveCount(1);
+  await page.getByRole('link', { name: 'Your points and milestones', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Small wins add up.' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Points history' }).getByText(/^Mission: /)).toHaveCount(1);
+  await page.getByRole('link', { name: 'Progress', exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Past speaking attempts' }).getByRole('listitem')).toHaveCount(2);
+  await expect(page.getByRole('list', { name: 'Past speaking attempts' }).getByText(/No points this time/)).toHaveCount(1);
 });
 test('a denied microphone still leaves a way to get a score', async ({ page }) => {
   await page.addInitScript(() => {
