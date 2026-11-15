@@ -112,6 +112,13 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-upload input::file-selector-button { min-height:44px; border:1px solid var(--color-control-edge); border-radius:var(--radius-field); background:var(--color-surface); color:var(--color-ink); padding:8px 12px; margin-right:8px; }
 .hl-score-heading { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; }
 .hl-page-heading { display:grid; gap:12px; }
+.hl-eyebrow { font-size:12px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--color-text-secondary); }
+.hl-mission-expression { font-size:clamp(28px,5vw,42px); line-height:1.5; font-family:var(--font-body); font-weight:500; word-break:keep-all; overflow-wrap:anywhere; }
+.hl-romanization-toggle { justify-self:start; padding-left:0; }
+.hl-meaning { font-size:20px; line-height:1.6; }
+.hl-note-heading { font-family:var(--font-body); font-size:14px; font-weight:600; }
+.hl-instruction { font-size:18px; line-height:1.6; }
+.hl-back-link { display:inline-flex; align-items:center; min-height:48px; justify-self:start; color:var(--color-action-stroke); }
 .hl-page-heading h1 { font-size:clamp(32px,6vw,48px); line-height:1.2; }
 .hl-page-heading p:not(.hl-eyebrow) { color:var(--color-text-secondary); }
 .hl-section-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; }
