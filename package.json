@@ -22,13 +22,13 @@
   "dependencies": {
     "@electric-sql/pglite": "0.5.16",
     "@supabase/supabase-js": "2.119.0",
-    "@vercel/config": "0.14.1",
     "jose": "6.2.17",
     "next": "16.4.6",
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "mediabunny": "1.66.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
@@ -53,5 +53,10 @@
   "type": "module",
   "engines": {
     "node": ">=24 <25"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.8"
+    }
   }
 }
