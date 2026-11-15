@@ -35,8 +35,9 @@ export const PATCH = route(async req => {
 });
 export const DELETE = route(async req => {
   const user = await requireUser(req);
-  const paths = await deleteUserCascade(user.id);
-  try { await getMediaStore().remove(paths); }
-  catch { console.error('Media cleanup required after profile deletion', { paths }); }
+  await deleteUserCascade(user.id, async paths => {
+    try { await getMediaStore().remove(paths); }
+    catch { throw new ApiError('service_unavailable'); }
+  });
   return new Response(null, { status: 204, headers: { 'Set-Cookie': clearSessionCookieHeader() } });
 });

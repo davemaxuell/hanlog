@@ -1,6 +1,6 @@
 import { getDb } from '../db';
 import { ApiError } from '../errors';
-import type { Role, User } from '../contracts';
+import { SYSTEM_USER_ID, type Role, type User } from '../contracts';
 type UserRow = { id: string; nickname: string; role: Role; created_at: Date | string };
 const toUser = (r: UserRow): User => ({ id: r.id, nickname: r.nickname, role: r.role, createdAt: new Date(r.created_at).toISOString() });
 const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -22,16 +22,23 @@ export async function updateUser(id: string, patch: { nickname?: string; role?: 
 export async function countUsersSince(ipHash: string, sinceIso: string): Promise<number> {
   return (await (await getDb()).query<{ n: number }>('select count(*)::int as n from hanlog.users where ip_hash = $1 and created_at >= $2', [ipHash, sinceIso]))[0].n;
 }
-export async function deleteUserCascade(id: string): Promise<string[]> {
+export async function deleteUserCascade(id: string, removeMedia?: (paths: string[]) => Promise<void>): Promise<string[]> {
   if (!isUuid(id)) return [];
   return (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [id]);
+    // Answer uploads hold a share lock on their parent; lock parents before collecting paths.
+    await db.query('select id from hanlog.challenges where author_id = $1 order by id for update', [id]);
+    await db.query('select id from hanlog.challenge_responses where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1) order by id for update', [id]);
     const paths = await db.query<{ path: string | null }>(`
       select reference_path as path from hanlog.challenges where author_id = $1
       union select media_path as path from hanlog.challenge_responses
       where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1)`, [id]);
-    // Budget reservations deliberately have no user FK and survive profile deletion.
+    const mediaPaths = paths.flatMap(r => r.path ? [r.path] : []);
+    // Keep identity and pointers on failure so a partial storage deletion can be retried.
+    if (removeMedia) await removeMedia(mediaPaths);
+    // Preserve address/global spending limits without retaining the deleted profile ID.
+    await db.query('update hanlog.scoring_calls set user_id = $2 where user_id = $1', [id, SYSTEM_USER_ID]);
     await db.query('delete from hanlog.users where id = $1', [id]);
-    return paths.flatMap(r => r.path ? [r.path] : []);
+    return mediaPaths;
   });
 }

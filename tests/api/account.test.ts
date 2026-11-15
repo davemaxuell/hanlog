@@ -40,14 +40,21 @@ it('deletes owned rows and recordings while preserving other profiles and spend 
   expect((await db.query<{ n: number }>('select count(*)::int as n from hanlog.scoring_calls'))[0].n).toBe(1);
 });
 it('requires a session', async () => { expect((await call(DELETE, makeRequest('DELETE', '/api/session'))).status).toBe(401); });
-it('still deletes identity when storage fails and logs only orphan paths', async () => {
+it('preserves identity and media pointers on storage failure so deletion can be retried', async () => {
   const author = await createTestUser('korean');
   const learner = await createTestUser();
   const paths = await addRecording(author.user.id, learner.user.id, 'ABC236');
   vi.spyOn(getMediaStore(), 'remove').mockRejectedValueOnce(new Error('secret-driver-details'));
-  const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const failed = await call(DELETE, makeRequest('DELETE', '/api/session', { cookie: author.cookie }));
+  expect(failed.status).toBe(503);
+  expect(failed.headers.has('set-cookie')).toBe(false);
+  expect((await failed.json()).error.code).toBe('service_unavailable');
+  expect(await getUser(author.user.id)).not.toBeNull();
+  expect((await (await getDb()).query<{ reference_path: string }>('select reference_path from hanlog.challenges where author_id = $1', [author.user.id]))[0].reference_path).toBe(paths.reference);
+  expect((await (await getDb()).query<{ media_path: string }>('select media_path from hanlog.challenge_responses where responder_id = $1', [learner.user.id]))[0].media_path).toBe(paths.answer);
+  expect(media.paths()).toEqual([paths.reference, paths.answer].sort());
+  expect((await (await call(GET, makeRequest('GET', '/api/session', { cookie: author.cookie }))).json()).user.id).toBe(author.user.id);
   expect((await call(DELETE, makeRequest('DELETE', '/api/session', { cookie: author.cookie }))).status).toBe(204);
   expect(await getUser(author.user.id)).toBeNull();
-  expect(JSON.stringify(log.mock.calls)).toContain(paths.reference);
-  expect(JSON.stringify(log.mock.calls)).not.toContain('secret-driver-details');
+  expect(media.paths()).toEqual([]);
 });
