@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, vi } from 'vitest';
 vi.mock('next/navigation', async () => (await import('./_helpers')).navigationMock);
 vi.mock('@/lib/api-client', async (original) => ({ ...(await original<typeof import('@/lib/api-client')>()), api: (await import('./_helpers')).mockApi }));
+vi.mock('@/lib/account-client', () => ({ accountApi: { status: vi.fn().mockResolvedValue({ recoveryEnabled: false, recoveryUpdatedAt: null }) } }));
 import Me from '@/app/app/me/page';
 import ShareLink from '@/app/c/[code]/page';
 import { ApiClientError } from '@/lib/api-client';
