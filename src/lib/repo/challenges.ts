@@ -4,6 +4,7 @@ import { getDb, type Db } from '../db';
 import { getConfig } from '../config';
 import { ApiError } from '../errors';
 import { kstDayStartIso } from '../http';
+import { lockMediaPaths } from '../media/pending';
 
 export type ChallengeRecord = { id: string; code: string; authorId: string; authorNickname: string; korean: string; meaningEn: string; situationEn: string; referencePath: string | null; referenceMime: string | null; isSample: boolean; status: 'open' | 'hidden'; createdAt: string };
 type Row = { id: string; code: string; author_id: string; author_nickname: string; korean: string; meaning_en: string; situation_en: string; reference_path: string | null; reference_mime: string | null; is_sample: boolean; status: 'open' | 'hidden'; created_at: Date | string };
@@ -29,12 +30,25 @@ export async function createChallenge(input: { authorId: string; korean: string;
     throw new ApiError('service_unavailable');
   });
 }
-export async function setChallengeReference(id: string, path: string, mime: string): Promise<void> {
+export async function setChallengeReference(id: string, path: string, mime: string, write?: () => Promise<void>): Promise<void> {
+  const initial = await getChallengeRecord(id);
+  if (!initial) throw new ApiError('not_found');
   await (await getDb()).tx(async db => {
+    await db.query('select pg_advisory_xact_lock(hashtext($1))', [initial.authorId]);
+    if (!(await db.query('select id from hanlog.challenges where id = $1 for update', [id])).length) throw new ApiError('not_found');
+    await lockMediaPaths(db, [path]);
+    if (write) await write();
     const rows = await db.query<{ id: string }>('update hanlog.challenges set reference_path = $2, reference_mime = $3 where id = $1 returning id', [id, path, mime]);
     // Deletion can finish while the upload is in flight; trigger the route's file compensation.
     if (!rows.length) throw new ApiError('not_found');
     await db.query('delete from hanlog.pending_media_deletions where path = $1', [path]);
+  });
+}
+export async function removeIncompleteChallenge(id: string): Promise<void> {
+  await (await getDb()).tx(async db => {
+    await db.query('select id from hanlog.challenges where id = $1 for update', [id]);
+    // A separate statement gets a fresh snapshot after any in-flight answer/reference commits.
+    await db.query('delete from hanlog.challenges c where c.id = $1 and c.reference_path is null and not exists(select 1 from hanlog.challenge_responses r where r.challenge_id = c.id)', [id]);
   });
 }
 export async function getChallengeRecord(idOrCode: string): Promise<ChallengeRecord | null> {

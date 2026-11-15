@@ -80,4 +80,54 @@ describe.skipIf(!url)('real Postgres', () => {
     expect(await getUser(author.id)).toBeNull();
     expect(store.paths()).toEqual([]);
   });
+  it('waits for an in-flight reference write before deleting its owner', async () => {
+    const { createUser, deleteUserCascade, getUser } = await import('@/lib/repo/users');
+    const { createChallenge, setChallengeReference } = await import('@/lib/repo/challenges');
+    const { queueMediaRemoval } = await import('@/lib/media/pending');
+    const author = await createUser({ nickname: 'pg-reference', role: 'korean', ipHash: 'live-reference' });
+    users.push(author.id);
+    const challenge = await createChallenge({ authorId: author.id, korean: '안녕하세요', meaningEn: 'Hello', situationEn: '' });
+    const path = `references/${challenge.id}.webm`;
+    const store = createMemoryMediaStore(); setMediaStoreForTests(store);
+    await queueMediaRemoval(path, { ownerId: author.id, challengeId: challenge.id, challengeAuthorId: author.id });
+    let started!: () => void; let resume!: () => void;
+    const uploading = new Promise<void>(resolve => { started = resolve; });
+    const release = new Promise<void>(resolve => { resume = resolve; });
+    const upload = setChallengeReference(challenge.id, path, 'audio/webm', async () => { started(); await release; await store.put(path, new Uint8Array([1]), 'audio/webm'); });
+    await uploading;
+    const deletion = deleteUserCascade(author.id, paths => store.remove(paths));
+    resume();
+    await Promise.all([upload, deletion]);
+    expect(await getUser(author.id)).toBeNull();
+    expect(store.paths()).toEqual([]);
+  });
+  it('does not cascade an answer committed while incomplete-challenge compensation waits', async () => {
+    const { createUser } = await import('@/lib/repo/users');
+    const { createChallenge, removeIncompleteChallenge } = await import('@/lib/repo/challenges');
+    const author = await createUser({ nickname: 'pg-catch-author', role: 'korean', ipHash: 'live-catch' });
+    const learner = await createUser({ nickname: 'pg-catch-learner', role: 'learner', ipHash: 'live-catch' });
+    users.push(author.id, learner.id);
+    const challenge = await createChallenge({ authorId: author.id, korean: '안녕하세요', meaningEn: 'Hello', situationEn: '' });
+    let started!: () => void; let resume!: () => void;
+    const uploading = new Promise<void>(resolve => { started = resolve; });
+    const release = new Promise<void>(resolve => { resume = resolve; });
+    const answer = db!.tx(async tx => {
+      await tx.query('select id from hanlog.challenges where id = $1 for share', [challenge.id]);
+      await tx.query("insert into hanlog.challenge_responses(challenge_id,responder_id,media_path,media_kind,media_mime,duration_ms) values ($1,$2,'responses/catch-race.webm','audio','audio/webm',1000)", [challenge.id, learner.id]);
+      started(); await release;
+    });
+    await uploading;
+    const compensation = removeIncompleteChallenge(challenge.id);
+    // Observe the waiting database lock, ensuring the DELETE/lock query has begun before commit.
+    let waiting = false;
+    for (let i = 0; i < 100; i++) {
+      const rows = await db!.query<{ waiting: boolean }>("select exists(select 1 from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock' and query like '%hanlog.challenges%') as waiting");
+      if (rows[0].waiting) { waiting = true; break; }
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    resume(); await Promise.all([answer, compensation]);
+    expect(waiting).toBe(true);
+    expect(await db!.query('select id from hanlog.challenges where id = $1', [challenge.id])).toHaveLength(1);
+    expect(await db!.query('select id from hanlog.challenge_responses where challenge_id = $1', [challenge.id])).toHaveLength(1);
+  });
 });
