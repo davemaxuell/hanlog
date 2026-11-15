@@ -1,6 +1,6 @@
 # HanLog local demo handoff
 
-Implementation finished locally on 16 November 2026. Public deployment, calibration and owner reviews were deferred at the owner's request to finish the working app first. The public operator name is **HanLog team**.
+Implementation finished locally on 16 November 2026, followed by a detail and reliability pass at the owner's request. Public deployment, calibration and owner reviews remain separate release work. The public operator name is **HanLog team**.
 
 ## What runs
 
@@ -12,7 +12,7 @@ The six reward offers and redemption buttons are illustrative. Sample challenges
 
 ## Verification
 
-The integrated unit/API/component suite and production build pass. Final counts and browser results are recorded in `docs/handoffs/qa.md`. Browser tests exercise production code with synthetic microphone/camera input; they are not real iPhone/Android or learner-pronunciation validation.
+The integrated unit/API/component suite and production build pass. Final counts and browser results are recorded in `docs/handoffs/qa.md`. Browser tests exercise production code with synthetic microphone/camera input; they are not real iPhone/Android or learner-pronunciation validation. Six concurrency cases have also passed against disposable local PostgreSQL 17: mission awards, scoring caps, peer ratings, profile deletion during answer and reference uploads, and incomplete-challenge cleanup while an answer commits.
 
 Browser coverage includes guest consent and score carryover, onboarding, repeated mission awards, denied-microphone upload, profile deletion, a two-browser peer exchange with both balances, video answer delivery, cron authorization, security headers/cookies/origin checks, keyboard recording, width checks at 320/390/768/1440, and automated accessibility checks.
 
@@ -41,19 +41,25 @@ The model heard “아이씨” in place of “아이스” in that synthetic ex
 - Added `MEDIA_DIR` to isolate browser-test recordings and a zero-cost local launcher. Tests never use the owner's key or production database.
 - Limited test workers to avoid exhausting this machine during concurrent checks.
 - Security fixes include deletion/storage retry, reference-upload/deletion compensation, spending-counter detachment and expiry, and an onboarding session race guard.
+- The detail pass fixes expired-session redirect loops, stale balance responses, discarded reference recordings, playback retries, microphone cleanup, empty answer lists and report focus. Rating targets are 48 pixels; private routes request no search indexing.
+- Uploads are bounded before parsing. Peer media duration and audio/video tracks are inspected from the actual container; a 100ms encoding tail is allowed above 20 seconds, with stored/displayed duration capped to 20 seconds. Solo WAV limits are unchanged.
+- A private pending-media cleanup queue records abandoned and replaced file paths and ownership durably. Account deletion includes queued recordings, and compensation rechecks committed references under file locks. Production PostgreSQL must apply migrations `002` and `003` before serving traffic.
+- Scoring rejects incomplete, refused and ambiguous provider output and normalizes equivalent Korean Unicode. Evaluation does not pass when human or latency evidence is missing. Reference generation requires an explicit call budget and stops on service failure.
+- Static `vercel.json` replaces the unused configuration SDK; a scoped `minimatch` override fixes the remaining tooling advisory. The dependency audit is clear.
+- `SITE_URL` and Vercel host fallbacks set absolute metadata URLs. The share image bundles a licensed serif font. The deployment smoke script is read-only by default and requires `--live --max-attempts=2` for its temporary-profile scoring flow.
 
 ## Deferred owner and release work
 
 | Item | State |
 | --- | --- |
 | H1 OpenAI key | Supplied privately; only the two small calls above used it. Account spending limit not verified. |
-| H2 Supabase/Vercel | Not provisioned or deployed. No public preview or production URL. |
+| H2 Supabase/Vercel | Vercel connection confirmed; no HanLog project or Supabase resources provisioned. No public preview or production URL. |
 | H3 Native content review | Pending in `docs/content-review.md`. |
 | H4 Five learner samples | Pending. |
 | H5 Real iPhone/Android | Pending in `docs/device-check.md`. |
 | H6 Operator name | Resolved: HanLog team. |
 | Reference audio | Generator implemented/tested offline; bulk generation deferred. |
-| Real PostgreSQL concurrency | Two opt-in tests remain skipped; Docker daemon was unavailable. |
-| Dependency advisories | Exact planned graph reports 11 advisories (7 moderate, 4 high); assess before public release. No automatic version changes made. |
+| Real PostgreSQL concurrency | Six tests passed against isolated PostgreSQL 17. They remain opt-in during ordinary tests. |
+| Dependency advisories | Resolved; `npm audit` reports zero vulnerabilities after scoped fixes. |
 
-Next, in order: try the local app; review Korean content; calibrate with consented learner samples and a small explicit budget; complete real-device and PostgreSQL checks; provision a private preview and review it before production promotion.
+Next, in order: review Korean content; calibrate with consented learner samples and a small explicit budget; complete real-device checks; provision Supabase and a private Vercel preview; review the preview before production promotion. Detailed changes and evidence are in `docs/handoffs/detail-ui.md`, `detail-server.md`, and `detail-scoring.md`.

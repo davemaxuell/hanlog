@@ -28,6 +28,16 @@ test('a Korean speaker and a learner complete one exchange in two browsers', asy
   await expect(korean.getByRole('heading', { name: /To rate \([1-9]\d*\)/ })).toBeVisible();
   await korean.getByRole('region', { name: /To rate/ }).getByRole('link').filter({ hasText: '이거 완전 꿀잼이야.' }).click();
   const card = korean.getByRole('article', { name: 'Answer from Aisha' });
+  const originalViewport = korean.viewportSize()!;
+  for (const width of [320, 390]) {
+    await korean.setViewportSize({ width, height: 844 });
+    expect(await korean.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+    const targets = await card.locator('.hl-stars label').evaluateAll(labels => labels.map(label => ({ width: label.getBoundingClientRect().width, height: label.getBoundingClientRect().height })));
+    expect(targets).toHaveLength(10);
+    expect(targets.every(target => target.width >= 48 && target.height >= 48)).toBe(true);
+    if (testInfo.project.name === 'desktop') await korean.screenshot({ path: `output/playwright/rating-${width}.png`, fullPage: true });
+  }
+  await korean.setViewportSize(originalViewport);
   await card.getByRole('button', { name: 'Play' }).click();
   await expect(card.locator('audio')).toHaveAttribute('src', /^blob:/);
   await card.getByRole('radiogroup', { name: 'Pronunciation' }).getByRole('radio', { name: '4 stars' }).check();
@@ -45,6 +55,15 @@ test('a Korean speaker and a learner complete one exchange in two browsers', asy
   await korean.reload();
   expect(await balance(learner)).toBe(32);   // 27 for the rated answer + 5 for giving feedback
   expect(await balance(korean)).toBe(20);    // 10 for rating + 10 for five-star feedback
+  await card.getByRole('button', { name: 'Report', exact: true }).click();
+  await expect(korean.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+  await korean.keyboard.press('Escape');
+  await expect(card.getByRole('button', { name: 'Report', exact: true })).toBeFocused();
+  await card.getByRole('button', { name: 'Report', exact: true }).click();
+  await korean.getByRole('button', { name: 'Yes, report it' }).click();
+  await expect(korean.getByText('Answer reported.', { exact: true })).toBeVisible();
+  await expect(korean.getByText('No answers to review right now.', { exact: true })).toBeVisible();
+  await expect(korean.getByRole('heading', { name: 'Answers', exact: true })).toBeFocused();
   await koreanContext.close();
   await learnerContext.close();
 });

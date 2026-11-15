@@ -18,7 +18,7 @@ test('the API is up and has no session', async ({ request }) => {
 });
 test('shared links have an absolute image and the image renders', async ({ page, request }) => {
   await page.goto('/');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'http://localhost:3000/');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^http:\/\/localhost:3000\/?$/);
   const image = await page.locator('meta[property="og:image"]').getAttribute('content');
   expect(image).toMatch(/^http:\/\/localhost:3000\/opengraph-image/);
   const response = await request.get(new URL(image!).pathname + new URL(image!).search);
