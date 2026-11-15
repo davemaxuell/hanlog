@@ -34,6 +34,7 @@ const browserDeps: RecorderDeps = {
     const Context = globalThis.AudioContext ?? (globalThis as typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Context) return { read: () => 0, close() {} };
     const context = new Context(); const analyser = context.createAnalyser(); analyser.fftSize = 256;
+    void context.resume().catch(() => {});
     const source = context.createMediaStreamSource(stream); source.connect(analyser);
     const data = new Float32Array(analyser.fftSize);
     return { read() { analyser.getFloatTimeDomainData(data); return Math.min(1, Math.sqrt(data.reduce((sum, v) => sum + v * v, 0) / data.length) * 4); }, close() { source.disconnect(); void context.close().catch(() => {}); } };

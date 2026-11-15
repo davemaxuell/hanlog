@@ -23,17 +23,23 @@ export function Recorder({ modes, submitLabel, onSubmit, busy = false, busyLabel
 }) {
   const recorder = useRecorder({ deps }); const group = useId();
   const [upload, setUpload] = useState<RecorderResult | null>(null); const [submitted, setSubmitted] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const lock = useRef(false); const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const recorded = upload ?? recorder.result; const capturing = recorder.status === 'recording' || recorder.status === 'requesting';
-  const reset = () => { recorder.reset(); setUpload(null); lock.current = false; setSubmitted(false); };
+  const reset = () => { recorder.reset(); setUpload(null); lock.current = false; setSubmitted(false); setSubmissionError(null); };
   const submit = () => {
     if (!recorded || busy || lock.current) return;
-    lock.current = true; setSubmitted(true);
-    const pending = onSubmit(recorded);
-    if (pending && typeof pending.then === 'function') void pending.finally(() => { lock.current = false; if (alive.current) setSubmitted(false); }).catch(() => {});
+    lock.current = true; setSubmitted(true); setSubmissionError(null);
+    const failed = () => { if (alive.current) setSubmissionError("That didn't score yet. Try again."); };
+    const unlock = () => { lock.current = false; if (alive.current) setSubmitted(false); };
+    try {
+      const pending = onSubmit(recorded);
+      if (pending && typeof pending.then === 'function') void pending.catch(failed).finally(unlock);
+    } catch { failed(); unlock(); }
   };
   return <div className="hl-recorder hl-stack-sm">
+    {submissionError && <StatusNote tone="error">{submissionError}</StatusNote>}
     {modes.length > 1 && <fieldset className="hl-mode-switch"><legend className="hl-caption">Record your answer</legend>{modes.map(kind => <label key={kind} className={recorder.mode === kind ? 'is-selected' : ''}><input type="radio" name={group} checked={recorder.mode === kind} disabled={capturing || busy} onChange={() => { reset(); recorder.setMode(kind); }} /><span>{kind === 'audio' ? 'Voice' : 'Video'}</span></label>)}</fieldset>}
     {recorder.message && <StatusNote tone={recorder.status === 'idle' ? 'info' : 'error'}>{allowUpload ? recorder.message : recorder.message.replace(' Allow it in your browser settings, or upload a voice file.', ' Allow it in your browser settings.').replace(' You can upload a voice file instead.', ' Try a recent browser with microphone access.')}</StatusNote>}
     {recorder.stream && recorder.mode === 'video' && <LiveVideo stream={recorder.stream} />}
