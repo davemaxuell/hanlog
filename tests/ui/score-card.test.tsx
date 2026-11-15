@@ -31,6 +31,13 @@ it('explains a zero-point attempt and flags mock scoring', () => {
   expect(screen.getByText('No points this time. Scores of 50 and above earn points.')).toBeInTheDocument();
   expect(screen.getByText('Demo scoring, not AI')).toBeInTheDocument();
 });
+it('shows personal progress and prevents a retry after the daily limit', () => {
+  render(<ScoreCard result={result({ bestOverall: 92, balance: 30, attemptsLeftToday: 0 })} mission={repeat} onRetry={vi.fn()} nextHref="/app/missions" />);
+  expect(screen.getByText('92 / 100')).toBeInTheDocument();
+  expect(screen.getByText('Attempts left today')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Try again' })).toBeDisabled();
+  expect(screen.getByRole('link', { name: 'Review my practice' })).toHaveAttribute('href', '/app/progress');
+});
 it('has wording for every error code', () => {
   expect(errorCopy('no_speech')).toBe("We couldn't hear any Korean. Move closer to the mic and try again.");
   expect(errorCopy('daily_limit')).toBe('You have reached today’s limit for this action. Try again tomorrow.');
