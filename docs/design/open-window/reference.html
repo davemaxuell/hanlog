@@ -1,0 +1,2094 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<meta name="color-scheme" content="light">
+<title>Open Window · Original Visual Rules &amp; App Specimens</title>
+<style>
+  :root {
+    --canvas: #d2f6fc;
+    --surface: #fffef9;
+    --surface-soft: #eaf9fd;
+    --ink: #1e2436;
+    --muted: #4a566d;
+    --berry: #b02d63;
+    --berry-fill: #fc7cac;
+    --berry-hover: #f7659d;
+    --berry-soft: #fce6ef;
+    --blush: #fcc4d8;
+    --sky-star: #7ce4fc;
+    --butter: #fcfcc6;
+    --line: #a8d3df;
+    --line-subtle: #d8f2f9;
+    --functional: #5e7b8c;
+    --error: #a32029;
+    --error-bg: #fff0ee;
+    --serif: Georgia, "Batang", "바탕", serif;
+    --sans: "Segoe UI", "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--berry);
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+  }
+  a:hover { text-decoration-thickness: 2px; }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid var(--berry);
+    outline-offset: 3px;
+  }
+
+  button, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+
+  main {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 32px 56px 56px;
+  }
+
+  /* Masthead & Board Rail */
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0 18px;
+  }
+  .masthead strong {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    text-transform: none;
+  }
+  .masthead span { color: var(--muted); }
+
+  .rail {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .margin-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    line-height: 1.5;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .margin-label span {
+    display: block;
+    margin-top: 6px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Hero */
+  .hero { padding: 56px 0 48px; }
+  .hero-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 40px;
+    align-items: end;
+  }
+  .eyebrow {
+    font-size: 12px;
+    margin: 0 0 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--berry);
+    font-weight: 600;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(52px, 6.8vw, 96px);
+    line-height: 0.96;
+    letter-spacing: -0.04em;
+    margin: 0 0 24px;
+  }
+  .hero-copy {
+    font-size: 20px;
+    max-width: 640px;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .hero-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 18px 0 0;
+    max-width: 610px;
+    line-height: 1.6;
+  }
+
+  /* Architectural Hero Study */
+  .window-art {
+    position: relative;
+    height: 260px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .window-art-pane {
+    position: absolute;
+    inset: 22px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--canvas);
+    overflow: hidden;
+  }
+  .window-art .sun {
+    position: absolute;
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    background: var(--butter);
+    top: 18px;
+    right: -18px;
+  }
+  .window-art .plane {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 62px;
+    background: var(--sky-star);
+  }
+  .window-art .upright {
+    position: absolute;
+    left: 58px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  .window-art .horizon {
+    position: absolute;
+    top: 86px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--line);
+  }
+  .window-art .clay-vessel {
+    position: absolute;
+    background: var(--berry-fill);
+    height: 22px;
+    width: 34px;
+    bottom: 62px;
+    left: 36px;
+    border-radius: 4px 4px 8px 8px;
+  }
+  .window-art .blush-leaf {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: var(--blush);
+    border-radius: 0 100% 0 100%;
+    bottom: 84px;
+    left: 48px;
+  }
+  .hero-art-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 10px 0 0;
+  }
+
+  /* Sections */
+  .section {
+    padding: 40px 0 44px;
+    border-top: 1px solid var(--line);
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 34px;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin: 0 0 12px;
+  }
+  h3 {
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 0 0 8px;
+  }
+  p { margin-top: 0; }
+  .section-intro {
+    font-size: 15px;
+    max-width: 720px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  /* Principles */
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 36px;
+  }
+  .rule {
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+  .rule:nth-child(5) {
+    grid-column: 1 / -1;
+    max-width: 720px;
+  }
+  .rule h3 span {
+    font-size: 13px;
+    color: var(--muted);
+    display: inline-block;
+    width: 26px;
+    font-variant-numeric: tabular-nums;
+  }
+  .rule p {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0 0 0 26px;
+    line-height: 1.6;
+  }
+
+  /* Studio Controls Bar */
+  .studio-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .control-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+  .cluster-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .segmented-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--canvas);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--line-subtle);
+  }
+  .seg-btn {
+    min-height: 48px;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 160ms var(--ease-out), color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .seg-btn:hover { color: var(--ink); }
+  .seg-btn[aria-pressed="true"] {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--functional);
+  }
+
+  /* Specimen Grid */
+  .specimens-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 28px 24px;
+    align-items: start;
+  }
+  .specimen-wrap { min-width: 0; }
+  .specimen-title {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  .specimen-title span {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* App Specimen Frames */
+  .app-frame {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 0;
+  }
+  .capture-sheet {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 24px;
+    min-width: 0;
+  }
+
+  .specimen-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .specimen-head strong {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .specimen-head small {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* Underlined Tabs */
+  .app-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+  .app-tab {
+    min-height: 48px;
+    padding: 8px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: -1px;
+    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .app-tab:hover { color: var(--ink); }
+  .app-tab[aria-selected="true"] {
+    color: var(--ink);
+    font-weight: 600;
+    border-bottom-color: var(--berry);
+  }
+
+  /* Welcome Buttercream Prompt */
+  .welcome-card {
+    padding: 20px;
+    background: var(--butter);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+  .welcome-card h4 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 23px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .welcome-card p {
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0 0 16px;
+    max-width: 420px;
+    color: var(--ink);
+  }
+
+  /* Buttons (48px min target, 12px radius) */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 12px 20px;
+    background: var(--berry-fill);
+    color: var(--ink);
+    border: 1.5px solid var(--berry);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    transition: transform 120ms var(--ease-out), background 160ms var(--ease-out);
+  }
+  .btn-primary:hover { background: var(--berry-hover); }
+  .btn-primary:active { transform: scale(0.985); }
+  .btn-primary:disabled { opacity: 0.65; cursor: wait; }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 12px 18px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--functional);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    transition: transform 120ms var(--ease-out), background 160ms var(--ease-out);
+  }
+  .btn-secondary:hover { background: var(--canvas); }
+  .btn-secondary:active { transform: scale(0.985); }
+
+  /* Single SVG Corner Mark */
+  .corner-mark {
+    display: block;
+    width: 12px;
+    height: 12px;
+    color: var(--berry);
+    margin-bottom: 6px;
+  }
+
+  /* Specimen A: Daily Window Stream */
+  .day-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .slot-row {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 14px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-subtle);
+  }
+  .slot-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .slot-margin {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .slot-time {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+  .slot-row.is-active .slot-time { color: var(--ink); }
+  .slot-label-small {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .mini-square {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid var(--functional);
+    background: var(--surface);
+    color: var(--surface);
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .mini-square.is-filled {
+    background: var(--berry);
+    border-color: var(--berry);
+  }
+
+  .slot-compact-btn {
+    width: 100%;
+    min-height: 48px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink);
+    transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out);
+  }
+  .slot-compact-btn:hover {
+    border-color: var(--functional);
+    background: var(--canvas);
+  }
+  .slot-compact-btn span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* Architectural Window Scenes */
+  .media-frame {
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--canvas);
+  }
+  .scene-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Below-Media Caption Block */
+  .below-caption {
+    padding-top: 12px;
+  }
+  .contributor-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-bottom: 6px;
+  }
+  .avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex: 0 0 28px;
+  }
+  .avatar-rose { background: var(--berry-fill); border: 1px solid var(--berry); color: var(--ink); }
+  .avatar-sky { background: var(--sky-star); border: 1px solid var(--functional); color: var(--ink); }
+  .avatar-butter { background: var(--butter); border: 1px solid var(--functional); color: var(--ink); }
+
+  .contributor-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .contributor-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .caption-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+  .caption-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 4px 0 0;
+  }
+
+  /* Specimen B: Considerate Save & Capture Studio */
+  .sheet-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.2;
+    margin: 0 0 8px;
+  }
+  .sheet-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0 0 18px;
+    line-height: 1.55;
+  }
+
+  .state-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .state-pill {
+    min-height: 48px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--canvas);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    transition: background 160ms var(--ease-out), color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .state-pill[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--surface);
+  }
+
+  .live-status-panel {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--canvas);
+    margin-bottom: 18px;
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .live-status-panel.is-saved {
+    background: var(--berry-soft);
+    border-color: var(--berry);
+  }
+  .live-status-panel.is-error {
+    background: var(--error-bg);
+    border-color: rgba(163, 32, 41, 0.35);
+    color: var(--error);
+  }
+
+  .status-symbol {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border-radius: 6px;
+    border: 1.5px solid var(--functional);
+    background: var(--surface);
+    color: var(--surface);
+    font-size: 15px;
+    font-weight: 700;
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .status-symbol.is-saving {
+    border-color: var(--berry);
+    background: var(--surface);
+    color: var(--berry);
+  }
+  .status-symbol.is-saved {
+    background: var(--berry);
+    border-color: var(--berry);
+    color: var(--surface);
+  }
+  .status-symbol.is-error {
+    background: var(--error);
+    border-color: var(--error);
+    color: var(--surface);
+  }
+  .status-copy-block strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .status-copy-block small {
+    display: block;
+    font-size: 13px;
+    line-height: 1.45;
+    margin-top: 3px;
+    color: var(--muted);
+  }
+  .live-status-panel.is-error .status-copy-block small {
+    color: var(--error);
+  }
+
+  .field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .note-input {
+    width: 100%;
+    min-height: 84px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1.5px solid var(--functional);
+    background: var(--surface);
+    font-size: 15px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .note-input:focus {
+    border-color: var(--berry);
+  }
+  .sheet-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .error-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    min-height: 48px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .error-toggle-row input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--berry);
+  }
+
+  .snapshot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .snapshot-mini {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--line-subtle);
+    background: var(--canvas);
+  }
+  .snapshot-mini-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .snapshot-mini-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  /* Specimen C: Shared Table */
+  .circle-presence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line-subtle);
+  }
+  .avatar-stack {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .presence-note {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .ack-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .ack-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--functional);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+  }
+  .ack-btn[aria-pressed="true"] {
+    background: var(--berry-soft);
+    border-color: var(--berry);
+    color: var(--berry);
+  }
+  .ack-check {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1.5px solid var(--functional);
+    font-size: 11px;
+    font-weight: 700;
+    color: transparent;
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+  }
+  .ack-btn[aria-pressed="true"] .ack-check {
+    background: var(--berry);
+    border-color: var(--berry);
+    color: var(--surface);
+  }
+
+  .calm-empty-frame {
+    border: 1px dashed var(--functional);
+    border-radius: 8px;
+    background: var(--canvas);
+    padding: 18px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .calm-empty-frame p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .calm-empty-frame strong {
+    display: block;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  /* Specimen D: Archive Margin Ledger */
+  .archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .archive-row {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-subtle);
+    transition: all 220ms var(--ease-out);
+  }
+  .archive-row:first-child { border-top: 0; padding-top: 0; }
+  .archive-margin {
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .archive-day-num {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .archive-day-month {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .archive-content {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+  }
+  .archive-thumb {
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--canvas);
+  }
+  .archive-meta strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .archive-meta p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .archive-stacked-header {
+    display: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  /* Rail Switcher Modes in Specimen D */
+  .archive-list[data-rail-mode="phone"] .archive-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .archive-list[data-rail-mode="phone"] .archive-day-month { display: none; }
+  .archive-list[data-rail-mode="phone"] .archive-stacked-header { display: block; }
+  .archive-list[data-rail-mode="phone"] .archive-content { grid-template-columns: 1fr; gap: 10px; }
+
+  .archive-list[data-rail-mode="stacked"] .archive-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .archive-list[data-rail-mode="stacked"] .archive-margin {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+  .archive-list[data-rail-mode="stacked"] .mini-square { margin-top: 0; }
+  .archive-list[data-rail-mode="stacked"] .archive-content { grid-template-columns: 1fr; gap: 10px; }
+
+  .specimen-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 12px 0 0;
+    line-height: 1.55;
+  }
+
+  /* Section 03: Palette */
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px 18px;
+  }
+  .swatch .paint {
+    height: 68px;
+    background: var(--color);
+    border: 1px solid rgba(30, 36, 54, 0.16);
+    border-radius: 8px;
+    margin-bottom: 9px;
+  }
+  .swatch b { font-size: 13px; display: block; }
+  .swatch code { font: 12px ui-monospace, Consolas, monospace; color: var(--ink); }
+  .swatch p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 5px 0 0;
+  }
+  .contrast {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 26px 0 0;
+  }
+  .contrast span {
+    font-size: 12px;
+    border: 1px solid var(--line);
+    padding: 9px 13px;
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .contrast .warning {
+    background: var(--butter);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  /* Section 04: Rhythm */
+  .type-rules {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 34px;
+  }
+  .type-demo {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 1.18;
+    letter-spacing: -0.025em;
+    margin: 0 0 12px;
+    max-width: 420px;
+  }
+  .type-demo-ko {
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .body-demo {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0 0 12px;
+    max-width: 420px;
+  }
+  .type-meta {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .measurements {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .measurements h3 { font-size: 14px; margin-bottom: 6px; }
+  .measurements p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.55; }
+  .rhythm {
+    display: flex;
+    gap: 6px;
+    align-items: end;
+    height: 48px;
+    margin-top: 12px;
+  }
+  .rhythm i {
+    display: block;
+    background: var(--berry);
+    width: 14px;
+    height: var(--h);
+    border-radius: 3px 3px 0 0;
+  }
+
+  /* Section 05: Direction Box (no border-left) */
+  .direction-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    max-width: 820px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .direction-copy p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; }
+  .direction-copy p:last-child { margin: 0; font-size: 13px; color: var(--muted); }
+  .links {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 1080px) {
+    main { padding: 28px 32px 44px; }
+    .rail { grid-template-columns: 104px minmax(0, 1fr); gap: 24px; }
+    .specimens-grid { grid-template-columns: 1fr; }
+    .palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    main { padding: 20px; }
+    .rail { grid-template-columns: 1fr; gap: 16px; }
+    .margin-label {
+      display: flex;
+      gap: 14px;
+      align-items: baseline;
+      padding: 0;
+    }
+    .margin-label span { display: inline; margin: 0; }
+    .hero { padding: 36px 0; }
+    .hero-main { grid-template-columns: 1fr; gap: 24px; }
+    .window-art { height: 210px; max-width: 320px; }
+    .rules, .type-rules, .measurements { grid-template-columns: 1fr; gap: 22px; }
+    .rule:nth-child(5) { grid-column: auto; }
+    .palette { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .snapshot-grid { grid-template-columns: 1fr; }
+    .archive-row { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; }
+    .archive-content { grid-template-columns: 1fr; gap: 10px; }
+  }
+  @media (max-width: 520px) {
+    .masthead { flex-direction: column; gap: 4px; }
+    .app-frame, .capture-sheet { padding: 18px; }
+    .specimen-head { flex-direction: column; gap: 4px; }
+    .slot-row { grid-template-columns: 44px minmax(0, 1fr); gap: 10px; }
+    .direction-card { grid-template-columns: 1fr; padding: 20px; gap: 12px; }
+    footer { flex-direction: column; gap: 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="masthead">
+    <strong>Open Window · Design System &amp; App Specimens</strong>
+    <span>Direction 01 / v0.4 · Sky, Buttercream &amp; Berry</span>
+  </div>
+
+  <header class="rail hero">
+    <div class="margin-label">15 Nov 2026<span>Design record<br>Pastel system v0.4</span></div>
+    <div class="hero-main">
+      <div>
+        <p class="eyebrow">A friendly interface, in our own voice</p>
+        <h1>Open<br>Window</h1>
+        <p class="hero-copy">A little room to breathe.<br>Clear places for everyday things.</p>
+        <p class="hero-note">Open Window names this recorded visual direction, not a final product name. Below are the governing rules alongside four interactive app specimens demonstrating margin rhythm, buttercream warmth, strawberry and sky-star accents, and considerate save states.</p>
+      </div>
+      <div class="hero-art">
+        <div class="window-art" aria-hidden="true">
+          <div class="window-art-pane">
+            <span class="sun"></span>
+            <span class="plane"></span>
+            <span class="upright"></span>
+            <span class="horizon"></span>
+            <span class="clay-vessel"></span>
+            <span class="blush-leaf"></span>
+          </div>
+        </div>
+        <p class="hero-art-label">Architectural window study · Sky, Buttercream &amp; Berry</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="rail section" aria-labelledby="principles">
+    <div class="margin-label">01 / Principles<span>Five governing rules</span></div>
+    <div>
+      <h2 id="principles">Friendly through care.</h2>
+      <p class="section-intro">Warmth comes from readable content, useful feedback, and space to settle. A disciplined set of shapes gives that warmth a recognizable character.</p>
+      <div class="rules">
+        <article class="rule"><h3><span>1.</span>Give the margin a job.</h3><p>On broad layouts, put dates, times, and short markers in a narrow rail beside the content. On small screens, move labels above the group. Never sacrifice readable content to preserve the rail.</p></article>
+        <article class="rule"><h3><span>2.</span>Use one quiet signpost.</h3><p>A short geometric corner mark identifies the current section. Use at most one per view, paired with a text label. Its meaning stays consistent; it is never a repeating decoration.</p></article>
+        <article class="rule"><h3><span>3.</span>Keep edges gently squared.</h3><p>Use 6 px status badges, 8 px compact fields, 12 px buttons and cards, and 20 px expanded sheets. Underline the selected tab. Consistent geometry feels calm and dependable.</p></article>
+        <article class="rule"><h3><span>4.</span>Let words and media breathe.</h3><p>Place names, captions, and actions below media. Pair expressive serif titles with readable sans-serif body text. Give adjacent elements room before adding containers.</p></article>
+        <article class="rule"><h3><span>5.</span>Make every state considerate.</h3><p>Say what happened in plain language. Confirm success with a filled square, a check, and a word. Keep failed actions recoverable with the person’s input completely intact.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="rail section" aria-labelledby="examples">
+    <div class="margin-label">02 / Specimens<span>Interactive app studies</span></div>
+    <div>
+      <h2 id="examples">See the rules at work.</h2>
+      <p class="section-intro">Explore four working app specimens built exclusively with Open Window tokens. Switch language to test English/Korean wrapping, change the time of day, trigger save states, or inspect how the margin rail adapts across screen sizes.</p>
+
+      <div class="studio-controls" role="region" aria-label="Specimen global controls">
+        <div class="control-cluster">
+          <span class="cluster-label">Language</span>
+          <div class="segmented-group" role="group" aria-label="Preview language">
+            <button type="button" class="seg-btn" data-lang="en" aria-pressed="true">English</button>
+            <button type="button" class="seg-btn" data-lang="ko" aria-pressed="false">한국어</button>
+          </div>
+        </div>
+        <div class="control-cluster">
+          <span class="cluster-label" id="time-cluster-label">Time of day</span>
+          <div class="segmented-group" role="group" aria-labelledby="time-cluster-label">
+            <button type="button" class="seg-btn" data-time="morning" aria-pressed="false">Morning · 08:15</button>
+            <button type="button" class="seg-btn" data-time="afternoon" aria-pressed="true">Afternoon · 14:20</button>
+            <button type="button" class="seg-btn" data-time="evening" aria-pressed="false">Evening · 19:40</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="studio-live" class="sr-only" aria-live="polite"></p>
+
+      <div class="specimens-grid">
+        <!-- Specimen A: Daily Window -->
+        <div class="specimen-wrap">
+          <p class="specimen-title">A / The Daily Window<span>Margin-led timeline · Single active corner mark · Below-media captions</span></p>
+          <article class="app-frame" id="specimen-a" aria-label="Interactive daily window specimen">
+            <div class="specimen-head">
+              <strong id="daily-title">A little room for today.</strong>
+              <small id="daily-date">Sunday, 15 November</small>
+            </div>
+            <div class="app-tabs" role="tablist" aria-label="Daily window views">
+              <button type="button" class="app-tab" role="tab" data-daily-tab="today" aria-selected="true">Today</button>
+              <button type="button" class="app-tab" role="tab" data-daily-tab="earlier" aria-selected="false">Earlier</button>
+              <button type="button" class="app-tab" role="tab" data-daily-tab="notes" aria-selected="false">Saved notes</button>
+            </div>
+
+            <div class="welcome-card" id="welcome-box">
+              <h4 id="welcome-heading">What would you like to keep?</h4>
+              <p id="welcome-body">A quiet detail, a shift in the light, or a short line from today. You can start whenever you feel like it.</p>
+              <button type="button" class="btn-primary" id="jump-to-capture">Add a moment</button>
+            </div>
+
+            <div class="day-stream" id="day-stream"></div>
+          </article>
+          <p class="specimen-note" id="note-a">Exactly one right-angle corner mark appears on the active time slot. Click any time row or use the Time of day switcher above to move the active light and marker.</p>
+        </div>
+
+        <!-- Specimen B: Considerate Save & Capture Studio -->
+        <div class="specimen-wrap">
+          <p class="specimen-title">B / Inline Capture &amp; Considerate Save<span>20 px sheet · 8 px input · Check + words + marker fill</span></p>
+          <article class="capture-sheet" id="specimen-b" aria-label="Interactive save state specimen">
+            <h3 class="sheet-title" id="sheet-title">A clear, quiet response.</h3>
+            <p class="sheet-desc" id="sheet-desc">Try saving a note or jump between states. Content stays stationary and input is preserved if an error occurs.</p>
+
+            <div class="state-switcher" role="group" aria-label="Save state inspector">
+              <button type="button" class="state-pill" data-save-state="idle" aria-pressed="true">1. Composing</button>
+              <button type="button" class="state-pill" data-save-state="saving" aria-pressed="false">2. Saving…</button>
+              <button type="button" class="state-pill" data-save-state="saved" aria-pressed="false">3. Saved ✓</button>
+              <button type="button" class="state-pill" data-save-state="error" aria-pressed="false">4. Error recovery</button>
+            </div>
+
+            <div class="live-status-panel" id="live-status-panel" role="status" aria-live="polite">
+              <span class="status-symbol" id="live-status-symbol" aria-hidden="true"></span>
+              <div class="status-copy-block">
+                <strong id="live-status-heading">Ready to keep</strong>
+                <small id="live-status-sub">Your note stays in this quiet draft until you save.</small>
+              </div>
+            </div>
+
+            <label class="field-label" for="specimen-note-input" id="note-field-label">A few words from your window</label>
+            <textarea id="specimen-note-input" class="note-input" rows="2">Sunlight reached the corner desk around two.</textarea>
+
+            <div class="sheet-actions">
+              <button type="button" class="btn-primary" id="save-moment-btn">Save moment</button>
+              <button type="button" class="btn-secondary" id="later-btn">You can do this later</button>
+            </div>
+
+            <label class="error-toggle-row">
+              <input type="checkbox" id="simulate-error-checkbox">
+              <span id="simulate-error-label">Simulate recoverable network error on next save</span>
+            </label>
+
+            <div class="snapshot-grid" aria-label="Static reference pair">
+              <div class="snapshot-mini">
+                <div class="snapshot-mini-label" id="snap-before-label">Pending</div>
+                <div class="snapshot-mini-row">
+                  <span class="status-symbol is-saving" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="18 10" stroke-linecap="round"/></svg></span>
+                  <div><strong id="snap-before-title">Saving…</strong></div>
+                </div>
+              </div>
+              <div class="snapshot-mini">
+                <div class="snapshot-mini-label" id="snap-after-label">Complete</div>
+                <div class="snapshot-mini-row">
+                  <span class="status-symbol is-saved" aria-hidden="true">✓</span>
+                  <div><strong id="snap-after-title">Saved</strong></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <p class="specimen-note" id="note-b">The 6 px square fills, a check appears, and the copy confirms completion. Color never carries the result alone.</p>
+        </div>
+
+        <!-- Specimen C: The Shared Table -->
+        <div class="specimen-wrap">
+          <p class="specimen-title">C / The Shared Table<span>Left-aligned room header · Circular person badges · Non-shaming empty slot</span></p>
+          <article class="app-frame" id="specimen-c" aria-label="Shared table specimen">
+            <div class="specimen-head">
+              <strong id="room-title">Sunday window</strong>
+              <small id="room-meta">3 people sharing quietly</small>
+            </div>
+            <div class="app-tabs" role="tablist" aria-label="Shared table views">
+              <button type="button" class="app-tab" role="tab" data-room-tab="moments" aria-selected="true">Moments</button>
+              <button type="button" class="app-tab" role="tab" data-room-tab="people" aria-selected="false">People</button>
+            </div>
+
+            <div class="circle-presence">
+              <div class="avatar-stack">
+                <span class="avatar-circle avatar-rose" title="Mia">M</span>
+                <span class="avatar-circle avatar-sky" title="Jin">J</span>
+                <span class="avatar-circle avatar-butter" title="Leo">L</span>
+              </div>
+              <span class="presence-note" id="presence-note">No streaks or countdowns</span>
+            </div>
+
+            <div id="shared-body"></div>
+          </article>
+          <p class="specimen-note" id="note-c">Full circles are reserved exclusively for people and progress controls. Uncontributed spaces stay calm and welcoming without pressure.</p>
+        </div>
+
+        <!-- Specimen D: Margin Archive Ledger -->
+        <div class="specimen-wrap">
+          <p class="specimen-title">D / Margin Archive Ledger<span>56–72 px editorial margin · Responsive rail comparison</span></p>
+          <article class="app-frame" id="specimen-d" aria-label="Archive margin specimen">
+            <div class="specimen-head">
+              <strong id="archive-title">November ledger</strong>
+              <small id="archive-count">4 days kept</small>
+            </div>
+            <div class="segmented-group" role="group" aria-label="Margin rail width mode" style="margin-bottom: 18px;">
+              <button type="button" class="seg-btn" data-rail="wide" aria-pressed="true">Wide 68px rail</button>
+              <button type="button" class="seg-btn" data-rail="phone" aria-pressed="false">Phone 32px rail</button>
+              <button type="button" class="seg-btn" data-rail="stacked" aria-pressed="false">Stacked narrow</button>
+            </div>
+
+            <div class="archive-list" id="archive-list" data-rail-mode="wide"></div>
+          </article>
+          <p class="specimen-note" id="note-d">Test Rule 2 directly: inspect how dates and 6 px completion squares compress into a 32 px phone rail or stack cleanly above entries on narrow screens.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rail section" aria-labelledby="color">
+    <div class="margin-label">03 / Color<span>Sky, Buttercream &amp; Berry</span></div>
+    <div>
+      <h2 id="color">Pastel sky. Bright joy.</h2>
+      <p class="section-intro">Airy pastel sky blue (<code>#D2F6FC</code>) is the canvas. Buttercream yellow (<code>#FCFCC6</code>) warms welcoming prompts. Strawberry pink (<code>#FC7CAC</code>) with berry rose (<code>#B02D63</code>), bright sky (<code>#7CE4FC</code>), and blush (<code>#FCC4D8</code>) carry joyful stars and actions against midnight ink (<code>#1E2436</code>).</p>
+      <div class="palette">
+        <article class="swatch" style="--color:#D2F6FC"><div class="paint"></div><b>Canvas · Sky stripe</b><code>#D2F6FC</code><p>Airy pastel sky background; bright and calm.</p></article>
+        <article class="swatch" style="--color:#FFFEF9"><div class="paint"></div><b>Surface · Cloud white</b><code>#FFFEF9</code><p>Milky content and expanded sheet surfaces.</p></article>
+        <article class="swatch" style="--color:#1E2436"><div class="paint"></div><b>Midnight ink</b><code>#1E2436</code><p>Primary text, button labels, and crisp stars.</p></article>
+        <article class="swatch" style="--color:#4A566D"><div class="paint"></div><b>Dusk slate text</b><code>#4A566D</code><p>Supporting labels and margin metadata.</p></article>
+        <article class="swatch" style="--color:#FC7CAC"><div class="paint"></div><b>Action · Strawberry</b><code>#FC7CAC</code><p>Primary button fill paired with midnight ink.</p></article>
+        <article class="swatch" style="--color:#B02D63"><div class="paint"></div><b>Action stroke · Berry</b><code>#B02D63</code><p>Links, focus rings, corner marks, and ✓ badges.</p></article>
+        <article class="swatch" style="--color:#FCE6EF"><div class="paint"></div><b>Action soft · Soft blush</b><code>#FCE6EF</code><p>Selected toggles and saved confirmation wash.</p></article>
+        <article class="swatch" style="--color:#FCFCC6"><div class="paint"></div><b>Buttercream yellow</b><code>#FCFCC6</code><p>Welcoming prompt card with midnight ink text.</p></article>
+        <article class="swatch" style="--color:#7CE4FC"><div class="paint"></div><b>Bright sky star</b><code>#7CE4FC</code><p>Accent badges and window sill art (#1E2436 ink).</p></article>
+        <article class="swatch" style="--color:#FCC4D8"><div class="paint"></div><b>Blush pink star</b><code>#FCC4D8</code><p>Decorative stars and quiet pill highlights.</p></article>
+        <article class="swatch" style="--color:#A8D3DF"><div class="paint"></div><b>Decorative line</b><code>#A8D3DF</code><p>Sky-tinted dividers and window mullions.</p></article>
+        <article class="swatch" style="--color:#5E7B8C"><div class="paint"></div><b>Functional border</b><code>#5E7B8C</code><p>Slate-sky control and input boundaries.</p></article>
+        <article class="swatch" style="--color:#A32029"><div class="paint"></div><b>Error ink</b><code>#A32029</code><p>Clear recovery copy and error badge.</p></article>
+        <article class="swatch" style="--color:#FFF0EE"><div class="paint"></div><b>Error surface</b><code>#FFF0EE</code><p>Distinct warm crimson-blush for error recovery.</p></article>
+      </div>
+      <div class="contrast">
+        <span><strong>13.47:1</strong> midnight ink on sky canvas</span>
+        <span><strong>14.61:1</strong> midnight ink on buttercream</span>
+        <span><strong>6.33:1</strong> midnight ink on strawberry</span>
+        <span><strong>6.11:1</strong> cloud white on berry stroke</span>
+        <span><strong>10.55:1</strong> midnight ink on bright sky</span>
+        <span><strong>6.78:1</strong> error ink on error field</span>
+        <span class="warning">Bright sky (1.45:1 on white) and blush (1.48:1 on white) pair strictly with #1E2436 ink or non-text illustrations.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="rail section" aria-labelledby="type">
+    <div class="margin-label">04 / Rhythm<span>Type, space, and shape</span></div>
+    <div>
+      <h2 id="type">A short title. An easy read.</h2>
+      <p class="section-intro">Pair expressive sentence-case serif titles with clear sans-serif body text across both English and Korean.</p>
+      <div class="type-rules">
+        <div>
+          <p class="type-demo">Make room for<br>the everyday.</p>
+          <p class="type-demo-ko" lang="ko">오늘을 위한 작은 여유.</p>
+          <p class="type-meta"><strong>Titles · 30–34 px / 38–42 px line height</strong><br>Georgia; Batang (바탕) for Korean fallback.<br>Use serif sparingly for screen and prompt headings.</p>
+        </div>
+        <div>
+          <p class="body-demo">You can start small. Write a few words now and return whenever you like. <span lang="ko">어떤 순간을 남겨볼까요?</span></p>
+          <p class="type-meta"><strong>Body · 16 px / 24 px line height</strong><br>Segoe UI; Malgun Gothic (맑은 고딕) for Korean fallback.<br>Use 16 px semibold controls and 12 px tabular margin dates.</p>
+        </div>
+      </div>
+      <div class="measurements">
+        <div>
+          <h3>Space with a steady rhythm</h3>
+          <p>4, 8, 12, 16, 24, 32, 48 px scale.<br>20 px phone gutters; 24–32 px between groups.</p>
+          <div class="rhythm" aria-hidden="true">
+            <i style="--h:4px"></i><i style="--h:8px"></i><i style="--h:12px"></i><i style="--h:16px"></i><i style="--h:24px"></i><i style="--h:32px"></i><i style="--h:48px"></i>
+          </div>
+        </div>
+        <div>
+          <h3>Gentle radius hierarchy</h3>
+          <p>6 px status squares · 8 px inputs &amp; media.<br>12 px buttons &amp; cards · 20 px expanded sheets.<br>Circles reserved for people and progress.</p>
+        </div>
+        <div>
+          <h3>Considerate hit targets</h3>
+          <p>Minimum 48 × 48 px interactive controls.<br>3 px berry rose focus ring with 3 px offset.<br>120 / 160 / 220 ms motion discipline.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rail section" aria-labelledby="direction">
+    <div class="margin-label">05 / Direction<span>Recorded standard</span></div>
+    <div>
+      <h2 id="direction">A distinct starting point.</h2>
+      <div class="direction-card">
+        <div>
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="4" fill="#D2F6FC" stroke="#5E7B8C" stroke-width="1.5"/>
+            <line x1="12" y1="2" x2="12" y2="22" stroke="#A8D3DF" stroke-width="1.2"/>
+            <line x1="2" y1="12" x2="22" y2="12" stroke="#A8D3DF" stroke-width="1.2"/>
+            <rect x="13" y="13" width="7" height="7" rx="1.5" fill="#FC7CAC" stroke="#B02D63" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="direction-copy">
+          <p>Open Window is the recorded visual direction for future UI work. It pairs airy pastel sky (<code>#D2F6FC</code>), buttercream yellow (<code>#FCFCC6</code>), and strawberry/blush star accents with margin-led organization, gentle squared geometry, expressive serif headlines, and in-place state confirmation.</p>
+          <p>All four specimens above run purely on the Sky, Buttercream &amp; Berry tokens defined in this system, ready to translate into product screens once audience and scope are confirmed.</p>
+        </div>
+      </div>
+      <div class="links">
+        <a href="DESIGN.md">Read the complete design rules ↗</a>
+        <a href="tokens.json">Inspect tokens.json ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Open Window · Recorded Visual Direction v0.4</span>
+    <span>Interactive Specimen Studio · 15 November 2026</span>
+  </footer>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const CORNER_SVG = `<svg class="corner-mark" viewBox="0 0 12 12" aria-hidden="true"><path d="M1.25 11V1.25H11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"/></svg>`;
+  const PROGRESS_SVG = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="18 10" stroke-linecap="round"/></svg>`;
+
+  function courtyardSceneSVG() {
+    return `<svg class="scene-svg" viewBox="0 0 420 170" aria-hidden="true">
+      <rect width="420" height="170" fill="#D2F6FC"/>
+      <circle cx="332" cy="48" r="28" fill="#FCFCC6"/>
+      <rect x="0" y="122" width="420" height="48" fill="#EAF9FD"/>
+      <polygon points="84,22 87,29 94,30 89,35 90,42 84,38 78,42 79,35 74,30 81,29" fill="#FCC4D8"/>
+      <polygon points="196,34 198.5,40 205,41 200,45 201.5,51 196,48 190.5,51 192,45 187,41 193.5,40" fill="#FC7CAC"/>
+      <rect x="26" y="74" width="18" height="62" rx="3" fill="#FCC4D8" stroke="#B02D63" stroke-width="1"/>
+      <rect x="66" y="74" width="18" height="62" rx="3" fill="#FCC4D8" stroke="#B02D63" stroke-width="1"/>
+      <rect x="106" y="74" width="18" height="62" rx="3" fill="#FCC4D8" stroke="#B02D63" stroke-width="1"/>
+      <rect x="146" y="74" width="18" height="62" rx="3" fill="#FCC4D8" stroke="#B02D63" stroke-width="1"/>
+      <rect x="18" y="92" width="160" height="8" rx="2" fill="#1E2436"/>
+      <rect x="18" y="114" width="160" height="8" rx="2" fill="#1E2436"/>
+      <circle cx="256" cy="78" r="32" fill="#7CE4FC"/>
+      <rect x="252" y="102" width="8" height="34" fill="#1E2436"/>
+      <circle cx="304" cy="92" r="22" fill="#FC7CAC"/>
+      <rect x="301" y="110" width="6" height="26" fill="#1E2436"/>
+      <line x1="20" y1="136" x2="400" y2="136" stroke="#5E7B8C" stroke-width="1"/>
+    </svg>`;
+  }
+
+  function windowSceneSVG(mode) {
+    if (mode === 'morning') {
+      return `<svg class="scene-svg" viewBox="0 0 420 170" aria-hidden="true">
+        <rect width="420" height="170" fill="#D2F6FC"/>
+        <rect x="0" y="0" width="132" height="170" fill="#FCFCC6"/>
+        <circle cx="316" cy="54" r="38" fill="#FCFCC6"/>
+        <rect x="148" y="22" width="224" height="106" rx="4" fill="#FFFEF9" stroke="#5E7B8C" stroke-width="1"/>
+        <line x1="260" y1="22" x2="260" y2="128" stroke="#A8D3DF" stroke-width="1"/>
+        <line x1="148" y1="76" x2="372" y2="76" stroke="#A8D3DF" stroke-width="1"/>
+        <circle cx="320" cy="56" r="24" fill="#FCFCC6" opacity="0.9"/>
+        <polygon points="196,42 199,49 206,50 201,55 202.5,62 196,58.5 189.5,62 191,55 186,50 193,49" fill="#7CE4FC"/>
+        <rect x="44" y="128" width="340" height="10" rx="2" fill="#1E2436"/>
+        <rect x="86" y="96" width="32" height="32" rx="6" fill="#FC7CAC"/>
+        <path d="M118 104h7a5 5 0 0 1 0 12h-7" fill="none" stroke="#FC7CAC" stroke-width="3"/>
+        <path d="M97 86c0-5 5-7 5-12M107 86c0-5 5-7 5-12" fill="none" stroke="#5E7B8C" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`;
+    }
+    if (mode === 'evening') {
+      return `<svg class="scene-svg" viewBox="0 0 420 170" aria-hidden="true">
+        <rect width="420" height="170" fill="#D2F6FC"/>
+        <rect x="0" y="0" width="110" height="170" fill="#FCC4D8"/>
+        <rect x="136" y="20" width="236" height="108" rx="4" fill="#1E2436" stroke="#5E7B8C" stroke-width="1"/>
+        <path d="M318 42a16 16 0 1 0 14 22 13 13 0 0 1-14-22z" fill="#FCFCC6"/>
+        <polygon points="184,38 186.5,44 193,45 188,49 189.5,55 184,52 178.5,55 180,49 175,45 181.5,44" fill="#7CE4FC"/>
+        <polygon points="222,88 224,93 229,94 225,97.5 226,102.5 222,100 218,102.5 219,97.5 215,94 220,93" fill="#FC7CAC"/>
+        <polygon points="292,82 294,86.5 299,87 295.5,90.5 296.5,95 292,92.5 287.5,95 288.5,90.5 285,87 290,86.5" fill="#FCC4D8"/>
+        <line x1="254" y1="20" x2="254" y2="128" stroke="#4A566D" stroke-width="1"/>
+        <line x1="136" y1="74" x2="372" y2="74" stroke="#4A566D" stroke-width="1"/>
+        <polygon points="74,98 114,98 128,136 60,136" fill="#FCFCC6" opacity="0.88"/>
+        <path d="M78 72h32l8 26H70z" fill="#FCFCC6" stroke="#1E2436" stroke-width="1"/>
+        <line x1="94" y1="98" x2="94" y2="136" stroke="#1E2436" stroke-width="2"/>
+        <rect x="40" y="136" width="346" height="10" rx="2" fill="#1E2436"/>
+        <rect x="296" y="106" width="34" height="30" rx="6" fill="#FC7CAC"/>
+        <path d="M313 106c0-14 14-20 22-18-2 10-10 18-22 18z" fill="#7CE4FC"/>
+      </svg>`;
+    }
+    /* afternoon default */
+    return `<svg class="scene-svg" viewBox="0 0 420 170" aria-hidden="true">
+      <rect width="420" height="170" fill="#D2F6FC"/>
+      <rect x="0" y="0" width="144" height="170" fill="#FCC4D8" opacity="0.55"/>
+      <rect x="144" y="24" width="224" height="102" rx="4" fill="#FFFEF9" stroke="#5E7B8C" stroke-width="1"/>
+      <polygon points="184,24 274,24 228,126 144,126" fill="#FCFCC6" opacity="0.82"/>
+      <line x1="256" y1="24" x2="256" y2="126" stroke="#A8D3DF" stroke-width="1"/>
+      <line x1="144" y1="75" x2="368" y2="75" stroke="#A8D3DF" stroke-width="1"/>
+      <polygon points="318,42 321,49 328,50 323,55 324.5,62 318,58.5 311.5,62 313,55 308,50 315,49" fill="#7CE4FC"/>
+      <rect x="44" y="126" width="340" height="12" rx="2" fill="#7CE4FC"/>
+      <rect x="86" y="90" width="30" height="36" rx="6" fill="#FC7CAC"/>
+      <path d="M101 90c0-14 18-22 24-18-2 11-11 18-24 18z" fill="#B02D63"/>
+      <rect x="194" y="114" width="66" height="12" rx="3" fill="#FFFEF9" stroke="#5E7B8C" stroke-width="1"/>
+      <line x1="227" y1="114" x2="227" y2="126" stroke="#A8D3DF" stroke-width="1"/>
+    </svg>`;
+  }
+
+  function miniThumbSVG(variant) {
+    if (variant === 'morning') {
+      return `<svg class="scene-svg" viewBox="0 0 140 88" aria-hidden="true"><rect width="140" height="88" fill="#D2F6FC"/><circle cx="106" cy="28" r="18" fill="#FCFCC6"/><rect x="14" y="58" width="112" height="8" fill="#1E2436"/><rect x="32" y="38" width="22" height="20" rx="4" fill="#FC7CAC"/></svg>`;
+    }
+    if (variant === 'evening') {
+      return `<svg class="scene-svg" viewBox="0 0 140 88" aria-hidden="true"><rect width="140" height="88" fill="#1E2436"/><circle cx="96" cy="30" r="14" fill="#FCFCC6"/><polygon points="38,22 40.5,28 47,29 42,33 43.5,39 38,36 32.5,39 34,33 29,29 35.5,28" fill="#7CE4FC"/><rect x="14" y="60" width="112" height="8" fill="#7CE4FC"/><rect x="34" y="42" width="18" height="18" rx="4" fill="#FC7CAC"/></svg>`;
+    }
+    if (variant === 'open') {
+      return `<svg class="scene-svg" viewBox="0 0 140 88" aria-hidden="true"><rect width="140" height="88" fill="#D2F6FC"/><rect x="24" y="16" width="92" height="56" rx="4" fill="#FFFEF9" stroke="#A8D3DF" stroke-width="1"/><line x1="70" y1="16" x2="70" y2="72" stroke="#D8F2F9" stroke-width="1"/></svg>`;
+    }
+    return `<svg class="scene-svg" viewBox="0 0 140 88" aria-hidden="true"><rect width="140" height="88" fill="#D2F6FC"/><rect x="40" y="14" width="76" height="44" rx="4" fill="#FFFEF9" stroke="#5E7B8C" stroke-width="1"/><polygon points="58,14 90,14 74,58 46,58" fill="#FCFCC6" opacity="0.82"/><rect x="16" y="58" width="108" height="8" fill="#7CE4FC"/><rect x="32" y="40" width="16" height="18" rx="4" fill="#FC7CAC"/></svg>`;
+  }
+
+  const copy = {
+    en: {
+      timeButtons: { morning: 'Morning · 08:15', afternoon: 'Afternoon · 14:20', evening: 'Evening · 19:40' },
+      dailyTitle: 'A little room for today.',
+      dailyDate: 'Sunday, 15 November',
+      dailyTabs: { today: 'Today', earlier: 'Earlier', notes: 'Saved notes' },
+      welcomeHead: 'What would you like to keep?',
+      welcomeBody: 'A quiet detail, a shift in the light, or a short line from today. You can start whenever you feel like it.',
+      welcomeBtn: 'Add a moment',
+      slots: {
+        morning: { time: '08:15', label: 'Morning', name: 'Mia', initial: 'M', avatar: 'avatar-rose', title: 'Warm mug on the sill', caption: 'Steamed milk and early sun outside the kitchen pane.', meta: 'Kept at 08:19' },
+        afternoon: { time: '14:20', label: 'Afternoon', name: 'Jin', initial: 'J', avatar: 'avatar-sky', title: 'Light at the corner desk', caption: 'Two o’clock sun across the open notebook.', meta: 'Kept at 14:24' },
+        evening: { time: '19:40', label: 'Evening', name: 'Seo', initial: 'S', avatar: 'avatar-butter', title: 'Reading lamp & quiet street', caption: 'Warm pool of light after the rain stopped.', meta: 'Kept at 19:46' }
+      },
+      earlierSummary: 'Yesterday · Saturday, 14 November — 3 moments kept calmly without hurry.',
+      notesSummary: '2 short reflections kept in your margin index this week.',
+      sheetTitle: 'A clear, quiet response.',
+      sheetDesc: 'Try saving a note or jump between states. Content stays stationary and your draft is never erased on an error.',
+      statePills: { idle: '1. Composing', saving: '2. Saving…', saved: '3. Saved ✓', error: '4. Error recovery' },
+      fieldLabel: 'A few words from your window',
+      defaultDraft: 'Sunlight reached the corner desk around two.',
+      saveBtn: 'Save moment',
+      savingBtn: 'Saving…',
+      retryBtn: 'Try again',
+      laterBtn: 'You can do this later',
+      laterNote: 'No rush. Your draft stays right here whenever you come back.',
+      simError: 'Simulate recoverable network error on next save',
+      snapBeforeLabel: 'Before / Pending',
+      snapBeforeTitle: 'Saving…',
+      snapAfterLabel: 'After / Complete',
+      snapAfterTitle: 'Saved',
+      statusStates: {
+        idle: { h: 'Ready to keep', s: 'Your note stays in this quiet draft until you save.' },
+        saving: { h: 'Saving…', s: 'Keeping your position steady while your note saves.' },
+        saved: { h: 'Saved', s: 'Saved. Come back whenever you like.' },
+        error: { h: 'That didn’t save yet.', s: 'Your note is still here intact. Try again whenever ready.' }
+      },
+      roomTitle: 'Sunday window',
+      roomMeta: '3 people sharing quietly',
+      roomTabs: { moments: 'Moments', people: 'People' },
+      presenceNote: 'No streaks or countdowns',
+      roomMomentName: 'Mia',
+      roomMomentTime: '11:05',
+      roomMomentCaption: 'Walked past the cedar fence before noon.',
+      ackIdle: 'Acknowledge · 2',
+      ackSaved: 'Kept · 3',
+      emptyTitle: 'Leo hasn’t added a moment yet',
+      emptyBody: 'No rush — whenever Leo feels like sharing something from today.',
+      peopleRows: [
+        { name: 'Mia', initial: 'M', avatar: 'avatar-rose', status: 'Shared a morning moment at 11:05' },
+        { name: 'Jin', initial: 'J', avatar: 'avatar-sky', status: 'Kept an afternoon desk reflection' },
+        { name: 'Leo', initial: 'L', avatar: 'avatar-butter', status: 'Taking the day at his own pace' }
+      ],
+      archiveTitle: 'November ledger',
+      archiveCount: '4 days indexed',
+      railBtns: { wide: 'Wide 68px rail', phone: 'Phone 32px rail', stacked: 'Stacked narrow' },
+      archiveItems: [
+        { day: '15', month: 'Nov · Sun', full: 'Sunday, 15 Nov', saved: true, thumb: 'afternoon', title: 'Light at the corner desk', desc: 'Jin · Afternoon sun across the open notebook.' },
+        { day: '14', month: 'Nov · Sat', full: 'Saturday, 14 Nov', saved: true, thumb: 'morning', title: 'Early coffee by the east window', desc: 'Mia · Quiet ten minutes before errands.' },
+        { day: '12', month: 'Nov · Thu', full: 'Thursday, 12 Nov', saved: true, thumb: 'evening', title: 'Rain cleared after dinner', desc: 'Leo · Streetlights on wet pavement.' },
+        { day: '09', month: 'Nov · Mon', full: 'Monday, 09 Nov', saved: false, thumb: 'open', title: 'Rest day — nothing added', desc: 'Open space stays calm without missed-day alerts.' }
+      ]
+    },
+    ko: {
+      timeButtons: { morning: '아침 · 08:15', afternoon: '오후 · 14:20', evening: '저녁 · 19:40' },
+      dailyTitle: '오늘을 위한 작은 여유.',
+      dailyDate: '11월 15일 일요일',
+      dailyTabs: { today: '오늘', earlier: '지난 기록', notes: '남긴 글' },
+      welcomeHead: '어떤 순간을 남겨볼까요?',
+      welcomeBody: '아침의 따뜻한 잔, 창가에 든 오후의 빛, 짧은 생각 한 줄이면 충분해요.',
+      welcomeBtn: '순간 남기기',
+      slots: {
+        morning: { time: '08:15', label: '아침', name: '미아', initial: '미', avatar: 'avatar-rose', title: '창틀 위의 따뜻한 머그잔', caption: '부엌 창 너머 아침 햇살과 따뜻한 우유 거품.', meta: '08:19에 담김' },
+        afternoon: { time: '14:20', label: '오후', name: '진', initial: '진', avatar: 'avatar-sky', title: '모서리 책상 위의 오후 햇빛', caption: '펼쳐 둔 공책 위로 두 시 무렵의 햇살이 길게 들었어요.', meta: '14:24에 담김' },
+        evening: { time: '19:40', label: '저녁', name: '서윤', initial: '서', avatar: 'avatar-butter', title: '독서등과 비 그친 골목', caption: '비가 멎은 뒤 창밖으로 번지는 조용한 저녁 불빛.', meta: '19:46에 담김' }
+      },
+      earlierSummary: '어제 · 11월 14일 토요일 — 서두르지 않고 3개의 순간을 남겼어요.',
+      notesSummary: '이번 주 여백 색인에 2개의 짧은 기록이 담겨 있어요.',
+      sheetTitle: '차분하고 분명한 응답.',
+      sheetDesc: '메모를 저장해 보거나 각 상태를 눌러 확인하세요. 오류가 나도 화면 위치와 입력한 글은 그대로 지켜집니다.',
+      statePills: { idle: '1. 작성 중', saving: '2. 저장 중…', saved: '3. 저장됨 ✓', error: '4. 오류 복구' },
+      fieldLabel: '창가에 남길 짧은 한 줄',
+      defaultDraft: '오후 두 시쯤 책상 모서리까지 햇빛이 길게 들어왔어요.',
+      saveBtn: '순간 저장하기',
+      savingBtn: '저장하는 중…',
+      retryBtn: '다시 시도하기',
+      laterBtn: '나중에 해도 괜찮아요',
+      laterNote: '천천히 하세요. 작성하던 문장은 이 자리에 그대로 남아 있어요.',
+      simError: '다음 저장 시 복구 가능한 오류 상태 시험하기',
+      snapBeforeLabel: '진행 중',
+      snapBeforeTitle: '저장하는 중…',
+      snapAfterLabel: '완료 후',
+      snapAfterTitle: '저장했어요',
+      statusStates: {
+        idle: { h: '남길 준비가 되었어요', s: '저장하기를 누르기 전까지 조용히 보관됩니다.' },
+        saving: { h: '저장하는 중…', s: '내용이 흔들리지 않도록 화면을 그대로 유지합니다.' },
+        saved: { h: '저장했어요', s: '저장했어요. 편할 때 다시 들러요.' },
+        error: { h: '아직 저장되지 않았어요.', s: '작성한 내용은 그대로 남아 있어요. 다시 시도해 보세요.' }
+      },
+      roomTitle: '일요일의 창가',
+      roomMeta: '3명이 조용히 나누는 중',
+      roomTabs: { moments: '순간들', people: '함께하는 사람' },
+      presenceNote: '연속 기록이나 재촉 없음',
+      roomMomentName: '미아',
+      roomMomentTime: '11:05',
+      roomMomentCaption: '정오가 되기 전에 삼나무 울타리 길을 천천히 걸었어요.',
+      ackIdle: '마음 남기기 · 2',
+      ackSaved: '남겼어요 · 3',
+      emptyTitle: '레오 님의 순간은 아직 비어 있어요',
+      emptyBody: '조급해하지 않아도 돼요. 레오 님이 편할 때 올려도 괜찮아요.',
+      peopleRows: [
+        { name: '미아', initial: '미', avatar: 'avatar-rose', status: '오전 11:05에 아침 산책을 남겼어요' },
+        { name: '진', initial: '진', avatar: 'avatar-sky', status: '오후 책상 풍경을 기록했어요' },
+        { name: '레오', initial: '레', avatar: 'avatar-butter', status: '자신의 속도로 하루를 보내는 중이에요' }
+      ],
+      archiveTitle: '11월 여백 색인',
+      archiveCount: '4일의 기록',
+      railBtns: { wide: '넓은 68px 여백', phone: '모바일 32px 레일', stacked: '좁은 화면 적층' },
+      archiveItems: [
+        { day: '15', month: '11월 · 일', full: '11월 15일 일요일', saved: true, thumb: 'afternoon', title: '모서리 책상 위의 오후 햇빛', desc: '진 · 펼쳐 둔 공책 위로 오후의 빛이 들었어요.' },
+        { day: '14', month: '11월 · 토', full: '11월 14일 토요일', saved: true, thumb: 'morning', title: '동쪽 창가의 이른 커피', desc: '미아 · 외출 전 조용한 십 분.' },
+        { day: '12', month: '11월 · 목', full: '11월 12일 목요일', saved: true, thumb: 'evening', title: '저녁 식사 뒤 갠 하늘', desc: '레오 · 젖은 길 위에 번진 가로등.' },
+        { day: '09', month: '11월 · 월', full: '11월 9일 월요일', saved: false, thumb: 'open', title: '쉬어 간 날 — 기록 없음', desc: '비어 있는 날도 누락 경고 없이 차분히 남깁니다.' }
+      ]
+    }
+  };
+
+  let state = {
+    lang: 'en',
+    time: 'afternoon',
+    dailyTab: 'today',
+    saveStatus: 'idle',
+    roomTab: 'moments',
+    acknowledged: false,
+    railMode: 'wide',
+    savingTimer: null
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  function announce(msg) {
+    const live = $('#studio-live');
+    if (live) live.textContent = msg;
+  }
+
+  function renderDailyWindow() {
+    const t = copy[state.lang];
+    $('#daily-title').textContent = t.dailyTitle;
+    $('#daily-date').textContent = t.dailyDate;
+    $('#welcome-heading').textContent = t.welcomeHead;
+    $('#welcome-body').textContent = t.welcomeBody;
+    $('#jump-to-capture').textContent = t.welcomeBtn;
+
+    $$('[data-daily-tab]').forEach((btn) => {
+      const key = btn.dataset.dailyTab;
+      btn.textContent = t.dailyTabs[key];
+      btn.setAttribute('aria-selected', String(key === state.dailyTab));
+    });
+
+    const welcomeBox = $('#welcome-box');
+    welcomeBox.hidden = state.dailyTab !== 'today';
+
+    const stream = $('#day-stream');
+    if (state.dailyTab === 'earlier') {
+      stream.innerHTML = `
+        <div class="slot-row is-active">
+          <div class="slot-margin">
+            ${CORNER_SVG}
+            <span class="slot-time">14 Nov</span>
+            <span class="mini-square is-filled" aria-hidden="true">✓</span>
+          </div>
+          <div>
+            <div class="media-frame">${windowSceneSVG('morning')}</div>
+            <div class="below-caption">
+              <p class="caption-text"><strong>${t.earlierSummary}</strong></p>
+              <p class="caption-sub">${t.slots.morning.name} · ${t.slots.morning.caption}</p>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    if (state.dailyTab === 'notes') {
+      stream.innerHTML = `
+        <div class="slot-row is-active">
+          <div class="slot-margin">
+            ${CORNER_SVG}
+            <span class="slot-time">Index</span>
+            <span class="mini-square is-filled" aria-hidden="true">✓</span>
+          </div>
+          <div class="below-caption" style="padding-top:0">
+            <p class="caption-text"><strong>${t.notesSummary}</strong></p>
+            <p class="caption-sub" style="margin-top:8px">• ${t.defaultDraft}</p>
+            <p class="caption-sub">• ${t.slots.evening.caption}</p>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const order = ['morning', 'afternoon', 'evening'];
+    stream.innerHTML = order.map((slotKey) => {
+      const s = t.slots[slotKey];
+      const active = slotKey === state.time;
+      if (active) {
+        return `
+          <div class="slot-row is-active">
+            <div class="slot-margin">
+              ${CORNER_SVG}
+              <span class="slot-time">${s.time}</span>
+              <span class="slot-label-small">${s.label}</span>
+              <span class="mini-square is-filled" aria-hidden="true">✓</span>
+            </div>
+            <div>
+              <div class="media-frame">${windowSceneSVG(slotKey)}</div>
+              <div class="below-caption">
+                <div class="contributor-row">
+                  <span class="avatar-circle ${s.avatar}" aria-hidden="true">${s.initial}</span>
+                  <span class="contributor-name">${s.name} · ${s.title}</span>
+                  <span class="contributor-meta">${s.meta}</span>
+                </div>
+                <p class="caption-text">${s.caption}</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="slot-row">
+          <div class="slot-margin">
+            <span class="slot-time">${s.time}</span>
+            <span class="mini-square is-filled" aria-hidden="true">✓</span>
+          </div>
+          <div>
+            <button type="button" class="slot-compact-btn" data-pick-time="${slotKey}">
+              <strong>${s.label} · ${s.title}</strong>
+              <span>${s.name}</span>
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+
+    $$('[data-pick-time]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.time = btn.dataset.pickTime;
+        renderAll();
+        announce(`Active time switched to ${state.time}.`);
+      });
+    });
+  }
+
+  function renderSaveStudio() {
+    const t = copy[state.lang];
+    $('#sheet-title').textContent = t.sheetTitle;
+    $('#sheet-desc').textContent = t.sheetDesc;
+    $('#note-field-label').textContent = t.fieldLabel;
+    $('#later-btn').textContent = t.laterBtn;
+    $('#simulate-error-label').textContent = t.simError;
+    $('#snap-before-label').textContent = t.snapBeforeLabel;
+    $('#snap-before-title').textContent = t.snapBeforeTitle;
+    $('#snap-after-label').textContent = t.snapAfterLabel;
+    $('#snap-after-title').textContent = t.snapAfterTitle;
+
+    $$('[data-save-state]').forEach((btn) => {
+      const k = btn.dataset.saveState;
+      btn.textContent = t.statePills[k];
+      btn.setAttribute('aria-pressed', String(k === state.saveStatus));
+    });
+
+    const panel = $('#live-status-panel');
+    const sym = $('#live-status-symbol');
+    const heading = $('#live-status-heading');
+    const sub = $('#live-status-sub');
+    const saveBtn = $('#save-moment-btn');
+
+    panel.classList.remove('is-saved', 'is-error');
+    sym.classList.remove('is-saving', 'is-saved', 'is-error');
+
+    const info = t.statusStates[state.saveStatus];
+    heading.textContent = info.h;
+    sub.textContent = info.s;
+
+    if (state.saveStatus === 'idle') {
+      sym.textContent = '';
+      saveBtn.disabled = false;
+      saveBtn.textContent = t.saveBtn;
+    } else if (state.saveStatus === 'saving') {
+      sym.classList.add('is-saving');
+      sym.innerHTML = PROGRESS_SVG;
+      saveBtn.disabled = true;
+      saveBtn.textContent = t.savingBtn;
+    } else if (state.saveStatus === 'saved') {
+      panel.classList.add('is-saved');
+      sym.classList.add('is-saved');
+      sym.textContent = '✓';
+      saveBtn.disabled = false;
+      saveBtn.textContent = t.saveBtn;
+    } else if (state.saveStatus === 'error') {
+      panel.classList.add('is-error');
+      sym.classList.add('is-error');
+      sym.textContent = '!';
+      saveBtn.disabled = false;
+      saveBtn.textContent = t.retryBtn;
+    }
+  }
+
+  function renderSharedTable() {
+    const t = copy[state.lang];
+    $('#room-title').textContent = t.roomTitle;
+    $('#room-meta').textContent = t.roomMeta;
+    $('#presence-note').textContent = t.presenceNote;
+
+    $$('[data-room-tab]').forEach((btn) => {
+      const k = btn.dataset.roomTab;
+      btn.textContent = t.roomTabs[k];
+      btn.setAttribute('aria-selected', String(k === state.roomTab));
+    });
+
+    const body = $('#shared-body');
+    if (state.roomTab === 'people') {
+      body.innerHTML = `<div class="day-stream">${t.peopleRows.map((p) => `
+        <div class="slot-row">
+          <div class="slot-margin">
+            <span class="avatar-circle ${p.avatar}" aria-hidden="true">${p.initial}</span>
+          </div>
+          <div class="below-caption" style="padding-top:0">
+            <p class="caption-text"><strong>${p.name}</strong></p>
+            <p class="caption-sub">${p.status}</p>
+          </div>
+        </div>`).join('')}</div>`;
+      return;
+    }
+
+    const ackLabel = state.acknowledged ? t.ackSaved : t.ackIdle;
+    body.innerHTML = `
+      <div class="day-stream">
+        <div class="slot-row is-active">
+          <div class="slot-margin">
+            <span class="slot-time">${t.roomMomentTime}</span>
+            <span class="mini-square is-filled" aria-hidden="true">✓</span>
+          </div>
+          <div>
+            <div class="media-frame">${courtyardSceneSVG()}</div>
+            <div class="below-caption">
+              <div class="contributor-row">
+                <span class="avatar-circle avatar-rose" aria-hidden="true">${t.roomMomentName[0]}</span>
+                <span class="contributor-name">${t.roomMomentName}</span>
+                <span class="contributor-meta">${t.roomMomentTime}</span>
+              </div>
+              <p class="caption-text">${t.roomMomentCaption}</p>
+              <div class="ack-row">
+                <button type="button" class="ack-btn" id="ack-toggle-btn" aria-pressed="${state.acknowledged}">
+                  <span class="ack-check" aria-hidden="true">✓</span>
+                  <span>${ackLabel}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slot-row">
+          <div class="slot-margin">
+            <span class="slot-time">—</span>
+            <span class="mini-square" aria-hidden="true"></span>
+          </div>
+          <div class="calm-empty-frame">
+            <span class="avatar-circle avatar-apricot" aria-hidden="true">${state.lang === 'ko' ? '레' : 'L'}</span>
+            <div>
+              <strong>${t.emptyTitle}</strong>
+              <p>${t.emptyBody}</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    $('#ack-toggle-btn')?.addEventListener('click', () => {
+      state.acknowledged = !state.acknowledged;
+      renderSharedTable();
+      announce(state.acknowledged ? 'Moment acknowledged.' : 'Acknowledgement removed.');
+    });
+  }
+
+  function renderArchive() {
+    const t = copy[state.lang];
+    $('#archive-title').textContent = t.archiveTitle;
+    $('#archive-count').textContent = t.archiveCount;
+
+    $$('[data-rail]').forEach((btn) => {
+      const k = btn.dataset.rail;
+      btn.textContent = t.railBtns[k];
+      btn.setAttribute('aria-pressed', String(k === state.railMode));
+    });
+
+    const list = $('#archive-list');
+    list.setAttribute('data-rail-mode', state.railMode);
+    list.innerHTML = t.archiveItems.map((item, idx) => `
+      <div class="archive-row">
+        <div class="archive-margin">
+          ${idx === 0 ? CORNER_SVG : ''}
+          <span class="archive-day-num">${item.day}</span>
+          <span class="archive-day-month">${item.month}</span>
+          <span class="mini-square ${item.saved ? 'is-filled' : ''}" aria-hidden="true">${item.saved ? '✓' : ''}</span>
+        </div>
+        <div>
+          <div class="archive-stacked-header">${item.full}</div>
+          <div class="archive-content">
+            <div class="archive-thumb">${miniThumbSVG(item.thumb)}</div>
+            <div class="archive-meta">
+              <strong>${item.title}</strong>
+              <p>${item.desc}</p>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderGlobalButtons() {
+    const t = copy[state.lang];
+    $$('[data-lang]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.lang === state.lang));
+    });
+    $$('[data-time]').forEach((btn) => {
+      const k = btn.dataset.time;
+      btn.textContent = t.timeButtons[k];
+      btn.setAttribute('aria-pressed', String(k === state.time));
+    });
+  }
+
+  function renderAll() {
+    renderGlobalButtons();
+    renderDailyWindow();
+    renderSaveStudio();
+    renderSharedTable();
+    renderArchive();
+  }
+
+  /* Bind Global & Local Controls */
+  $$('[data-lang]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const prevLang = state.lang;
+      state.lang = btn.dataset.lang;
+      const input = $('#specimen-note-input');
+      if (input && input.value.trim() === copy[prevLang].defaultDraft) {
+        input.value = copy[state.lang].defaultDraft;
+      }
+      renderAll();
+      announce(state.lang === 'ko' ? '한국어 미리보기로 전환되었습니다.' : 'Switched to English specimen copy.');
+    });
+  });
+
+  $$('[data-time]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.time = btn.dataset.time;
+      state.dailyTab = 'today';
+      renderAll();
+      announce(`Showing ${state.time} window.`);
+    });
+  });
+
+  $$('[data-daily-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.dailyTab = btn.dataset.dailyTab;
+      renderDailyWindow();
+    });
+  });
+
+  $('#jump-to-capture')?.addEventListener('click', () => {
+    const input = $('#specimen-note-input');
+    if (input) {
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input.focus();
+    }
+  });
+
+  $$('[data-save-state]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      window.clearTimeout(state.savingTimer);
+      state.saveStatus = btn.dataset.saveState;
+      renderSaveStudio();
+    });
+  });
+
+  $('#save-moment-btn')?.addEventListener('click', () => {
+    window.clearTimeout(state.savingTimer);
+    state.saveStatus = 'saving';
+    renderSaveStudio();
+    const shouldFail = $('#simulate-error-checkbox')?.checked;
+    state.savingTimer = window.setTimeout(() => {
+      state.saveStatus = shouldFail ? 'error' : 'saved';
+      if (shouldFail && $('#simulate-error-checkbox')) {
+        $('#simulate-error-checkbox').checked = false;
+      }
+      renderSaveStudio();
+    }, 550);
+  });
+
+  $('#later-btn')?.addEventListener('click', () => {
+    window.clearTimeout(state.savingTimer);
+    state.saveStatus = 'idle';
+    renderSaveStudio();
+    $('#live-status-sub').textContent = copy[state.lang].laterNote;
+  });
+
+  $$('[data-room-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.roomTab = btn.dataset.roomTab;
+      renderSharedTable();
+    });
+  });
+
+  $$('[data-rail]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.railMode = btn.dataset.rail;
+      renderArchive();
+    });
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

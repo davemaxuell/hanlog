@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Pinned to docs/design/open-window/tokens.json, 0.4-sky-buttercream. */
+@theme {
+  --color-canvas: #D2F6FC;
+  --color-surface: #FFFEF9;
+  --color-ink: #1E2436;
+  --color-text-secondary: #4A566D;
+  --color-action: #FC7CAC;
+  --color-action-hover: #F7659D;
+  --color-action-stroke: #B02D63;
+  --color-action-soft: #FCE6EF;
+  --color-buttercream: #FCFCC6;
+  --color-sky-star: #7CE4FC;
+  --color-blush-star: #FCC4D8;
+  --color-line: #A8D3DF;
+  --color-control-edge: #5E7B8C;
+  --color-error-ink: #A32029;
+  --color-error-surface: #FFF0EE;
+  /* Legacy names retained for the shared component contracts. */
+  --color-apricot: #FCFCC6;
+  --color-clay: #FCC4D8;
+  --radius-field: 8px;
+  --radius-button: 12px;
+  --radius-media: 12px;
+  --radius-sheet: 20px;
+  --radius-badge: 6px;
+  --font-title: Georgia, Batang, serif;
+  --font-body: Malgun Gothic, Segoe UI, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+h1, h2 { font-family: var(--font-title); }
+:focus-visible { outline: 3px solid var(--color-action-stroke); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

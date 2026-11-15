@@ -1,6 +1,6 @@
 # HanLog Foundation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** A running Next.js repository with shared contracts, an in-process database, sessions, audio utilities, a mock scorer, and a typed API client, so five other agents can build in parallel without waiting on each other.
 
@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: npm scripts `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:e2e`, `check`, `db:migrate`, `spike:scoring`, `eval:scoring`, `content:audio`. Import alias `@/*` to `src/*`. Vitest projects `node` and `ui`.
 
-- [ ] **Step 1: Scaffold**
+- [x] **Step 1: Scaffold**
 
 From the folder that contains `hanlog` (the folder currently holds only `docs/`):
 
@@ -49,7 +49,7 @@ npx create-next-app@16.4.6 hanlog --ts --tailwind --eslint --app --src-dir --imp
 
 Expected: files created inside `hanlog`, a git repository initialized, `docs/` untouched. If the tool refuses because the folder is not empty, scaffold into `hanlog-scaffold`, move every file including dotfiles into `hanlog`, and delete `hanlog-scaffold`.
 
-- [ ] **Step 2: Install pinned dependencies**
+- [x] **Step 2: Install pinned dependencies**
 
 ```bash
 npm install --save-exact zod@4.6.7 jose@6.2.17 pg@8.23.1 @electric-sql/pglite@0.5.16 @supabase/supabase-js@2.119.0 @vercel/config@0.14.1
@@ -58,7 +58,7 @@ npm install --save-dev --save-exact vitest@5.1.0 @vitejs/plugin-react@6.3.0 jsdo
 
 Keep whatever TypeScript, React, Tailwind, and ESLint versions the scaffold installed.
 
-- [ ] **Step 3: Configure**
+- [x] **Step 3: Configure**
 
 - `next.config.ts`: add `serverExternalPackages: ['@electric-sql/pglite', 'pg']`.
 - `vitest.config.ts`: alias `@` to `./src`. Two projects. `node`: environment `node`, include `tests/unit/**/*.test.ts` and `tests/api/**/*.test.ts`. `ui`: environment `jsdom`, React plugin, include `tests/ui/**/*.test.tsx`, setup file `tests/helpers/ui-setup.ts` that imports `@testing-library/jest-dom/vitest`.
@@ -66,7 +66,7 @@ Keep whatever TypeScript, React, Tailwind, and ESLint versions the scaffold inst
 - `.gitignore`: add `.data/`, `test-results/`, `playwright-report/`. Confirm `.env*.local` is ignored.
 - `.env.example`: one line per variable in spec section 11, each with an empty value and a one-line comment.
 
-- [ ] **Step 4: Smoke tests**
+- [x] **Step 4: Smoke tests**
 
 `tests/unit/smoke.test.ts`:
 
@@ -86,16 +86,16 @@ it('renders in jsdom', () => {
 });
 ```
 
-- [ ] **Step 5: Append project rules to `AGENTS.md`**
+- [x] **Step 5: Append project rules to `AGENTS.md`**
 
 Keep the scaffold's content. Append a section "HanLog project rules" containing rules 3 to 9 from the orchestration file, verbatim, plus the two lines: "Spec: docs/superpowers/specs/2026-11-15-hanlog-speaking-demo-design.md" and "Your lane: docs/superpowers/plans/2026-11-15-hanlog-00-orchestration.md, section Ownership".
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run: `npm run check && npm run build`
 Expected: type check, lint, and 2 tests pass; build completes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A && git commit -m "chore: scaffold HanLog app with test tooling"
@@ -118,7 +118,7 @@ git add -A && git commit -m "chore: scaffold HanLog app with test tooling"
   - `countChars(s: string): number`, `containsHangul(s: string): boolean`, `isValidNickname(s: string): boolean`, `hasLink(s: string): boolean`
   - Input schemas: `CreateSessionInputSchema` (`nickname`, `role`, `consent: true`), `UpdateSessionInputSchema` (at least one of `nickname`, `role`), `CreateChallengeFieldsSchema` (`korean`, `meaningEn`, `situationEn`), `RatingInputSchema`, `FeedbackInputSchema`, `ChallengeScopeSchema`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -197,21 +197,21 @@ describe('contracts', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/unit/contracts.test.ts`
 Expected: FAIL, cannot resolve `@/lib/contracts`.
 
-- [ ] **Step 3: Implement `src/lib/contracts.ts`**
+- [x] **Step 3: Implement `src/lib/contracts.ts`**
 
 Write the schemas for every type in spec section 9.1 and the exports listed under Interfaces. String fields that have a limit in `LIMITS` are trimmed first and measured with `countChars`. Timestamps are ISO strings. Ids are UUID strings except `Mission.id` and `Reward.id` (slugs).
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/unit/contracts.test.ts`
 Expected: PASS, 8 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/contracts.ts tests/unit/contracts.test.ts && git commit -m "feat: shared contracts, limits, and validators"
@@ -258,7 +258,7 @@ export function kstDayStartIso(now?: Date): string;
 export function kstDateString(now?: Date): string;
 ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/unit/config.test.ts`:
 
@@ -360,12 +360,12 @@ it('computes the Korea-time day', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npx vitest run tests/unit/config.test.ts tests/unit/http.test.ts`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 3: Implement the three modules**
+- [x] **Step 3: Implement the three modules**
 
 Notes the tests do not decide:
 - `getConfig` treats `NODE_ENV === 'production'` as production. The development `sessionSecret` is the constant `'dev-only-session-secret-change-me-0000'`. `SUPABASE_SECRET_KEY` takes precedence over `SUPABASE_SERVICE_ROLE_KEY`; `DATABASE_URL` over `POSTGRES_URL`. `pgliteDir` comes from `PGLITE_DIR`.
@@ -374,12 +374,12 @@ Notes the tests do not decide:
 - `assertSameOrigin` compares the host of the `Origin` header with the `Host` header (falling back to the request URL host). A missing `Origin` passes.
 - `clientIpHash` is SHA-256 of the first `x-forwarded-for` entry plus `sessionSecret`, first 32 hex characters.
 
-- [ ] **Step 4: Run to verify they pass**
+- [x] **Step 4: Run to verify they pass**
 
 Run: `npx vitest run tests/unit/config.test.ts tests/unit/http.test.ts`
 Expected: PASS, 12 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/config.ts src/lib/errors.ts src/lib/http.ts tests/unit/config.test.ts tests/unit/http.test.ts && git commit -m "feat: configuration, API errors, and HTTP helpers"
@@ -416,7 +416,7 @@ export function noiseWav(ms: number, amplitude?: number): Uint8Array; // seeded 
 export function withListChunk(wav: Uint8Array): Uint8Array;           // inserts a LIST chunk between fmt and data
 ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { expect, it } from 'vitest';
@@ -469,21 +469,21 @@ it('decodes and resamples', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/unit/audio/wav.test.ts`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 3: Implement `tests/helpers/audio.ts` and `src/lib/audio/wav.ts`**
+- [x] **Step 3: Implement `tests/helpers/audio.ts` and `src/lib/audio/wav.ts`**
 
 `parseWav` walks RIFF chunks (each padded to an even length) until it finds `fmt ` and `data`; format tag must be 1 (PCM), otherwise `unsupported`. `validateScoringWav` checks size first, then format, then duration. `wavRms` reads only the `data` chunk. `resampleLinear` output length is `round(length * toRate / fromRate)`.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/unit/audio/wav.test.ts`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/audio/wav.ts tests/helpers/audio.ts tests/unit/audio/wav.test.ts && git commit -m "feat: WAV parsing, validation, loudness, and encoding"
@@ -515,7 +515,7 @@ export function setDbForTests(db: Db | null): void;                  // getDb() 
 export function applyMigrations(db: Db, dir?: string): Promise<string[]>; // default 'db/migrations'; returns the file names it applied
 ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { afterEach, beforeEach, expect, it } from 'vitest';
@@ -562,28 +562,28 @@ it('getDb returns the test database while set, and one shared instance otherwise
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/unit/db/db.test.ts`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 3: Write `db/migrations/0001_init.sql`**
+- [x] **Step 3: Write `db/migrations/0001_init.sql`**
 
 Copy the SQL in spec section 10 exactly. After the tables, add one `alter table hanlog.<name> enable row level security;` per table.
 
-- [ ] **Step 4: Implement the database modules**
+- [x] **Step 4: Implement the database modules**
 
 - `migrate.ts`: creates `hanlog.schema_migrations (name text primary key, applied_at timestamptz not null default now())` if missing (after `create schema if not exists hanlog`), then applies each `*.sql` file in name order that is not yet recorded, each in its own transaction.
 - `pglite.ts`: wraps `PGlite` (`new PGlite()` for memory, `new PGlite(dir)` for a folder) as a `Db`.
 - `pg.ts`: wraps a `pg.Pool` (`max: 5`) as a `Db`; `tx` checks out one client and issues `BEGIN`, `COMMIT`, `ROLLBACK`. Loaded with a dynamic import only when `dbDriver` is `pg`, so PGlite is never imported in production and the reverse.
 - `index.ts`: `getDb` stores its promise on `globalThis.__hanlogDb` so a hot reload reuses it. For PGlite it applies migrations on first use, with `pgliteDir` defaulting to `.data/pglite` when `NODE_ENV` is `development` and to memory otherwise. For `pg` it does not migrate.
 
-- [ ] **Step 5: Run to verify it passes**
+- [x] **Step 5: Run to verify it passes**
 
 Run: `npx vitest run tests/unit/db/db.test.ts`
 Expected: PASS, 6 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/db db/migrations tests/unit/db && git commit -m "feat: Db interface, PGlite and pg drivers, initial schema"
@@ -625,7 +625,7 @@ export function makeRequest(method: string, path: string, opts?: { cookie?: stri
 export function wavFile(bytes: Uint8Array, name?: string): File;     // type audio/wav
 ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/unit/session.test.ts`:
 
@@ -711,21 +711,21 @@ it('deletes a user with everything they own and reports media paths', async () =
 });
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npx vitest run tests/unit/session.test.ts tests/unit/repo/users.test.ts`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 3: Implement the three files**
+- [x] **Step 3: Implement the three files**
 
 Session tokens are JWTs signed with HS256 using `jose`, subject claim is the user id, expiry 90 days. `sessionCookieHeader` adds `Secure` only when `getConfig().isProd`. `deleteUserCascade` collects, before deleting, the non-null `reference_path` of the user's challenges, the `media_path` of answers to those challenges, and the `media_path` of the user's own answers. Repositories map snake_case columns to the camelCase types and convert timestamps to ISO strings.
 
-- [ ] **Step 4: Run to verify they pass**
+- [x] **Step 4: Run to verify they pass**
 
 Run: `npx vitest run tests/unit/session.test.ts tests/unit/repo/users.test.ts`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/repo/users.ts src/lib/session.ts tests/helpers/api.ts tests/unit/session.test.ts tests/unit/repo && git commit -m "feat: users repository, cookie sessions, API test helpers"
@@ -757,7 +757,7 @@ export function todaysMissionIds(dateKst: string): string[]; // 'YYYY-MM-DD' in;
 export function ensureSeed(db: Db): Promise<void>;           // idempotent: system user, then sample challenges keyed by code
 ```
 
-- [ ] **Step 1: Write the content files**
+- [x] **Step 1: Write the content files**
 
 `content/missions.json` holds exactly these six for now (the content agent expands the list later):
 
@@ -794,7 +794,7 @@ export function ensureSeed(db: Db): Promise<void>;           // idempotent: syst
 ]
 ```
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 `tests/unit/content.test.ts`:
 
@@ -850,21 +850,21 @@ it('seeds the system user and sample challenges once', async () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify they fail**
+- [x] **Step 3: Run to verify they fail**
 
 Run: `npx vitest run tests/unit/content.test.ts tests/unit/repo/seed.test.ts`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 4: Implement `content.ts`, `seed.ts`, and call `ensureSeed` from the PGlite path in `db/index.ts`**
+- [x] **Step 4: Implement `content.ts`, `seed.ts`, and call `ensureSeed` from the PGlite path in `db/index.ts`**
 
 The system user row uses `ip_hash = 'system'`. Day of year counts 1 January as day 1.
 
-- [ ] **Step 5: Run to verify they pass, then the whole suite**
+- [x] **Step 5: Run to verify they pass, then the whole suite**
 
 Run: `npm run test`
 Expected: PASS, including the task 6 tests (they must tolerate the seeded system user).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add content src/lib/content.ts src/lib/repo/seed.ts src/lib/db/index.ts tests/unit/content.test.ts tests/unit/repo/seed.test.ts && git commit -m "feat: content loader, seed content, database seed"
@@ -908,7 +908,7 @@ export function getScoringProvider(): ScoringProvider;           // from getConf
 export function scoreAttempt(wav: Uint8Array, mission: Mission): Promise<Score>; // provider.score then composeScore; scoredBy 'mock' for the mock, 'ai' otherwise
 ```
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/unit/scoring/jamo.test.ts`:
 
@@ -1020,12 +1020,12 @@ it('reports silence as no speech', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npx vitest run tests/unit/scoring`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 3: Implement the scoring modules**
+- [x] **Step 3: Implement the scoring modules**
 
 `jamoSimilarity` tokens: for each Hangul syllable with index `i = codePoint - 0xAC00`, emit `c{floor(i / 588)}`, `v{floor((i % 588) / 28)}`, and `f{i % 28}` only when `i % 28 > 0`. Similarity is `1 - levenshtein(tokensA, tokensB) / max(lenA, lenB)`.
 
@@ -1033,12 +1033,12 @@ Mock provider values (spec 5.5): pronunciation 84, accuracy 96, usage 88; issue 
 
 The `openai.ts` stub returns a provider named `'openai'` whose `score` rejects with `new ScoringFailedError('OpenAI provider is not implemented yet')`.
 
-- [ ] **Step 4: Run to verify they pass**
+- [x] **Step 4: Run to verify they pass**
 
 Run: `npx vitest run tests/unit/scoring`
 Expected: PASS, 16 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/scoring tests/unit/scoring && git commit -m "feat: scoring core with jamo similarity, composition rules, and mock provider"
@@ -1082,7 +1082,7 @@ export const api: {
 export const samples: { user: User; koreanUser: User; missions: MissionWithProgress[]; attemptResult: AttemptResult; points: PointsSummary; rewards: Reward[]; challenge: Challenge; challengeDetailForLearner: ChallengeDetail; challengeDetailForAuthor: ChallengeDetail; response: ChallengeResponse; ratedResponse: ChallengeResponse };
 ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { afterEach, expect, it, vi } from 'vitest';
@@ -1141,23 +1141,23 @@ it('builds media URLs and encodes path segments', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/unit/api-client.test.ts`
 Expected: FAIL, modules not found.
 
-- [ ] **Step 3: Implement the client and the fixtures**
+- [x] **Step 3: Implement the client and the fixtures**
 
 Fixture contents other plans rely on: `samples.user` is a learner and `samples.koreanUser` a Korean speaker; `samples.missions` is the six seed missions (so it includes `cafe-iced-americano` and `slang-daebak`) with `bestOverall: null` and `pointsEarned: 0`; `samples.rewards` is the six catalog rewards; `samples.attemptResult` is for `cafe-iced-americano` with overall 88, `pointsAwarded: 10`, `scoredBy: 'mock'`; `samples.challenge` is authored by `samples.koreanUser`; `samples.response` is a pending audio answer from `samples.user` with `mediaAvailable: true`; `samples.ratedResponse` is the same answer rated (pronunciation 4, naturalness 5, comment `좋아요!`) with `feedback: null`; `challengeDetailForLearner` has `viewerRole: 'responder'` and `myResponse: samples.response`; `challengeDetailForAuthor` has `viewerRole: 'author'` and `responses: [samples.response]`.
 
 Paths and bodies follow spec section 9.3. `submitResponse` sends multipart fields `media`, `kind`, `durationMs`; `createChallenge` sends `korean`, `meaningEn`, `situationEn` and, when given, `media` and `durationMs`. Every call uses `credentials: 'same-origin'`. Do not set a `content-type` header on multipart requests.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/unit/api-client.test.ts`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/api-client.ts tests/fixtures/api tests/unit/api-client.test.ts && git commit -m "feat: typed API client and response fixtures"
@@ -1175,7 +1175,7 @@ git add src/lib/api-client.ts tests/fixtures/api tests/unit/api-client.test.ts &
 **Interfaces:**
 - Produces: Tailwind theme tokens usable as utilities: colors `canvas`, `surface`, `ink`, `text-secondary`, `action`, `action-hover`, `action-soft`, `clay`, `apricot`, `line`, `control-edge`, `error-ink`, `error-surface`; radii `field`, `button`, `media`, `sheet`, `badge`; font families `title` and `body`. Every value comes from `docs/design/open-window/tokens.json`, never typed from memory: that file has already changed once (it is at version `0.3-warm-linen`).
 
-- [ ] **Step 1: Copy the design direction into the repository**
+- [x] **Step 1: Copy the design direction into the repository**
 
 ```bash
 mkdir -p docs/design/open-window && cp ../design/open-window/DESIGN.md ../design/open-window/tokens.json ../design/open-window/reference.html docs/design/open-window/
@@ -1183,7 +1183,7 @@ mkdir -p docs/design/open-window && cp ../design/open-window/DESIGN.md ../design
 
 Expected: three files. Worktrees of other agents do not have `../design`, so this copy is what they read.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```tsx
 import { readFileSync } from 'node:fs';
@@ -1210,18 +1210,18 @@ it('declares the radii, the font stacks, and reduced motion', () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify it fails**
+- [x] **Step 3: Run to verify it fails**
 
 Run: `npx vitest run tests/ui/tokens.test.tsx`
 Expected: FAIL, tokens missing.
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
 
 - `globals.css`: Tailwind 4 `@theme` block with the tokens; `body` uses canvas background, ink text, the body font stack; a global `:focus-visible` ring of 3px `action` with 3px offset; a `prefers-reduced-motion` block that removes transitions and animations. Remove the scaffold's default styles and dark mode.
 - `layout.tsx`: `<html lang="en">`, metadata title `HanLog · Speak Korean out in the world`, description from spec section 4.1 hero, viewport width `device-width`. No web font imports.
 - `src/app/page.tsx` and `src/app/app/page.tsx`: a single heading each ("HanLog" and "HanLog app") so the build has both routes. Plans 04 and 06 replace them.
 
-- [ ] **Step 5: Verify everything**
+- [x] **Step 5: Verify everything**
 
 Run: `npm run check && npm run build`
 Expected: all suites pass; build lists routes `/` and `/app`.
@@ -1229,7 +1229,7 @@ Expected: all suites pass; build lists routes `/` and `/app`.
 Run: `npm run dev`, open `http://localhost:3000/`, then stop the server.
 Expected: the heading renders on the canvas color from the token file with no console errors.
 
-- [ ] **Step 6: Write `docs/handoffs/foundation.md`, commit, tag**
+- [x] **Step 6: Write `docs/handoffs/foundation.md`, commit, tag**
 
 The handoff lists every exported name from tasks 2 to 9 with its file, the test count, and any deviation from this plan.
 
