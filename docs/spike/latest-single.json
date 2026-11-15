@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-15T14:30:31.991Z",
+  "variant": "V2",
+  "requests": 1,
+  "status": 200,
+  "durationMs": 2950,
+  "ms": 3165,
+  "score": {
+    "overall": 88,
+    "pronunciation": 85,
+    "accuracy": 90,
+    "usage": 90,
+    "heard": "아이씨 아메리카노 한 잔 주세요",
+    "issues": [
+      {
+        "segment": "아이씨",
+        "problem": "it sounded like '아이씨' instead of '아이스'",
+        "tip": "Keep your tongue low and relaxed for the '스' sound, making a soft 's' with a brief vowel."
+      }
+    ],
+    "praise": "Your overall intonation and pacing were clear and polite.",
+    "nextTip": "Focus on clearly articulating the '스' sound at the end of '아이스' without turning it into '씨'.",
+    "scoredBy": "ai"
+  },
+  "usage": {
+    "prompt_tokens": 824,
+    "completion_tokens": 145,
+    "total_tokens": 969,
+    "prompt_tokens_details": {
+      "audio_tokens": 29,
+      "text_tokens": 795,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "audio_tokens": 0,
+      "text_tokens": 145,
+      "reasoning_tokens": 0
+    }
+  },
+  "estimatedUsd": 0.0043655,
+  "outcome": "scored"
+}
