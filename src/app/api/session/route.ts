@@ -4,8 +4,9 @@ import { getDb } from '@/lib/db';
 import { ApiError } from '@/lib/errors';
 import { clientIpHash, json, kstDayStartIso, readJson, route } from '@/lib/http';
 import { assertTextAllowed } from '@/lib/moderation';
-import { updateUser } from '@/lib/repo/users';
-import { getSessionUser, requireUser, sessionCookieHeader, signSession } from '@/lib/session';
+import { deleteUserCascade, updateUser } from '@/lib/repo/users';
+import { clearSessionCookieHeader, getSessionUser, requireUser, sessionCookieHeader, signSession } from '@/lib/session';
+import { getMediaStore } from '@/lib/media';
 export const runtime = 'nodejs';
 export const GET = route(async req => json({ user: await getSessionUser(req) }));
 export const POST = route(async req => {
@@ -31,4 +32,11 @@ export const PATCH = route(async req => {
   const patch = await readJson(req, UpdateSessionInputSchema);
   if (patch.nickname !== undefined) await assertTextAllowed([patch.nickname]);
   return json({ user: await updateUser(user.id, patch) });
+});
+export const DELETE = route(async req => {
+  const user = await requireUser(req);
+  const paths = await deleteUserCascade(user.id);
+  try { await getMediaStore().remove(paths); }
+  catch { console.error('Media cleanup required after profile deletion', { paths }); }
+  return new Response(null, { status: 204, headers: { 'Set-Cookie': clearSessionCookieHeader() } });
 });
