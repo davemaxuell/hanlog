@@ -1,0 +1,18 @@
+# Deployment configuration comes from the Vercel project.
+.env*
+
+# Local state, dependencies, and generated output.
+.data/
+node_modules/
+.git/
+.next/
+output/
+coverage/
+playwright-report/
+playwright-reports/
+test-results/
+.playwright-cli/
+
+# Development-only documentation and tests.
+docs/
+tests/
