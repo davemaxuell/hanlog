@@ -119,6 +119,19 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-note-heading { font-family:var(--font-body); font-size:14px; font-weight:600; }
 .hl-instruction { font-size:18px; line-height:1.6; }
 .hl-back-link { display:inline-flex; align-items:center; min-height:48px; justify-self:start; color:var(--color-action-stroke); }
+.hl-balance { display:grid; gap:8px; }
+.hl-reward-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:20px; }
+.hl-reward-card { display:grid; gap:12px; padding:24px; background:var(--color-surface); border:1px dashed var(--color-control-edge); border-radius:var(--radius-sheet); }
+.hl-reward-card h3 { font-family:var(--font-title); font-size:24px; line-height:1.25; }
+.hl-reward-cost { font-weight:600; margin-top:8px; }
+.hl-reward-card progress { width:100%; height:8px; border:0; border-radius:4px; overflow:hidden; background:var(--color-line); }
+.hl-reward-card progress::-webkit-progress-bar { background:var(--color-line); }
+.hl-reward-card progress::-webkit-progress-value { background:var(--color-action-stroke); }
+.hl-reward-card progress::-moz-progress-bar { background:var(--color-action-stroke); }
+.hl-ledger { list-style:none; margin:0; padding:0; }
+.hl-ledger li { display:flex; justify-content:space-between; gap:20px; padding:20px 0; border-bottom:1px solid var(--color-line); }
+.hl-ledger li > div { min-width:0; }
+.hl-ledger strong { flex-shrink:0; color:var(--color-action-stroke); }
 .hl-page-heading h1 { font-size:clamp(32px,6vw,48px); line-height:1.2; }
 .hl-page-heading p:not(.hl-eyebrow) { color:var(--color-text-secondary); }
 .hl-section-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; }
