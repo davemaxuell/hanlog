@@ -1,5 +1,6 @@
 import { getConfig } from '../config';
 import { applyMigrations } from './migrate';
+import { ensureSeed } from '../repo/seed';
 export interface Db {
   query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]>;
   tx<T>(fn: (db: Db) => Promise<T>): Promise<T>;
@@ -18,6 +19,7 @@ export function getDb(): Promise<Db> {
     const { createPgliteDb } = await import('./pglite');
     const db = await createPgliteDb(config.pgliteDir ?? (process.env.NODE_ENV === 'development' ? '.data/pglite' : undefined));
     await applyMigrations(db);
+    await ensureSeed(db);
     return db;
   })().catch(error => { delete shared.__hanlogDb; throw error; });
   return shared.__hanlogDb;
@@ -25,5 +27,5 @@ export function getDb(): Promise<Db> {
 export async function createTestDb(): Promise<Db & { close(): Promise<void> }> {
   const { createPgliteDb } = await import('./pglite');
   const db = await createPgliteDb();
-  try { await applyMigrations(db); return db; } catch (error) { await db.close(); throw error; }
+  try { await applyMigrations(db); await ensureSeed(db); return db; } catch (error) { await db.close(); throw error; }
 }

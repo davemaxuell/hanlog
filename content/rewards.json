@@ -1,0 +1,8 @@
+[
+  { "id": "kpop-album", "category": "kpop", "title": "K-pop album voucher", "description": "Put it toward any album you like.", "cost": 3000 },
+  { "id": "kpop-photocard", "category": "kpop", "title": "Photocard set voucher", "description": "One photocard set of your choice.", "cost": 1200 },
+  { "id": "grocery-10000", "category": "grocery", "title": "Grocery 10,000 won coupon", "description": "For your weekly shop.", "cost": 1000 },
+  { "id": "fashion-10", "category": "fashion", "title": "Fashion 10% off coupon", "description": "For clothes and accessories.", "cost": 800 },
+  { "id": "cvs-5000", "category": "grocery", "title": "Convenience store 5,000 won coupon", "description": "Snacks, drinks, late-night ramyeon.", "cost": 500 },
+  { "id": "cafe-drink", "category": "cafe", "title": "Café drink coupon", "description": "One drink. Order it in Korean.", "cost": 400 }
+]
