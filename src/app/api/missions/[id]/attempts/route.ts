@@ -2,7 +2,7 @@ import { LIMITS, type Score } from '@/lib/contracts';
 import { getMission } from '@/lib/content';
 import { ApiError } from '@/lib/errors';
 import { clientIpHash, json, readFormData, route } from '@/lib/http';
-import { requireUser } from '@/lib/session';
+import { requireSessionIdentity } from '@/lib/session';
 import { validateScoringWav, wavRms, WavError } from '@/lib/audio/wav';
 import { reserveScoringCall, finishScoringCall } from '@/lib/limits';
 import { scoreAttempt } from '@/lib/scoring';
@@ -11,7 +11,7 @@ import { recordAttempt } from '@/lib/repo/attempts';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) => {
-  const user = await requireUser(req);
+  const { user, version } = await requireSessionIdentity(req);
   const mission = getMission((await ctx.params).id);
   if (!mission) throw new ApiError('not_found');
   const form = await readFormData(req, LIMITS.scoringWav.maxBytes);
@@ -24,14 +24,20 @@ export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) 
     throw error;
   }
   if (wavRms(wav) < LIMITS.silenceRms) throw new ApiError('no_speech');
-  const reservation = await reserveScoringCall({ userId: user.id, ipHash: clientIpHash(req) });
+  const reservation = await reserveScoringCall({ userId: user.id, ipHash: clientIpHash(req), expectedVersion: version });
   let score: Score;
   try { score = await scoreAttempt(wav, mission); } catch (error) {
     const noSpeech = error instanceof NoSpeechError;
-    await finishScoringCall(reservation.id, noSpeech ? 'no_speech' : 'failed');
+    await finishScoringCall(reservation.id, noSpeech ? 'no_speech' : 'failed').catch(() => {});
     throw new ApiError(noSpeech ? 'no_speech' : 'scoring_failed');
   }
-  const result = await recordAttempt({ userId: user.id, mission, score });
-  await finishScoringCall(reservation.id, 'scored');
-  return json({ ...result, attemptsLeftToday: reservation.leftToday });
+  try {
+    const result = await recordAttempt({ userId: user.id, mission, score, expectedVersion: version, scoringCallId: reservation.id });
+    return json({ ...result, attemptsLeftToday: reservation.leftToday });
+  } catch (error) {
+    // Reservations still count if persistence fails. Never overwrite an already
+    // committed result when the connection loses the COMMIT acknowledgement.
+    await finishScoringCall(reservation.id, 'failed').catch(() => {});
+    throw error;
+  }
 });

@@ -30,11 +30,34 @@ export function parseWav(bytes: Uint8Array): WavInfo {
 }
 export function validateScoringWav(bytes: Uint8Array): WavInfo {
   if (bytes.length > LIMITS.scoringWav.maxBytes) throw new WavError('too_large');
+  validateCompletePcmContainer(bytes);
   const info = parseWav(bytes);
   if (info.sampleRate !== LIMITS.scoringWav.sampleRate || info.channels !== 1 || info.bitsPerSample !== 16) throw new WavError('unsupported');
   if (info.durationMs < LIMITS.scoringWav.minMs) throw new WavError('too_short');
   if (info.durationMs > LIMITS.scoringWav.maxMs) throw new WavError('too_long');
   return info;
+}
+// The local reader can salvage truncated PCM for conversion. The paid scoring
+// boundary must describe one complete stream unambiguously to any WAV decoder.
+function validateCompletePcmContainer(bytes: Uint8Array): void {
+  if (bytes.length < 44 || tag(bytes, 0) !== 'RIFF' || tag(bytes, 8) !== 'WAVE') throw new WavError('not_wav');
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint32(4, true) !== bytes.length - 8) throw new WavError('not_wav');
+  let formats = 0, dataChunks = 0, blockAlign = 0;
+  for (let offset = 12; offset < bytes.length;) {
+    if (offset + 8 > bytes.length) throw new WavError('not_wav');
+    const name = tag(bytes, offset), size = view.getUint32(offset + 4, true), start = offset + 8;
+    const next = start + size + size % 2;
+    if (next > bytes.length) throw new WavError('not_wav');
+    if (name === 'fmt ') {
+      if (++formats !== 1 || dataChunks || size < 16) throw new WavError('not_wav');
+      blockAlign = view.getUint16(start + 12, true);
+      if (!blockAlign || view.getUint32(start + 8, true) !== view.getUint32(start + 4, true) * blockAlign) throw new WavError('unsupported');
+    }
+    if (name === 'data' && (formats !== 1 || ++dataChunks !== 1 || size % blockAlign !== 0)) throw new WavError('not_wav');
+    offset = next;
+  }
+  if (formats !== 1 || dataChunks !== 1) throw new WavError('not_wav');
 }
 export function wavRms(bytes: Uint8Array): number {
   const info = parseWav(bytes);

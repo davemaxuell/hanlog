@@ -43,3 +43,15 @@ it('enforces the daily allowance', async () => {
   const res = await send(cookie, 'cafe-iced-americano', wavFile(toneWav(1500)));
   expect([res.status, (await res.json()).error.code]).toEqual([429, 'daily_limit']);
 });
+it('rejects ambiguous WAV headers before reserving a scoring call', async () => {
+  const { cookie } = await createTestUser();
+  const wav = toneWav(1000);
+  const duplicateFormat = new Uint8Array(wav.length + 24);
+  duplicateFormat.set(wav); duplicateFormat.set(wav.subarray(12, 36), wav.length);
+  new DataView(duplicateFormat.buffer).setUint32(4, duplicateFormat.length - 8, true);
+  for (const bytes of [duplicateFormat, wav.slice(0, 44 + 600 * 32)]) {
+    const response = await send(cookie, 'cafe-iced-americano', wavFile(bytes));
+    expect(response.status).toBe(415);
+  }
+  expect(await calls()).toEqual([]);
+});

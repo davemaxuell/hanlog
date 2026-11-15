@@ -40,3 +40,9 @@ it('resets at Korea-time midnight and counts failed calls', async () => {
   const rows = await (await getDb()).query<{ outcome: string }>('select outcome from hanlog.scoring_calls order by id');
   expect(rows.map((x) => x.outcome)).toEqual(['failed', 'pending']);
 });
+it('keeps a committed scoring outcome when a late failure acknowledgement arrives', async () => {
+  const reservation = await reserveScoringCall({ userId: u(10), ipHash: 'a' });
+  await finishScoringCall(reservation.id, 'scored');
+  await finishScoringCall(reservation.id, 'failed');
+  expect(await (await getDb()).query('select outcome from hanlog.scoring_calls where id=$1', [reservation.id])).toEqual([{ outcome: 'scored' }]);
+});

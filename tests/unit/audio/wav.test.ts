@@ -29,6 +29,24 @@ it('trusts the bytes present over the header', () => {
   const truncated = wav.slice(0, 44 + 500 * 32); // header still claims 1000 ms
   expect(parseWav(truncated).durationMs).toBe(500);
 });
+it('refuses ambiguous or truncated containers at the scoring boundary', () => {
+  const wav = toneWav(1000);
+  const duplicateFormat = new Uint8Array(wav.length + 24);
+  duplicateFormat.set(wav); duplicateFormat.set(wav.subarray(12, 36), wav.length);
+  new DataView(duplicateFormat.buffer).setUint32(4, duplicateFormat.length - 8, true);
+  const duplicateData = new Uint8Array(wav.length + 8);
+  duplicateData.set(wav); duplicateData.set([100, 97, 116, 97, 0, 0, 0, 0], wav.length);
+  new DataView(duplicateData.buffer).setUint32(4, duplicateData.length - 8, true);
+  const badRate = wav.slice(); new DataView(badRate.buffer).setUint32(28, 1, true);
+  const truncated = wav.slice(0, 44 + 600 * 32);
+  const partialFrame = new Uint8Array(wav.length + 2); partialFrame.set(wav);
+  new DataView(partialFrame.buffer).setUint32(4, partialFrame.length - 8, true);
+  new DataView(partialFrame.buffer).setUint32(40, wav.length - 44 + 1, true);
+  for (const input of [duplicateFormat, duplicateData, badRate, truncated, partialFrame]) {
+    expect(() => validateScoringWav(input)).toThrow(WavError);
+  }
+  expect(validateScoringWav(withListChunk(wav)).durationMs).toBe(1000);
+});
 it('clips out-of-range samples when encoding', () => {
   const wav = encodeWavPcm16(new Float32Array([2, -2, 0]), 16000);
   const view = new DataView(wav.buffer, 44);
