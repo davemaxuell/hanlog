@@ -30,7 +30,7 @@ export async function deleteUserCascade(id: string): Promise<string[]> {
       select reference_path as path from hanlog.challenges where author_id = $1
       union select media_path as path from hanlog.challenge_responses
       where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1)`, [id]);
-    await db.query('delete from hanlog.scoring_calls where user_id = $1', [id]);
+    // Budget reservations deliberately have no user FK and survive profile deletion.
     await db.query('delete from hanlog.users where id = $1', [id]);
     return paths.flatMap(r => r.path ? [r.path] : []);
   });

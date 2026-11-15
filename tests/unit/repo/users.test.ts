@@ -5,6 +5,14 @@ import { useTestDb } from '../../helpers/api';
 
 useTestDb();
 
+it('retains budget reservations after profile deletion', async () => {
+  const user = await createUser({ nickname: 'Aisha', role: 'learner', ipHash: 'h1' });
+  const db = await getDb();
+  await db.query('insert into hanlog.scoring_calls (user_id, ip_hash) values ($1, $2)', [user.id, 'h1']);
+  await deleteUserCascade(user.id);
+  expect((await db.query<{ n: number }>('select count(*)::int as n from hanlog.scoring_calls where ip_hash = $1', ['h1']))[0].n).toBe(1);
+});
+
 it('creates, reads, and updates', async () => {
   const u = await createUser({ nickname: 'Aisha', role: 'learner', ipHash: 'h1' });
   expect(u).toMatchObject({ nickname: 'Aisha', role: 'learner' });
