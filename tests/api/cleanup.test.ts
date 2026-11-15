@@ -68,3 +68,28 @@ it('purges spending counters from prior Korea-time days and keeps today', async 
   expect(await cleanupExpiredMedia(new Date('2026-11-15T16:00:00Z'))).toBe(0);
   expect((await db.query<{ ip_hash: string }>('select ip_hash from hanlog.scoring_calls')).map(r => r.ip_hash)).toEqual(['today']);
 });
+
+it('preserves in-flight scoring across midnight while expiring old completed and abandoned calls', async () => {
+  const { user } = await createTestUser(); const db = await getDb();
+  await db.query(`insert into hanlog.scoring_calls(user_id,ip_hash,created_at,outcome) values
+    ($1,'fresh-pending','2026-11-15T14:59:59Z','pending'),
+    ($1,'old-pending','2026-11-15T13:59:59Z','pending'),
+    ($1,'completed','2026-11-15T14:59:59Z','scored'),
+    ($1,'failed','2026-11-15T14:59:59Z','failed'),
+    ($1,'no-speech','2026-11-15T14:59:59Z','no_speech'),
+    ($1,'today-pending','2026-11-15T15:00:01Z','pending'),
+    ($1,'today-scored','2026-11-15T15:00:01Z','scored')`, [user.id]);
+  await cleanupExpiredMedia(new Date('2026-11-15T15:00:10Z'));
+  expect(await db.query('select ip_hash from hanlog.scoring_calls order by ip_hash')).toEqual([
+    { ip_hash: 'fresh-pending' }, { ip_hash: 'today-pending' }, { ip_hash: 'today-scored' },
+  ]);
+});
+
+it('purges expired creation counters at the Korea-time day boundary', async () => {
+  const db = await getDb();
+  await db.query("insert into hanlog.session_creation_limits (ip_hash,day,sessions) values ('old','2026-11-15',1),('today','2026-11-16',1)");
+  await cleanupExpiredMedia(new Date('2026-11-15T14:59:59Z'));
+  expect(await db.query('select ip_hash from hanlog.session_creation_limits')).toHaveLength(2);
+  await cleanupExpiredMedia(new Date('2026-11-15T15:00:00Z'));
+  expect(await db.query('select ip_hash from hanlog.session_creation_limits')).toEqual([{ ip_hash: 'today' }]);
+});

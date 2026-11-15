@@ -32,3 +32,6 @@ it('rejects video disguised as audio, audio disguised as video, and magic-only f
   const fake = new File([new Uint8Array([0x1a, 0x45, 0xdf, 0xa3, 0, 0])], 'fake.webm', { type: 'audio/webm' });
   await expect(validatePeerMedia(fake, 'audio', 3000)).rejects.toMatchObject({ code: 'media_invalid' });
 });
+it('rejects peer video without an audio track to hear and rate', async () => {
+  await expect(validatePeerMedia(fixture('video-only.mp4', 'video/mp4'), 'video', 3000)).rejects.toMatchObject({ code: 'media_invalid' });
+});

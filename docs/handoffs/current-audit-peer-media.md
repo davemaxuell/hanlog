@@ -1,0 +1,23 @@
+# Community and media audit — 16 November 2026
+
+Scope: community repositories and APIs, private playback audiences, report/operator behavior, cursors, peer upload inspection, durable storage compensation, and retention cleanup. No production data, private environment files, paid AI, or deployed services were used.
+
+## Confirmed fixes
+
+- Revoked sessions could finish all six community mutation families after initial authentication. Tests revoked the session when the request body was first consumed; challenge/answer returned 201, rating/feedback returned 200, and reports returned 204. Each API now carries the authenticated session version into its database transaction and uses the shared `lockSessionUser` guard before mutation. Reference attachment also checks its author/session before writing bytes. Revocation now returns 401 with no content, points, reports, or media changes.
+- Challenge creation, answer upload, and sample-answer reporting trusted earlier roles. The transaction now checks the current database role while holding the user row lock. Three failing regressions now reject the disallowed role.
+- A reporter who hid a challenge could still use known response IDs for playback, rating, feedback, or answer reporting. These paths now respect the same personal filter as challenge detail, reference playback, answer pages, and inbox. This was a consistency gap, not cross-user access: other eligible viewers retain access, and operator dismissal restores the reporter's access.
+- An operator action could accidentally reveal a recording if the report was deleted after lookup, such as through reporter deletion. The update previously affected zero audit rows and then cleared the recording flag because no active report remained. Review now requires an updated audit row before recalculating visibility. An injected missing-row regression failed before the fix and passes afterward.
+- Answer-report insertion locks its challenge before its response, matching profile deletion and avoiding an inverted parent/FK lock order. Retention cleanup clears expired recovery metadata before locking content, matching the new user-before-content order. The account lane owns real PostgreSQL concurrency coverage for both cases and the operator deletion race.
+- ISO year `0000` cursors passed schema validation but PostgreSQL rejected them with a 500. They now return `invalid_input`/400 before a query.
+- Video without an audio track was accepted as a speaking response. Peer video now requires both video and audio tracks. The 1,962-byte `video-only.mp4` regression fixture is locally generated black video; it contains no personal recording.
+- Cleanup removes expired `session_creation_limits` rows at the Korea-time day boundary, matching the account lane's additive migration 007.
+- Independent review found that cleanup at midnight could delete a fresh, pending scoring reservation from the previous Korea-time day. The newly atomic score/bookkeeping transaction would then roll back an otherwise valid result with 500. Cleanup now keeps pending calls for one hour while removing previous-day terminal calls and abandoned pending calls. This grace exceeds the scoring route's 60-second lifetime and matches abandoned-media handling; current-day budget records remain intact.
+
+## Verification
+
+All 76 community/media/CLI tests passed across 11 files after the initial fixes, including existing upload rollback, lost-COMMIT preservation, replacement, deletion, retention retry, audience, report overlap, duration, and pagination cases. The revocation test additionally checks that database content and stored paths do not change. TypeScript and scoped ESLint passed. The account lane verified cleanup lock order, report/deletion order, and disappearing-report review against disposable PostgreSQL 17.11. The midnight cleanup and route regressions both failed before the grace-period repair; the route now must retain a scored reservation, one attempt, and its point event. The parent owns final integrated check/build/browser validation. No commit was made in this lane.
+
+## Limits
+
+The existing parser design remains: demuxing bounded local bytes, actual track/timestamp checks, a 4 MB cap, four supported containers, and a platform request deadline. A standalone JavaScript timer cannot forcibly interrupt synchronous parser work. Native codec decoding, fuzzing, real mobile capture compatibility, and live private-bucket failure tests were not performed. Existing private storage and durable compensation behavior passed local regression tests; this does not substitute for production telemetry or real-device validation.

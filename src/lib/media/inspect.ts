@@ -7,7 +7,7 @@ export async function inspectPeerMedia(bytes: Uint8Array, kind: MediaKind): Prom
   try {
     const audio = await input.getAudioTracks();
     const video = await input.getVideoTracks();
-    if (kind === 'audio' ? !audio.length || video.length > 0 : !video.length) throw new ApiError('media_invalid');
+    if (!audio.length || (kind === 'audio' ? video.length > 0 : !video.length)) throw new ApiError('media_invalid');
     // Scan actual track timing; browser WebM and fragmented MP4 often omit duration metadata.
     const durationMs = Math.round(await input.computeDuration(undefined, { skipLiveWait: true }) * 1000);
     // A recording stopped at 20s can contain an AAC/Opus tail of a few milliseconds.

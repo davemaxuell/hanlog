@@ -5,11 +5,10 @@ import { ApiError } from '../errors';
 import { kstDayStartIso } from '../http';
 import { canView, getResponseRecord } from './responses';
 import { encodeCommunityCursor, type CommunityCursor } from './community-pagination';
+import { lockSessionUser } from './users';
 
 export const REPORTS_PER_DAY = 10;
 async function reportAllowed(db: Db, reporterId: string, targetId: string, response: boolean): Promise<boolean> {
-  await db.query('select pg_advisory_xact_lock(hashtext($1))', [reporterId]);
-  if (!(await db.query('select id from hanlog.users where id=$1', [reporterId])).length) throw new ApiError('unauthenticated');
   const existing = await db.query(`select id from hanlog.community_reports where reporter_id=$1 and ${response ? 'response_id=$2' : 'challenge_id=$2 and response_id is null'}`, [reporterId, targetId]);
   if (existing.length) return false;
   const [daily] = await db.query<{ n: number }>('select count(*)::int as n from hanlog.community_reports where reporter_id=$1 and created_at >= $2', [reporterId, kstDayStartIso()]);
@@ -17,15 +16,21 @@ async function reportAllowed(db: Db, reporterId: string, targetId: string, respo
   return true;
 }
 
-export async function reportCommunityTarget(viewer: User, input: { responseId?: string; challengeId?: string; reason: ReportReason }): Promise<void> {
+export async function reportCommunityTarget(viewer: User, input: { responseId?: string; challengeId?: string; reason: ReportReason; expectedVersion?: number }): Promise<void> {
   const db = await getDb();
   if (input.responseId) {
-    const record = await getResponseRecord(input.responseId);
+    const record = await getResponseRecord(input.responseId, viewer.id);
     if (!record) throw new ApiError('not_found');
-    if (!canView(record, viewer)) throw new ApiError('forbidden');
     await db.tx(async tx => {
+      await tx.query('select pg_advisory_xact_lock(hashtext($1))', [viewer.id]);
+      const currentViewer = await lockSessionUser(tx, viewer.id, input.expectedVersion);
+      if (!canView(record, currentViewer)) throw new ApiError('forbidden');
       if (!await reportAllowed(tx, viewer.id, record.id, true)) return;
+      // The report insert checks its parent FK. Lock the parent before its answer,
+      // matching profile deletion and cleanup rather than deadlocking with them.
+      if (!(await tx.query("select id from hanlog.challenges where id=$1 and status='open' for share", [record.challengeId])).length) throw new ApiError('not_found');
       if (!(await tx.query('select id from hanlog.challenge_responses where id=$1 for update', [record.id])).length) throw new ApiError('not_found');
+      if (!await getResponseRecord(record.id, viewer.id, tx)) throw new ApiError('not_found');
       const inserted = await tx.query('insert into hanlog.community_reports(reporter_id,challenge_id,response_id,reason) values($1,$2,$3,$4) on conflict do nothing returning id', [viewer.id, record.challengeId, record.id, input.reason]);
       if (inserted.length) await tx.query('update hanlog.challenge_responses set flagged=true where id=$1', [record.id]);
     });
@@ -33,6 +38,8 @@ export async function reportCommunityTarget(viewer: User, input: { responseId?: 
   }
   if (!input.challengeId) throw new ApiError('invalid_input');
   await db.tx(async tx => {
+    await tx.query('select pg_advisory_xact_lock(hashtext($1))', [viewer.id]);
+    await lockSessionUser(tx, viewer.id, input.expectedVersion);
     const rows = await tx.query<{ id: string; author_id: string }>("select id,author_id from hanlog.challenges where id::text=$1 and status='open'", [input.challengeId]);
     if (!rows.length) throw new ApiError('not_found');
     if (rows[0].author_id === viewer.id) throw new ApiError('forbidden');
@@ -49,7 +56,10 @@ export async function reviewReport(db: Db, reportId: string, decision: 'dismisse
     // One lock per target keeps simultaneous reviews from revealing another active report.
     if (report.response_id) await tx.query('select id from hanlog.challenge_responses where id=$1 for update', [report.response_id]);
     else await tx.query('select id from hanlog.challenges where id=$1 for update', [report.challenge_id]);
-    await tx.query('update hanlog.community_reports set status=$2,reviewed_at=now() where id=$1', [reportId, decision]);
+    // A reporter deletion may cascade this report while we wait for the target.
+    // Do not turn an intended action into an unhide when no audit row was updated.
+    const reviewed = await tx.query('update hanlog.community_reports set status=$2,reviewed_at=now() where id=$1 returning id', [reportId, decision]);
+    if (!reviewed.length) throw new ApiError('not_found');
     const [active] = await tx.query<{ n: number }>(`select count(*)::int as n from hanlog.community_reports where ${report.response_id ? "response_id=$1 and status in ('open','actioned')" : "challenge_id=$1 and response_id is null and status='actioned'"}`, [report.response_id ?? report.challenge_id]);
     if (report.response_id) await tx.query('update hanlog.challenge_responses set flagged=$2 where id=$1', [report.response_id, active.n > 0]);
     else await tx.query('update hanlog.challenges set status=$2 where id=$1', [report.challenge_id, active.n > 0 ? 'hidden' : 'open']);

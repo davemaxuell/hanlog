@@ -17,7 +17,7 @@ export const GET = route(async (req, ctx: { params: Promise<{ id: string }> }) =
   const responseId = new URL(req.url).searchParams.get('response');
   if (responseId) {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(responseId)) throw new ApiError('invalid_input');
-    const target = await getResponseRecord(responseId);
+    const target = await getResponseRecord(responseId, user.id);
     if (!target || target.challengeId !== record.id || target.flagged || !canView(target, user)) throw new ApiError('not_found');
     if ((viewerRole === 'author' || viewerRole === 'rater') && !page.responses.some(response => response.id === target.id)) page.responses.push(publicResponse(target));
   }

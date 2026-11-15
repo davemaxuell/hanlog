@@ -10,6 +10,7 @@ import { addPointEvent } from './points';
 import { PEER_FEEDBACK_GIVER_AWARD, PEER_RATING_AWARD, POINT_LABELS, peerFeedbackAuthorAward, peerResponseAward } from '../points/rules';
 import { encodeCommunityCursor, type CommunityCursor } from './community-pagination';
 import type { ResponsePage } from '../community-contracts';
+import { lockSessionUser } from './users';
 
 export type ResponseRecord = ChallengeResponse & { mediaPath: string | null; mediaMime: string; flagged: boolean; raterId: string | null; challengeAuthorId: string; challengeIsSample: boolean };
 type Row = {
@@ -34,8 +35,9 @@ function map(row: Row): ResponseRecord {
 export function publicResponse(record: ResponseRecord): ChallengeResponse {
   return { id: record.id, challengeId: record.challengeId, responder: record.responder, mediaKind: record.mediaKind, mediaAvailable: record.mediaAvailable, durationMs: record.durationMs, status: record.status, rating: record.rating, feedback: record.feedback, createdAt: record.createdAt };
 }
-export async function getResponseRecord(id: string): Promise<ResponseRecord | null> {
-  const rows = await (await getDb()).query<Row>(`${select} where r.id::text = $1 and c.status = 'open'`, [id]);
+const visibleToViewer = "not exists(select 1 from hanlog.community_reports report where report.challenge_id=c.id and report.response_id is null and report.reporter_id=$2 and report.status in ('open','actioned'))";
+export async function getResponseRecord(id: string, viewerId?: string, db?: Db): Promise<ResponseRecord | null> {
+  const rows = await (db ?? await getDb()).query<Row>(`${select} where r.id::text = $1 and c.status = 'open'${viewerId ? ` and ${visibleToViewer}` : ''}`, viewerId ? [id, viewerId] : [id]);
   return rows[0] ? map(rows[0]) : null;
 }
 export async function getMyResponse(challengeId: string, responderId: string): Promise<ChallengeResponse | null> {
@@ -66,7 +68,7 @@ export async function countResponsesSince(responderId: string, sinceIso: string)
 
 // Bytes are supplied here so the row lock covers storage as well as the SQL update.
 // Cleanup and rating take the same row lock and cannot observe a partial replacement.
-export async function upsertResponse(input: { challengeId: string; responderId: string; mediaKind: MediaKind; mediaMime: string; ext: string; durationMs: number; bytes: Uint8Array }): Promise<{ record: ResponseRecord; replacedPath: string | null }> {
+export async function upsertResponse(input: { challengeId: string; responderId: string; mediaKind: MediaKind; mediaMime: string; ext: string; durationMs: number; bytes: Uint8Array; expectedVersion?: number }): Promise<{ record: ResponseRecord; replacedPath: string | null }> {
   // A fresh path for every upload keeps the previous file intact until the SQL switch commits.
   const uploadId = randomUUID();
   const path = `responses/${uploadId}.${input.ext}`;
@@ -77,7 +79,9 @@ export async function upsertResponse(input: { challengeId: string; responderId: 
   let result: { record: ResponseRecord; replacedPath: string | null };
   try { result = await (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [input.responderId]);
-    const challenges = await db.query<{ author_id: string; status: string }>('select author_id, status from hanlog.challenges where id = $1 for share', [input.challengeId]);
+    const responder = await lockSessionUser(db, input.responderId, input.expectedVersion);
+    if (responder.role !== 'learner') throw new ApiError('forbidden');
+    const challenges = await db.query<{ author_id: string; status: string }>(`select author_id, status from hanlog.challenges c where id = $1 and ${visibleToViewer} for share`, [input.challengeId, input.responderId]);
     if (!challenges[0] || challenges[0].status !== 'open') throw new ApiError('not_found');
     if (challenges[0].author_id === input.responderId) throw new ApiError('forbidden');
     if (await count(db, input.responderId, kstDayStartIso()) >= RESPONSES_PER_DAY) throw new ApiError('daily_limit');
@@ -105,44 +109,45 @@ export async function upsertResponse(input: { challengeId: string; responderId: 
   return result;
 }
 
-async function lockedResponse(db: Db, id: string): Promise<ResponseRecord> {
-  const rows = await db.query<Row>(`${select} where r.id::text = $1 and c.status = 'open' for update of r`, [id]);
+async function lockedResponse(db: Db, id: string, viewerId: string): Promise<ResponseRecord> {
+  const rows = await db.query<Row>(`${select} where r.id::text = $1 and c.status = 'open' and ${visibleToViewer} for update of r`, [id, viewerId]);
   if (!rows[0] || rows[0].flagged) throw new ApiError('not_found');
   return map(rows[0]);
 }
 async function lockPointUsers(db: Db, ids: (string | null)[]): Promise<void> {
   for (const id of [...new Set(ids.filter((id): id is string => id !== null))].sort()) await db.query('select pg_advisory_xact_lock(hashtext($1))', [id]);
 }
-async function existingResponse(id: string): Promise<ResponseRecord> {
-  const record = await getResponseRecord(id);
+async function existingResponse(id: string, viewerId: string): Promise<ResponseRecord> {
+  const record = await getResponseRecord(id, viewerId);
   if (!record || record.flagged) throw new ApiError('not_found');
   return record;
 }
-export async function rateResponse(input: { responseId: string; raterId: string; pronunciation: number; naturalness: number; comment: string }): Promise<ChallengeResponse> {
-  const initial = await existingResponse(input.responseId);
+export async function rateResponse(input: { responseId: string; raterId: string; pronunciation: number; naturalness: number; comment: string; expectedVersion?: number }): Promise<ChallengeResponse> {
+  const initial = await existingResponse(input.responseId, input.raterId);
   return (await getDb()).tx(async db => {
     await lockPointUsers(db, [initial.responder.id, input.raterId]);
-    const record = await lockedResponse(db, input.responseId);
-    const [rater] = await db.query<{ role: User['role'] }>('select role from hanlog.users where id = $1', [input.raterId]);
-    if (!rater || !canRate(record, { id: input.raterId, role: rater.role } as User)) throw new ApiError('forbidden');
+    const rater = await lockSessionUser(db, input.raterId, input.expectedVersion);
+    const record = await lockedResponse(db, input.responseId, input.raterId);
+    if (!canRate(record, rater)) throw new ApiError('forbidden');
     if (record.status !== 'pending') throw new ApiError('conflict');
     await db.query(`update hanlog.challenge_responses set status = 'rated', rater_id = $2, rating_pronunciation = $3, rating_naturalness = $4, rating_comment = $5, rated_at = now() where id = $1`, [record.id, input.raterId, input.pronunciation, input.naturalness, input.comment]);
     await addPointEvent(db, { userId: record.responder.id, delta: peerResponseAward(input.pronunciation, input.naturalness), reason: 'peer_response', refId: record.id, label: POINT_LABELS.peerResponse });
     await addPointEvent(db, { userId: input.raterId, delta: PEER_RATING_AWARD, reason: 'peer_rating', refId: record.id, label: POINT_LABELS.peerRating });
-    return publicResponse(await lockedResponse(db, record.id));
+    return publicResponse(await lockedResponse(db, record.id, input.raterId));
   });
 }
-export async function giveFeedback(input: { responseId: string; responderId: string; helpfulness: number; comment: string }): Promise<ChallengeResponse> {
-  const initial = await existingResponse(input.responseId);
+export async function giveFeedback(input: { responseId: string; responderId: string; helpfulness: number; comment: string; expectedVersion?: number }): Promise<ChallengeResponse> {
+  const initial = await existingResponse(input.responseId, input.responderId);
   return (await getDb()).tx(async db => {
     await lockPointUsers(db, [initial.responder.id, initial.raterId]);
-    const record = await lockedResponse(db, input.responseId);
+    await lockSessionUser(db, input.responderId, input.expectedVersion);
+    const record = await lockedResponse(db, input.responseId, input.responderId);
     if (record.responder.id !== input.responderId) throw new ApiError('forbidden');
     if (record.status !== 'rated' || record.feedback) throw new ApiError('conflict');
     await db.query('update hanlog.challenge_responses set feedback_helpfulness = $2, feedback_comment = $3, feedback_at = now() where id = $1', [record.id, input.helpfulness, input.comment]);
     await addPointEvent(db, { userId: record.responder.id, delta: PEER_FEEDBACK_GIVER_AWARD, reason: 'peer_feedback', refId: record.id, label: POINT_LABELS.feedbackGiven });
     if (record.raterId) await addPointEvent(db, { userId: record.raterId, delta: peerFeedbackAuthorAward(input.helpfulness), reason: 'peer_feedback', refId: record.id, label: POINT_LABELS.feedbackReceived });
-    return publicResponse(await lockedResponse(db, record.id));
+    return publicResponse(await lockedResponse(db, record.id, input.responderId));
   });
 }
 export async function flagResponse(id: string): Promise<void> {

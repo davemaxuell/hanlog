@@ -6,7 +6,7 @@ import { requireUser } from '@/lib/session';
 export const runtime = 'nodejs';
 export const GET = route(async (req, ctx: { params: Promise<{ id: string }> }) => {
   const user = await requireUser(req);
-  const record = await getResponseRecord((await ctx.params).id);
+  const record = await getResponseRecord((await ctx.params).id, user.id);
   if (!record?.mediaPath || !record.mediaAvailable || record.flagged) throw new ApiError('not_found');
   if (!canView(record, user)) throw new ApiError('forbidden');
   const bytes = await getMediaStore().get(record.mediaPath);

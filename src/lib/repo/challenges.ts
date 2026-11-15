@@ -7,6 +7,7 @@ import { kstDayStartIso } from '../http';
 import { lockMediaPaths } from '../media/pending';
 import { encodeCommunityCursor, type CommunityCursor } from './community-pagination';
 import type { ChallengePage } from '../community-contracts';
+import { lockSessionUser } from './users';
 
 export type ChallengeRecord = { id: string; code: string; authorId: string; authorNickname: string; korean: string; meaningEn: string; situationEn: string; referencePath: string | null; referenceMime: string | null; isSample: boolean; status: 'open' | 'hidden'; createdAt: string };
 type Row = { id: string; code: string; author_id: string; author_nickname: string; korean: string; meaning_en: string; situation_en: string; reference_path: string | null; reference_mime: string | null; is_sample: boolean; status: 'open' | 'hidden'; created_at: Date | string; cursor_at: string };
@@ -20,9 +21,11 @@ async function count(db: Db, authorId: string, since: string): Promise<number> {
   return (await db.query<{ n: number }>('select count(*)::int as n from hanlog.challenges where author_id = $1 and created_at >= $2', [authorId, since]))[0].n;
 }
 export async function countChallengesSince(authorId: string, sinceIso: string): Promise<number> { return count(await getDb(), authorId, sinceIso); }
-export async function createChallenge(input: { authorId: string; korean: string; meaningEn: string; situationEn: string }): Promise<ChallengeRecord> {
+export async function createChallenge(input: { authorId: string; korean: string; meaningEn: string; situationEn: string; expectedVersion?: number }): Promise<ChallengeRecord> {
   return (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [input.authorId]);
+    const author = await lockSessionUser(db, input.authorId, input.expectedVersion);
+    if (author.role !== 'korean') throw new ApiError('forbidden');
     if (await count(db, input.authorId, kstDayStartIso()) >= CHALLENGES_PER_DAY) throw new ApiError('daily_limit');
     for (let attempt = 0; attempt < 10; attempt++) {
       const code = Array.from({ length: 6 }, () => SHARE_CODE_ALPHABET[randomInt(SHARE_CODE_ALPHABET.length)]).join('');
@@ -32,11 +35,13 @@ export async function createChallenge(input: { authorId: string; korean: string;
     throw new ApiError('service_unavailable');
   });
 }
-export async function setChallengeReference(id: string, path: string, mime: string, write?: () => Promise<void>): Promise<void> {
+export async function setChallengeReference(id: string, path: string, mime: string, write?: () => Promise<void>, expectedVersion?: number): Promise<void> {
   const initial = await getChallengeRecord(id);
   if (!initial) throw new ApiError('not_found');
   await (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [initial.authorId]);
+    const author = await lockSessionUser(db, initial.authorId, expectedVersion);
+    if (author.role !== 'korean') throw new ApiError('forbidden');
     if (!(await db.query('select id from hanlog.challenges where id = $1 for update', [id])).length) throw new ApiError('not_found');
     await lockMediaPaths(db, [path]);
     if (write) await write();

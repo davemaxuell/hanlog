@@ -5,13 +5,21 @@ import { GET as inbox } from '@/app/api/community/inbox/route';
 import { GET as answers } from '@/app/api/challenges/[id]/responses/route';
 import { POST as report } from '@/app/api/responses/[id]/report/route';
 import { POST as reportChallenge } from '@/app/api/challenges/[id]/report/route';
-import { getDb } from '@/lib/db';
+import { getDb, type Db } from '@/lib/db';
 import { reviewReport } from '@/lib/repo/community';
 import { rateResponse, giveFeedback } from '@/lib/repo/responses';
 import { createTestUser, makeRequest, useTestDb } from '../helpers/api';
 import { call, postAnswer, postChallenge, useMemoryMedia } from './_helpers';
+import { encodeCommunityCursor } from '@/lib/repo/community-pagination';
 
 useTestDb(); useMemoryMedia();
+it('rejects cursor timestamps PostgreSQL cannot represent before querying', async () => {
+  const viewer = await createTestUser();
+  const cursor = encodeCommunityCursor('0000-01-01T00:00:00Z', viewer.user.id);
+  const result = await call(list, makeRequest('GET', `/api/challenges?cursor=${cursor}`, { cookie: viewer.cookie }));
+  expect(result.status).toBe(400);
+  expect((await result.json()).error.code).toBe('invalid_input');
+});
 it('paginates tied challenge timestamps without duplicates and searches beyond the first page', async () => {
   const author = await createTestUser('korean'); const viewer = await createTestUser();
   const db = await getDb();
@@ -114,4 +122,21 @@ it('keeps a recording hidden while another person’s report remains active', as
   const flagged = async () => (await db.query<{ flagged: boolean }>('select flagged from hanlog.challenge_responses where id=$1', [response.id]))[0].flagged;
   await reviewReport(db, reports[0].id, 'dismissed'); expect(await flagged()).toBe(true);
   await reviewReport(db, reports[1].id, 'dismissed'); expect(await flagged()).toBe(false);
+});
+it('never reveals a recording when the operator’s report disappears after its initial lookup', async () => {
+  const author = await createTestUser('korean'); const learner = await createTestUser();
+  const challenge = await postChallenge(author.cookie); const response = (await (await postAnswer(learner.cookie, challenge.id)).json()).response;
+  await call(report, makeRequest('POST', `/api/responses/${response.id}/report`, { cookie: author.cookie, json: { reason: 'privacy' } }), { id: response.id });
+  const db = await getDb(); const [audit] = await db.query<{ id: string }>('select id from hanlog.community_reports where response_id=$1', [response.id]);
+  // Inject the missing-row state observed after a reporter deletion cascade while
+  // an operator waits for the target lock. PostgreSQL concurrency tests cover the wait.
+  const withRemovedReport: Db = { query: db.query.bind(db), tx: fn => db.tx(tx => fn({
+    tx: tx.tx.bind(tx), query: async <T>(sql: string, params?: unknown[]) => {
+      const rows = await tx.query<T>(sql, params);
+      if (sql.startsWith('select challenge_id,response_id from hanlog.community_reports')) await tx.query('delete from hanlog.community_reports where id=$1', [audit.id]);
+      return rows;
+    },
+  })) };
+  await expect(reviewReport(withRemovedReport, audit.id, 'actioned')).rejects.toMatchObject({ code: 'not_found' });
+  expect((await db.query<{ flagged: boolean }>('select flagged from hanlog.challenge_responses where id=$1', [response.id]))[0].flagged).toBe(true);
 });

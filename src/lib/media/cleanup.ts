@@ -1,12 +1,16 @@
 import { getConfig } from '../config';
 import { getDb } from '../db';
-import { kstDayStartIso } from '../http';
+import { kstDateString, kstDayStartIso } from '../http';
 import { getMediaStore } from './index';
 import { lockMediaPaths } from './pending';
 export async function cleanupExpiredMedia(now = new Date()): Promise<number> {
   const cutoff = new Date(now.getTime() - getConfig().retentionDays * 86400000).toISOString();
+  const abandonedBefore = new Date(now.getTime() - 3_600_000).toISOString();
   return (await getDb()).tx(async db => {
     await db.query("select pg_advisory_xact_lock(hashtext('cleanup_media'))");
+    // Mutations lock the current user before content. Keep the same order here.
+    await db.query(`update hanlog.users set recovery_previous_hash = null,recovery_request_hash = null,recovery_retry_expires_at = null,recovery_retry_version = null
+      where recovery_retry_expires_at <= $1`, [now.toISOString()]);
     // Parent rows first: account deletion also locks/deletes challenges before their answers.
     const references = await db.query<{ id: string; reference_path: string }>('select id, reference_path from hanlog.challenges where reference_path is not null and created_at <= $1 order by id for update', [cutoff]);
     const answers = await db.query<{ id: string; media_path: string }>('select id, media_path from hanlog.challenge_responses where media_path is not null and created_at <= $1 order by id for update', [cutoff]);
@@ -15,7 +19,7 @@ export async function cleanupExpiredMedia(now = new Date()): Promise<number> {
       where p.created_at <= $1
       and not exists(select 1 from hanlog.challenges c where c.reference_path = p.path)
       and not exists(select 1 from hanlog.challenge_responses r where r.media_path = p.path)
-      order by p.path`, [new Date(now.getTime() - 3_600_000).toISOString()]);
+      order by p.path`, [abandonedBefore]);
     await lockMediaPaths(db, [...references.map(r => r.reference_path), ...answers.map(r => r.media_path), ...candidates.map(r => r.path)]);
     // Recheck after taking the same locks as metadata attachment/compensation.
     const abandoned = candidates.length ? await db.query<{ path: string }>(`select p.path from hanlog.pending_media_deletions p
@@ -23,11 +27,11 @@ export async function cleanupExpiredMedia(now = new Date()): Promise<number> {
       and not exists(select 1 from hanlog.challenges c where c.reference_path = p.path)
       and not exists(select 1 from hanlog.challenge_responses r where r.media_path = p.path)
       order by p.path for update`, [candidates.map(r => r.path)]) : [];
-    // Spending caps only use the current Korea-time day; older counters are unnecessary.
-    await db.query('delete from hanlog.scoring_calls where created_at < $1', [kstDayStartIso(now)]);
+    // Current-day calls enforce spending caps. Keep recent pending calls across
+    // midnight so an in-flight score can still commit its result and bookkeeping.
+    await db.query("delete from hanlog.scoring_calls where created_at < $1 and (outcome <> 'pending' or created_at <= $2)", [kstDayStartIso(now), abandonedBefore]);
     await db.query('delete from hanlog.recovery_attempt_limits where window_start < $1', [new Date(now.getTime() - 86_400_000).toISOString()]);
-    await db.query(`update hanlog.users set recovery_previous_hash = null,recovery_request_hash = null,recovery_retry_expires_at = null,recovery_retry_version = null
-      where recovery_retry_expires_at <= $1`, [now.toISOString()]);
+    await db.query('delete from hanlog.session_creation_limits where day < $1::date', [kstDateString(now)]);
     const paths = [...new Set([...references.map(r => r.reference_path), ...answers.map(r => r.media_path), ...abandoned.map(r => r.path)])];
     if (!paths.length) return 0;
     // Keep the DB pointers on failure, allowing the next job to retry partial removal.

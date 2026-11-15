@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ApiError } from '../errors';
-const CursorSchema = z.object({ at: z.iso.datetime(), id: z.uuid() });
+// ISO permits year 0000, while PostgreSQL timestamptz rejects it.
+const CursorSchema = z.object({ at: z.iso.datetime().refine(value => !value.startsWith('0000-')), id: z.uuid() });
 export type CommunityCursor = z.infer<typeof CursorSchema>;
 export function encodeCommunityCursor(at: Date | string, id: string): string { return Buffer.from(JSON.stringify({ at: typeof at === 'string' ? at : at.toISOString(), id })).toString('base64url'); }
 export function decodeCommunityCursor(value?: string | null): CommunityCursor | null {
