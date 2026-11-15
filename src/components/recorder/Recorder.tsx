@@ -32,7 +32,7 @@ export function Recorder({ modes, submitLabel, onSubmit, onReset, busy = false, 
   const submit = () => {
     if (!recorded || busy || lock.current) return;
     lock.current = true; setSubmitted(true); setSubmissionError(null);
-    const failed = () => { if (alive.current) setSubmissionError("That didn't score yet. Try again."); };
+    const failed = () => { if (alive.current) setSubmissionError('We could not complete that. Please try again.'); };
     const unlock = () => { lock.current = false; if (alive.current) { setSubmitted(false); setPending(false); } };
     try {
       const pending = onSubmit(recorded);

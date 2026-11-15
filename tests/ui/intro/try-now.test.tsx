@@ -55,7 +55,7 @@ it('explains a refused session and lets the visitor retry', async () => {
   mockApi.createSession.mockRejectedValueOnce(new ApiClientError('daily_limit', 429, 'x')).mockResolvedValueOnce(samples.user);
   mount();
   await userEvent.click(consent());
-  expect(await screen.findByRole('alert')).toHaveTextContent("You've reached today's practice limit. Come back tomorrow!");
+  expect(await screen.findByRole('alert')).toHaveTextContent("You have reached today’s limit for this action. Try again tomorrow.");
   expect(screen.queryByRole('button', { name: 'Record' })).toBeNull();
   await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
   expect(await screen.findByRole('button', { name: 'Record' })).toBeInTheDocument();

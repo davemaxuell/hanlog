@@ -10,6 +10,16 @@ const media = useMemoryMedia();
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
 const run = (auth?: string) => call(GET, makeRequest('GET', '/api/cron/cleanup', { headers: auth ? { authorization: auth } : {} }));
 
+it('expires recovery throttle address hashes after one day while retaining active limits', async () => {
+  const db = await getDb();
+  await db.query("insert into hanlog.recovery_attempt_limits (ip_hash,window_start,attempts) values ('expired',$1,10),('active',$2,10)", ['2026-11-14T15:59:59Z', '2026-11-15T15:50:00Z']);
+  const { user } = await createTestUser();
+  await db.query("update hanlog.users set recovery_previous_hash = 'previous', recovery_request_hash = 'nonce', recovery_retry_expires_at = $2, recovery_retry_version = 0 where id = $1", [user.id, '2026-11-15T15:59:00Z']);
+  await cleanupExpiredMedia(new Date('2026-11-15T16:00:00Z'));
+  expect((await db.query<{ ip_hash: string }>('select ip_hash from hanlog.recovery_attempt_limits')).map(row => row.ip_hash)).toEqual(['active']);
+  expect((await db.query('select recovery_previous_hash,recovery_request_hash,recovery_retry_expires_at,recovery_retry_version from hanlog.users where id = $1', [user.id]))[0]).toEqual({ recovery_previous_hash: null, recovery_request_hash: null, recovery_retry_expires_at: null, recovery_retry_version: null });
+});
+
 async function recordings(ageDays: number, code = 'ABC234') {
   const author = await createTestUser('korean');
   const learner = await createTestUser();

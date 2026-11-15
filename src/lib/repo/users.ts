@@ -14,6 +14,11 @@ export async function getUser(id: string): Promise<User | null> {
   const [row] = await (await getDb()).query<UserRow>('select * from hanlog.users where id = $1', [id]);
   return row ? toUser(row) : null;
 }
+export async function getUserSession(id: string): Promise<{ user: User; version: number } | null> {
+  if (!isUuid(id)) return null;
+  const [row] = await (await getDb()).query<UserRow & { session_version: number }>('select id, nickname, role, created_at, session_version from hanlog.users where id = $1', [id]);
+  return row ? { user: toUser(row), version: row.session_version } : null;
+}
 export async function updateUser(id: string, patch: { nickname?: string; role?: Role }): Promise<User> {
   if (!isUuid(id)) throw new ApiError('not_found');
   const [row] = await (await getDb()).query<UserRow>('update hanlog.users set nickname = coalesce($2, nickname), role = coalesce($3, role) where id = $1 returning *', [id, patch.nickname ?? null, patch.role ?? null]);

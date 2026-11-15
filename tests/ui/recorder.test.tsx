@@ -59,7 +59,7 @@ it('recovers when a submission callback throws synchronously', async () => {
   render(<Recorder modes={['audio']} submitLabel="Get my score" onSubmit={() => { throw new Error('submission failed'); }} deps={deps} />);
   await record(deps);
   await userEvent.click(await screen.findByRole('button', { name: 'Get my score' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent("That didn't score yet. Try again.");
+  expect(await screen.findByRole('alert')).toHaveTextContent('We could not complete that. Please try again.');
   expect(screen.getByRole('button', { name: 'Get my score' })).toBeEnabled();
 });
 it('notifies the owner when a selected recording is discarded', async () => {

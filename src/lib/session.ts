@@ -1,25 +1,35 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { getConfig } from './config';
-import { getUser } from './repo/users';
+import { getUserSession } from './repo/users';
 import { ApiError } from './errors';
 import type { User } from './contracts';
 export const SESSION_COOKIE = 'hl_session';
 const maxAge = 90 * 24 * 60 * 60;
 const key = () => new TextEncoder().encode(getConfig().sessionSecret);
-export async function signSession(userId: string): Promise<string> {
-  return new SignJWT({}).setProtectedHeader({ alg: 'HS256' }).setSubject(userId).setIssuedAt().setExpirationTime('90d').sign(key());
+export async function signSession(userId: string, version = 0): Promise<string> {
+  return new SignJWT({ v: version }).setProtectedHeader({ alg: 'HS256' }).setSubject(userId).setIssuedAt().setExpirationTime('90d').sign(key());
 }
-export async function verifySession(token: string): Promise<string | null> {
+async function verifyClaims(token: string): Promise<{ id: string; version: number } | null> {
   try {
     const { payload } = await jwtVerify(token, key(), { algorithms: ['HS256'], maxTokenAge: '90d' });
-    return typeof payload.sub === 'string' ? payload.sub : null;
+    const version = payload.v === undefined ? 0 : payload.v;
+    return typeof payload.sub === 'string' && typeof version === 'number' && Number.isSafeInteger(version) && version >= 0 ? { id: payload.sub, version } : null;
   } catch { return null; }
 }
-export async function getSessionUser(req: Request): Promise<User | null> {
+export async function verifySession(token: string): Promise<string | null> { return (await verifyClaims(token))?.id ?? null; }
+export async function getSessionIdentity(req: Request): Promise<{ user: User; version: number } | null> {
   const cookie = req.headers.get('cookie')?.split(';').map(s => s.trim()).find(s => s.startsWith(`${SESSION_COOKIE}=`));
   if (!cookie) return null;
-  const id = await verifySession(cookie.slice(SESSION_COOKIE.length + 1));
-  return id ? getUser(id) : null;
+  const claims = await verifyClaims(cookie.slice(SESSION_COOKIE.length + 1));
+  if (!claims) return null;
+  const session = await getUserSession(claims.id);
+  return session?.version === claims.version ? session : null;
+}
+export async function getSessionUser(req: Request): Promise<User | null> { return (await getSessionIdentity(req))?.user ?? null; }
+export async function requireSessionIdentity(req: Request): Promise<{ user: User; version: number }> {
+  const session = await getSessionIdentity(req);
+  if (!session) throw new ApiError('unauthenticated');
+  return session;
 }
 export async function requireUser(req: Request): Promise<User> {
   const user = await getSessionUser(req);

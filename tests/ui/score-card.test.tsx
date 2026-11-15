@@ -33,7 +33,9 @@ it('explains a zero-point attempt and flags mock scoring', () => {
 });
 it('has wording for every error code', () => {
   expect(errorCopy('no_speech')).toBe("We couldn't hear any Korean. Move closer to the mic and try again.");
-  expect(errorCopy('daily_limit')).toBe("You've reached today's practice limit. Come back tomorrow!");
+  expect(errorCopy('daily_limit')).toBe('You have reached today’s limit for this action. Try again tomorrow.');
+  expect(errorCopy('internal')).toBe('We could not complete that. Please try again.');
+  expect(errorCopy('service_unavailable')).toBe('We could not complete that. Please try again.');
   expect(errorCopy('budget_exhausted')).toBe('HanLog is resting for today. Too many learners at once. Try again tomorrow.');
   expect(errorCopy('scoring_failed')).toBe("That didn't score yet. Try again.");
   expect(errorCopy('content_rejected')).toBe('Please rephrase that. We keep HanLog friendly for everyone.');

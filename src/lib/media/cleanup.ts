@@ -25,6 +25,9 @@ export async function cleanupExpiredMedia(now = new Date()): Promise<number> {
       order by p.path for update`, [candidates.map(r => r.path)]) : [];
     // Spending caps only use the current Korea-time day; older counters are unnecessary.
     await db.query('delete from hanlog.scoring_calls where created_at < $1', [kstDayStartIso(now)]);
+    await db.query('delete from hanlog.recovery_attempt_limits where window_start < $1', [new Date(now.getTime() - 86_400_000).toISOString()]);
+    await db.query(`update hanlog.users set recovery_previous_hash = null,recovery_request_hash = null,recovery_retry_expires_at = null,recovery_retry_version = null
+      where recovery_retry_expires_at <= $1`, [now.toISOString()]);
     const paths = [...new Set([...references.map(r => r.reference_path), ...answers.map(r => r.media_path), ...abandoned.map(r => r.path)])];
     if (!paths.length) return 0;
     // Keep the DB pointers on failure, allowing the next job to retry partial removal.

@@ -11,8 +11,8 @@ export class ApiClientError extends Error {
   readonly status: number;
   constructor(code: ApiErrorCode, status: number, message: string) { super(message); this.name = 'ApiClientError'; this.code = code; this.status = status; }
 }
-const failure = (status: number) => new ApiClientError('internal', status, "That didn't score yet. Try again.");
-async function request(url: string, init?: RequestInit): Promise<Response> {
+const failure = (status: number) => new ApiClientError('internal', status, 'We could not complete that. Please try again.');
+export async function request(url: string, init?: RequestInit): Promise<Response> {
   let response: Response;
   try { response = await fetch(url, { ...init, credentials: 'same-origin' }); }
   catch { throw failure(0); }
@@ -25,11 +25,11 @@ async function request(url: string, init?: RequestInit): Promise<Response> {
   }
   return response;
 }
-async function read<T>(url: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
+export async function read<T>(url: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
   const response = await request(url, init);
   try { return schema.parse(await response.json()); } catch { throw failure(response.status); }
 }
-const jsonBody = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body), headers: { 'content-type': 'application/json' } });
+export const jsonBody = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body), headers: { 'content-type': 'application/json' } });
 const encode = encodeURIComponent;
 const userEnvelope = z.object({ user: UserSchema });
 const responseEnvelope = z.object({ response: ChallengeResponseSchema });
