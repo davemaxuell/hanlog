@@ -78,3 +78,13 @@ it('ignores a second start while one is in progress', async () => {
   await act(async () => { await Promise.all([result.current.start(), result.current.start()]); });
   expect(deps.streams).toHaveLength(1);
 });
+it('still releases microphone tracks when a level meter fails during teardown', async () => {
+  const close = vi.fn().mockImplementationOnce(() => { throw new Error('audio device gone'); });
+  const deps = fakeDeps({ createLevelMeter: () => ({ read: () => 0, close }) });
+  const { result } = renderHook(() => useRecorder({ deps }));
+  await act(() => result.current.start());
+  deps.clock.advance(1500);
+  expect(() => act(() => result.current.stop())).not.toThrow();
+  expect(deps.streams[0].stopped()).toBe(true);
+  await waitFor(() => expect(result.current.status).toBe('recorded'));
+});

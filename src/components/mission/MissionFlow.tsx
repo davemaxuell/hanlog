@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
 import { api, ApiClientError } from '@/lib/api-client';
 import type { AttemptResult, Mission } from '@/lib/contracts';
 import { blobToScoringWav, ConvertError } from '@/lib/audio/to-wav';
 import { errorCopy } from '@/lib/ui/error-copy';
+import { useSessionExpired } from '@/lib/ui/session-context';
 import { Button, CornerMark, Ko, MarginRow, StatusNote, Surface } from '@/components/ui';
 import { Recorder } from '@/components/recorder/Recorder';
 import type { RecorderDeps, RecorderResult } from '@/components/recorder/useRecorder';
@@ -16,7 +16,7 @@ export function MissionFlow({ mission, nextHref, onScored, convert = blobToScori
   const [romanization, setRomanization] = useState(false); const [result, setResult] = useState<AttemptResult | null>(null);
   const [busy, setBusy] = useState(false); const [phase, setPhase] = useState('Listening…'); const [error, setError] = useState<string | null>(null);
   const [referenceOpen, setReferenceOpen] = useState(false); const audio = useRef<HTMLAudioElement>(null);
-  const lock = useRef(false); const alive = useRef(true); const router = useRouter(); const pathname = usePathname();
+  const lock = useRef(false); const alive = useRef(true); const sessionExpired = useSessionExpired();
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const submit = async (recording: RecorderResult) => {
     if (lock.current) return; lock.current = true; setBusy(true); setPhase('Preparing recording…'); setError(null);
@@ -26,7 +26,7 @@ export function MissionFlow({ mission, nextHref, onScored, convert = blobToScori
       if (alive.current) { setResult(scored); onScored?.(scored); }
     } catch (cause) {
       if (!alive.current) return;
-      if (cause instanceof ApiClientError && cause.code === 'unauthenticated') router.replace(`/app/onboarding?next=${encodeURIComponent(pathname)}`);
+      if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired();
       else setError(errorCopy(cause instanceof ConvertError || cause instanceof ApiClientError ? cause.code : 'internal'));
     } finally { lock.current = false; if (alive.current) setBusy(false); }
   };

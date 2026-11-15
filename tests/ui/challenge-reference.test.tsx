@@ -1,0 +1,24 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, expect, it, vi } from 'vitest';
+vi.mock('next/navigation', async () => (await import('./_helpers')).navigationMock);
+vi.mock('@/lib/api-client', async original => ({ ...(await original<typeof import('@/lib/api-client')>()), api: (await import('./_helpers')).mockApi }));
+vi.mock('@/components/recorder/Recorder', () => ({ Recorder: ({ onSubmit, onReset }: { onSubmit(recording: { blob: Blob; durationMs: number }): void; onReset?(): void }) => <><button type="button" onClick={() => onSubmit({ blob: new Blob(['reference'], { type: 'audio/webm' }), durationMs: 2000 })}>Use this recording</button><button type="button" onClick={onReset}>Retake</button></> }));
+import NewChallenge from '@/app/app/challenges/new/page';
+import { SessionProvider } from '@/lib/ui/session-context';
+import { samples } from '../fixtures/api/samples';
+import { mockApi, resetMocks } from './_helpers';
+beforeEach(resetMocks);
+it('does not post a discarded reference after the author chooses Retake', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser);
+  mockApi.createChallenge.mockResolvedValue(samples.challenge);
+  render(<SessionProvider><NewChallenge /></SessionProvider>);
+  await userEvent.type(await screen.findByLabelText('Korean expression'), '대박');
+  await userEvent.type(screen.getByLabelText('Meaning in English'), 'Wow');
+  await userEvent.click(screen.getByRole('button', { name: 'Use this recording' }));
+  expect(screen.getByText('Reference recording added.')).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Retake' }));
+  expect(screen.queryByText('Reference recording added.')).toBeNull();
+  await userEvent.click(screen.getByRole('button', { name: 'Post challenge' }));
+  expect(mockApi.createChallenge).toHaveBeenCalledWith({ korean: '대박', meaningEn: 'Wow', situationEn: '' });
+});

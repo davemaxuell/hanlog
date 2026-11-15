@@ -62,13 +62,14 @@ export function useRecorder(opts?: { maxSeconds?: number; deps?: Partial<Recorde
   const release = useCallback(() => {
     const current = resources.current;
     clearTimeout(current.timer); clearInterval(current.tick);
-    current.meter?.close(); current.stream?.getTracks().forEach(track => track.stop());
+    try { current.meter?.close(); } catch { /* A failed meter must never keep the microphone open. */ }
+    current.stream?.getTracks().forEach(track => { try { track.stop(); } catch { /* Continue releasing the remaining tracks. */ } });
     current.meter = undefined; current.stream = undefined;
     if (alive.current) { setStream(null); setLevel(0); }
   }, []);
   const cancel = useCallback((note: string | null = null, next: RecorderStatus = 'idle') => {
     generation.current++; active.current = false;
-    for (const item of [resources.current.full, resources.current.audio]) if (item?.recorder.state === 'recording') item.recorder.stop();
+    for (const item of [resources.current.full, resources.current.audio]) if (item?.recorder.state === 'recording') { try { item.recorder.stop(); } catch { /* Still release the stream on device failure. */ } }
     release(); resources.current = {};
     if (alive.current) { setResult(null); setElapsedMs(0); setStatus(next); setMessage(note); }
   }, [release]);
