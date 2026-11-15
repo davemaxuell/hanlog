@@ -50,3 +50,11 @@ it('retains path records on storage failure so cleanup can retry', async () => {
   expect((await db.query<{ media_path: string | null }>('select media_path from hanlog.challenge_responses where id=$1', [old.responseId]))[0].media_path).toBe(old.answer);
   expect(await cleanupExpiredMedia()).toBe(2);
 });
+
+it('purges spending counters from prior Korea-time days and keeps today', async () => {
+  const { user } = await createTestUser();
+  const db = await getDb();
+  await db.query('insert into hanlog.scoring_calls (user_id, ip_hash, created_at) values ($1,$2,$3),($1,$4,$5)', [user.id, 'old', '2026-11-15T14:59:59Z', 'today', '2026-11-15T15:00:00Z']);
+  expect(await cleanupExpiredMedia(new Date('2026-11-15T16:00:00Z'))).toBe(0);
+  expect((await db.query<{ ip_hash: string }>('select ip_hash from hanlog.scoring_calls')).map(r => r.ip_hash)).toEqual(['today']);
+});

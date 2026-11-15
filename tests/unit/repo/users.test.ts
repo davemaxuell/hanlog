@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { getDb } from '@/lib/db';
+import { SYSTEM_USER_ID } from '@/lib/contracts';
 import { countUsersSince, createUser, deleteUserCascade, getUser, updateUser } from '@/lib/repo/users';
 import { useTestDb } from '../../helpers/api';
 
@@ -11,6 +12,7 @@ it('retains budget reservations after profile deletion', async () => {
   await db.query('insert into hanlog.scoring_calls (user_id, ip_hash) values ($1, $2)', [user.id, 'h1']);
   await deleteUserCascade(user.id);
   expect((await db.query<{ n: number }>('select count(*)::int as n from hanlog.scoring_calls where ip_hash = $1', ['h1']))[0].n).toBe(1);
+  expect((await db.query<{ user_id: string }>('select user_id from hanlog.scoring_calls where ip_hash = $1', ['h1']))[0].user_id).toBe(SYSTEM_USER_ID);
 });
 
 it('creates, reads, and updates', async () => {
