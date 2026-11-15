@@ -9,8 +9,8 @@ import { Button, CornerMark, Ko, MarginRow, StatusNote, Surface } from '@/compon
 import { Recorder } from '@/components/recorder/Recorder';
 import type { RecorderDeps, RecorderResult } from '@/components/recorder/useRecorder';
 import { ScoreCard } from './ScoreCard';
-export function MissionFlow({ mission, nextHref, onScored, convert = blobToScoringWav, deps }: {
-  mission: Mission; nextHref?: string; onScored?(result: AttemptResult): void;
+export function MissionFlow({ mission, nextHref, onScored, convert = blobToScoringWav, deps, headingLevel = 1 }: {
+  mission: Mission; nextHref?: string; headingLevel?: 1 | 2; onScored?(result: AttemptResult): void;
   convert?: (blob: Blob) => Promise<Uint8Array>; deps?: Partial<RecorderDeps>;
 }) {
   const [romanization, setRomanization] = useState(false); const [result, setResult] = useState<AttemptResult | null>(null);
@@ -31,7 +31,7 @@ export function MissionFlow({ mission, nextHref, onScored, convert = blobToScori
     } finally { lock.current = false; if (alive.current) setBusy(false); }
   };
   return <div className="hl-stack hl-mission-flow">
-    <MarginRow label={<>Level {mission.level}<span className="hl-caption">{mission.basePoints} pt</span></>}><header className="hl-stack-sm"><p className="hl-eyebrow">{mission.mode === 'repeat' ? 'Listen. Speak. Find your rhythm.' : 'Your words, your way.'}</p><Ko as="h1" className="hl-mission-expression">{mission.korean}</Ko><Button variant="text" className="hl-romanization-toggle" aria-expanded={romanization} onClick={() => setRomanization(value => !value)}>{romanization ? 'Hide romanization' : 'Show romanization'}</Button>{romanization && <p className="hl-caption">{mission.romanization}</p>}<p className="hl-meaning">{mission.meaningEn}</p></header></MarginRow>
+    <MarginRow label={<>Level {mission.level}<span className="hl-caption">{mission.basePoints} pt</span></>}><header className="hl-stack-sm"><p className="hl-eyebrow">{mission.mode === 'repeat' ? 'Listen. Speak. Find your rhythm.' : 'Your words, your way.'}</p><Ko as={headingLevel === 1 ? 'h1' : 'h2'} className="hl-mission-expression">{mission.korean}</Ko><Button variant="text" className="hl-romanization-toggle" aria-expanded={romanization} onClick={() => setRomanization(value => !value)}>{romanization ? 'Hide romanization' : 'Show romanization'}</Button>{romanization && <p className="hl-caption">{mission.romanization}</p>}<p className="hl-meaning">{mission.meaningEn}</p></header></MarginRow>
     <CornerMark><Surface tone="apricot"><div className="hl-stack-sm"><h2 className="hl-note-heading">Where to say it</h2><p>{mission.situationEn}</p></div></Surface></CornerMark>
     <p className="hl-instruction">{mission.promptEn}</p>
     {mission.referenceAudio && <div className="hl-stack-sm"><div className="hl-actions"><Button variant="secondary" onClick={() => { setReferenceOpen(true); void audio.current?.play().catch(() => setError('This recording is no longer available.')); }}>Listen</Button><span className="hl-caption">AI voice</span></div><audio ref={audio} src={mission.referenceAudio} preload="none" controls hidden={!referenceOpen} className="hl-media" aria-label="Mission reference" /></div>}

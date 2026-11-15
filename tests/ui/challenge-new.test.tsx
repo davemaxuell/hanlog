@@ -1,0 +1,48 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, expect, it, vi } from 'vitest';
+vi.mock('next/navigation', async () => (await import('./_helpers')).navigationMock);
+vi.mock('@/lib/api-client', async (original) => ({ ...(await original<typeof import('@/lib/api-client')>()), api: (await import('./_helpers')).mockApi }));
+import NewChallenge from '@/app/app/challenges/new/page';
+import { ApiClientError } from '@/lib/api-client';
+import { SessionProvider } from '@/lib/ui/session-context';
+import { samples } from '../fixtures/api/samples';
+import { mockApi, resetMocks } from './_helpers';
+beforeEach(resetMocks);
+it('posts a challenge and then shows how to share it', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser);
+  mockApi.createChallenge.mockResolvedValue({ ...samples.challenge, code: 'ABC234' });
+  const writeText = vi.fn(async () => {});
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+  render(<SessionProvider><NewChallenge /></SessionProvider>);
+  const post = await screen.findByRole('button', { name: 'Post challenge' });
+  expect(post).toBeDisabled();
+  await userEvent.type(screen.getByLabelText('Korean expression'), 'jeommechu');
+  await userEvent.type(screen.getByLabelText('Meaning in English'), 'Recommend a lunch menu.');
+  expect(screen.getByText('Write the expression in Hangul.')).toBeInTheDocument();
+  expect(post).toBeDisabled();
+  await userEvent.clear(screen.getByLabelText('Korean expression'));
+  await userEvent.type(screen.getByLabelText('Korean expression'), '오늘 점메추 좀 해 줘.');
+  await userEvent.click(post);
+  expect(mockApi.createChallenge).toHaveBeenCalledWith({ korean: '오늘 점메추 좀 해 줘.', meaningEn: 'Recommend a lunch menu.', situationEn: '' });
+  expect(await screen.findByText('ABC234')).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+  expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/c\/ABC234$/));
+  expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument();
+});
+it('turns learners away', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  render(<SessionProvider><NewChallenge /></SessionProvider>);
+  expect(await screen.findByText('Only Korean speakers can post challenges. You can switch your role on the Me screen.')).toBeInTheDocument();
+  expect(screen.queryByLabelText('Korean expression')).toBeNull();
+});
+it('shows the server reason and keeps what was typed', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser);
+  mockApi.createChallenge.mockRejectedValue(new ApiClientError('content_rejected', 422, 'x'));
+  render(<SessionProvider><NewChallenge /></SessionProvider>);
+  await userEvent.type(await screen.findByLabelText('Korean expression'), '대박');
+  await userEvent.type(screen.getByLabelText('Meaning in English'), 'Wow');
+  await userEvent.click(screen.getByRole('button', { name: 'Post challenge' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Please rephrase that.');
+  expect(screen.getByLabelText('Korean expression')).toHaveValue('대박');
+});
