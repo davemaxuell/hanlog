@@ -4,13 +4,14 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiClientError } from '@/lib/api-client';
 import { countChars, isValidNickname, type Role } from '@/lib/contracts';
-import { useSession } from '@/lib/ui/session-context';
+import { useSession, useSessionExpired } from '@/lib/ui/session-context';
 import { errorCopy } from '@/lib/ui/error-copy';
 import { Button, Field, Ko, StatusNote, Surface } from '@/components/ui';
 import styles from './profile.module.css';
 
 export default function Me() {
   const { user, setUser } = useSession();
+  const sessionExpired = useSessionExpired();
   const router = useRouter();
   const [nickname, setNickname] = useState(user.nickname);
   const [busy, setBusy] = useState(false);
@@ -24,14 +25,14 @@ export default function Me() {
     if (lock.current) return;
     lock.current = true; setBusy(true); setSaved(false); setError('');
     try { setUser(await api.updateSession(patch)); setSaved(true); }
-    catch (cause) { setError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
+    catch (cause) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
     finally { lock.current = false; setBusy(false); }
   }
   async function remove() {
     if (lock.current) return;
     lock.current = true; setBusy(true); setDeleteError('');
     try { await api.deleteSession(); dialog.current?.close(); router.replace('/'); }
-    catch (cause) { setDeleteError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
+    catch (cause) { if (cause instanceof ApiClientError && cause.code === 'unauthenticated') sessionExpired(); else setDeleteError(errorCopy(cause instanceof ApiClientError ? cause.code : 'internal')); }
     finally { lock.current = false; setBusy(false); }
   }
   const roleChoice = (role: Role) => { if (role !== user.role) void update({ role }); };

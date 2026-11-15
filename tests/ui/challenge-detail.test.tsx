@@ -91,3 +91,24 @@ it('says so when a recording has expired', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Play' }));
   expect(await screen.findByText('This recording is no longer available.')).toBeInTheDocument();
 });
+it('retries a temporary playback failure without claiming the recording expired', async () => {
+  mockApi.fetchMediaBlobUrl.mockRejectedValueOnce(new ApiClientError('internal', 503, 'offline')).mockResolvedValueOnce('blob:retry');
+  render(<MediaPlayer url="/api/responses/r1/media" kind="audio" label="Answer" />);
+  await userEvent.click(screen.getByRole('button', { name: 'Play' }));
+  expect(await screen.findByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  expect(screen.queryByText('This recording is no longer available.')).toBeNull();
+  await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+  await waitFor(() => expect(document.querySelector('audio')).toHaveAttribute('src', 'blob:retry'));
+});
+it('announces a report and restores focus to the list after removing its last answer', async () => {
+  mockApi.getSession.mockResolvedValue(samples.koreanUser);
+  mockApi.getChallenge.mockResolvedValue({ ...samples.challengeDetailForAuthor, responses: [pending] });
+  mockApi.reportResponse.mockResolvedValue(undefined);
+  nav.params = { id: samples.challenge.id };
+  render(<SessionProvider><ChallengeDetailPage /></SessionProvider>);
+  await userEvent.click(await screen.findByRole('button', { name: 'Report' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Yes, report it' }));
+  expect(await screen.findByText('Answer reported.')).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Answers' })).toHaveFocus();
+  expect(screen.getByText('No answers to review right now.')).toBeInTheDocument();
+});

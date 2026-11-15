@@ -10,12 +10,66 @@ import { AppShell } from '@/components/ui/AppShell';
 import { ApiClientError } from '@/lib/api-client';
 import { SessionProvider, safeNext, useSession, useOptionalSession } from '@/lib/ui/session-context';
 import type { User } from '@/lib/contracts';
+import { useAction } from '@/lib/ui/use-action';
+import { useApi } from '@/lib/ui/use-api';
 import { samples } from '../fixtures/api/samples';
 import { mockApi, nav, resetMocks } from './_helpers';
 
 beforeEach(resetMocks);
 const Who = () => <p>Hello {useSession().user.nickname}</p>;
 const CurrentProfile = () => <p>Current profile: {useOptionalSession().user?.nickname ?? 'none'}</p>;
+function BalanceProbe() {
+  const session = useSession();
+  return <><p>Balance: {session.balance === null ? 'unavailable' : session.balance}</p><button onClick={() => void session.refreshBalance()}>Refresh balance</button></>;
+}
+function ExpirationProbe({ kind }: { kind: 'read' | 'action' }) {
+  const action = useAction();
+  useApi(() => kind === 'read' ? Promise.reject(new ApiClientError('unauthenticated', 401, 'expired')) : Promise.resolve('ready'), [kind]);
+  return <button onClick={() => void action.run(() => Promise.reject(new ApiClientError('unauthenticated', 401, 'expired')))}>Expire session</button>;
+}
+
+it.each(['read', 'action'] as const)('clears cached authentication after an expired %s so onboarding cannot bounce back', async kind => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  nav.pathname = '/app/challenges';
+  const view = render(<SessionProvider><ExpirationProbe kind={kind} /></SessionProvider>);
+  if (kind === 'action') await userEvent.click(await screen.findByRole('button', { name: 'Expire session' }));
+  await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/app/onboarding?next=%2Fapp%2Fchallenges'));
+  nav.pathname = '/app/onboarding'; nav.replace.mockClear();
+  view.rerender(<SessionProvider><Onboarding /><CurrentProfile /></SessionProvider>);
+  expect(await screen.findByText('Current profile: none')).toBeInTheDocument();
+  expect(nav.replace).not.toHaveBeenCalledWith('/app');
+});
+it('does not let an older initial balance overwrite a newer refresh', async () => {
+  let finishInitial!: (value: { balance: number; events: [] }) => void;
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.getPoints.mockReturnValueOnce(new Promise(resolve => { finishInitial = resolve; })).mockResolvedValueOnce({ balance: 80, events: [] });
+  render(<SessionProvider><BalanceProbe /></SessionProvider>);
+  await userEvent.click(await screen.findByRole('button', { name: 'Refresh balance' }));
+  expect(await screen.findByText('Balance: 80')).toBeInTheDocument();
+  await act(async () => { finishInitial({ balance: 10, events: [] }); });
+  expect(screen.getByText('Balance: 80')).toBeInTheDocument();
+});
+it('offers a points retry after failure and distinguishes unavailable from zero', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.getPoints.mockRejectedValueOnce(new ApiClientError('internal', 503, 'offline')).mockResolvedValueOnce({ balance: 0, events: [] });
+  render(<SessionProvider><AppShell><Who /></AppShell></SessionProvider>);
+  const retry = await screen.findByRole('button', { name: 'Retry points' });
+  expect(screen.queryByText('★ 0 points')).toBeNull();
+  await userEvent.click(retry);
+  expect(await screen.findByText('★ 0 points')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Retry points' })).toBeNull();
+});
+it('ignores a late failed balance refresh after the provider unmounts', async () => {
+  let rejectBalance!: (cause: unknown) => void;
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.getPoints.mockResolvedValueOnce({ balance: 10, events: [] }).mockReturnValueOnce(new Promise((_resolve, reject) => { rejectBalance = reject; }));
+  const view = render(<SessionProvider><BalanceProbe /></SessionProvider>);
+  await screen.findByText('Balance: 10');
+  await userEvent.click(screen.getByRole('button', { name: 'Refresh balance' }));
+  view.unmount();
+  await act(async () => { rejectBalance(new ApiClientError('unauthenticated', 401, 'late')); });
+  expect(nav.replace).not.toHaveBeenCalled();
+});
 
 it('keeps a newly created profile when the initial session lookup finishes late', async () => {
   let finishLookup!: (user: User | null) => void;

@@ -62,3 +62,19 @@ it('recovers when a submission callback throws synchronously', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent("That didn't score yet. Try again.");
   expect(screen.getByRole('button', { name: 'Get my score' })).toBeEnabled();
 });
+it('notifies the owner when a selected recording is discarded', async () => {
+  const deps = fakeDeps(); const onReset = vi.fn();
+  render(<Recorder modes={['audio']} submitLabel="Use this recording" onSubmit={vi.fn()} onReset={onReset} deps={deps} />);
+  await record(deps);
+  await userEvent.click(await screen.findByRole('button', { name: 'Use this recording' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Retake' }));
+  expect(onReset).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('button', { name: 'Record' })).toBeInTheDocument();
+});
+it('locks retake while an asynchronous submit is pending even without a busy prop', async () => {
+  const deps = fakeDeps();
+  render(<Recorder modes={['audio']} submitLabel="Send answer" onSubmit={() => new Promise(() => {})} deps={deps} />);
+  await record(deps);
+  await userEvent.click(await screen.findByRole('button', { name: 'Send answer' }));
+  expect(screen.getByRole('button', { name: 'Retake' })).toBeDisabled();
+});

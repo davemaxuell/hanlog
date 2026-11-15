@@ -72,3 +72,11 @@ it('keeps a failed deletion open for retry and can cancel without deleting', asy
   await userEvent.click(screen.getByRole('button', { name: 'Yes, delete everything' }));
   await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/'));
 });
+it('returns an expired profile update to onboarding instead of failing silently', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.updateSession.mockRejectedValue(new ApiClientError('unauthenticated', 401, 'expired'));
+  nav.pathname = '/app/me';
+  render(<SessionProvider><Me /></SessionProvider>);
+  await userEvent.click(await screen.findByRole('radio', { name: /I speak Korean/ }));
+  await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/app/onboarding?next=%2Fapp%2Fme'));
+});
