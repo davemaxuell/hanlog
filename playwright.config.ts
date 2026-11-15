@@ -28,7 +28,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'production', SCORING_PROVIDER: 'mock', OPENAI_API_KEY: '',
       SESSION_SECRET: 'e2e-session-secret-0123456789abcdef', CRON_SECRET: 'e2e-cron',
-      DATABASE_URL: '', POSTGRES_URL: '', PGLITE_DIR: '', VERCEL: '', MEDIA_DIR: '.data/e2e-media',
+      DATABASE_URL: '', POSTGRES_URL: '', PGLITE_DIR: 'memory://', VERCEL: '', MEDIA_DIR: '.data/e2e-media',
       SUPABASE_URL: '', SUPABASE_SECRET_KEY: '', SUPABASE_SERVICE_ROLE_KEY: '',
     },
   },

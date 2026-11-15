@@ -16,3 +16,17 @@ test('the API is up and has no session', async ({ request }) => {
   expect(await (await request.get('/api/session')).json()).toEqual({ user: null });
   expect((await (await request.get('/api/missions')).json()).missions).toHaveLength(24);
 });
+test('shared links have an absolute image and the image renders', async ({ page, request }) => {
+  await page.goto('/');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'http://localhost:3000/');
+  const image = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(image).toMatch(/^http:\/\/localhost:3000\/opengraph-image/);
+  const response = await request.get(new URL(image!).pathname + new URL(image!).search);
+  expect(response.ok()).toBe(true);
+  expect(response.headers()['content-type']).toContain('image/png');
+  const png = await response.body();
+  expect(png.readUInt32BE(16)).toBe(1200);
+  expect(png.readUInt32BE(20)).toBe(630);
+  await page.goto('/app/onboarding');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+});

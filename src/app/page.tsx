@@ -7,6 +7,8 @@ import styles from '@/components/intro/intro.module.css';
 export const metadata: Metadata = {
   title: 'HanLog · Speak Korean out in the world',
   description: 'Real expressions, your real voice, feedback in seconds, and points you can spend.',
+  alternates: { canonical: '/' },
+  openGraph: { type: 'website', siteName: 'HanLog', url: '/', title: 'HanLog · Speak Korean out in the world', description: 'Real expressions, your real voice, feedback in seconds, and points you can spend.' },
 };
 export default function IntroPage() {
   const mission = getMission('cafe-iced-americano')!;
