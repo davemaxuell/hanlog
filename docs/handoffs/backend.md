@@ -34,7 +34,7 @@ Points, caps, moderation, and media also have focused unit suites under `tests/u
 
 ## Validation
 
-- Latest integrated local `npm run check`: **148 passed, 2 skipped**, typecheck and ESLint pass. The two skips are the opt-in real-Postgres tests.
+- Latest integrated local `npm run check`: **149 passed, 2 skipped**, typecheck and ESLint pass. The two skips are the opt-in real-Postgres tests.
 - Initial plan tests were observed failing before implementing their modules/routes. Account and cleanup tests use direct SQL fixtures to keep the parallel peer files independent; coverage includes deletion boundaries, storage failures, expiry, retries, and cron authorization.
 - `npm run db:migrate` without a database URL exits nonzero and names `DATABASE_URL` / `POSTGRES_URL` without leaking connection data.
 - Installed `@vercel/config` types and CLI source were inspected. `npx @vercel/config compile` produces `framework: nextjs`, `regions: [icn1]`, and cron `/api/cron/cleanup` at `0 18 * * *`.
@@ -53,6 +53,7 @@ The backend consumes shared configuration for `SESSION_SECRET`, `DATABASE_URL` /
 - Moderation requires one boolean result per submitted nonempty text. An incomplete/malformed service response is unavailable, never implicitly approved.
 - Cleanup locks parent challenges before answer rows, and holds those row locks through file removal and pointer clearing. If storage fails, the transaction retains metadata so retry is possible. Missing files are ignored by the stores.
 - Account deletion deviates from task 13's DB-first instruction to satisfy the spec's stronger deletion promise. It removes files inside the cascade transaction before deleting rows. Storage failure returns 503 without clearing the cookie and rolls back identity/media pointers; retry succeeds. Parent/answer rows remain locked during removal. Budget counters lose their deleted profile ID and expire in daily cleanup once outside the current Korea-time day.
+- A reference upload that completes after profile deletion detects the missing challenge and invokes the existing upload compensation, removing its file. A deterministic interleaving regression verifies this race.
 - Vercel config uses a default export. The installed package README recommends a named `config`, but its actual CLI serializes that as an incorrect nested `config` object. Default export was verified through compilation.
 - Tasks 13–14 use direct SQL fixture creation, avoiding concurrent edits to peer-owned helpers. This preserves all specified normal-case assertions and adds failure coverage.
 - Media delivery sends stored content types with `private, no-store` and `nosniff`. Tests cover both entitled people, sample raters, outsiders, missing/flagged/expired/hidden media, malformed identifiers, and public reference access by signed-in users. Retention is enforced before cron removes files.

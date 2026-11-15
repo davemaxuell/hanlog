@@ -30,7 +30,9 @@ export async function createChallenge(input: { authorId: string; korean: string;
   });
 }
 export async function setChallengeReference(id: string, path: string, mime: string): Promise<void> {
-  await (await getDb()).query('update hanlog.challenges set reference_path = $2, reference_mime = $3 where id = $1', [id, path, mime]);
+  const rows = await (await getDb()).query<{ id: string }>('update hanlog.challenges set reference_path = $2, reference_mime = $3 where id = $1 returning id', [id, path, mime]);
+  // Deletion can finish while the upload is in flight; trigger the route's file compensation.
+  if (!rows.length) throw new ApiError('not_found');
 }
 export async function getChallengeRecord(idOrCode: string): Promise<ChallengeRecord | null> {
   const rows = await (await getDb()).query<Row>(`${select} where c.status = 'open' and (c.id::text = $1 or c.code = upper($1))`, [idOrCode]);

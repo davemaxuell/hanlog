@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { GET as list, POST as create } from '@/app/api/challenges/route';
 import { GET as detail } from '@/app/api/challenges/[id]/route';
+import { DELETE as deleteSession } from '@/app/api/session/route';
 import { SHARE_CODE_ALPHABET } from '@/lib/contracts';
 import { getSampleChallenges } from '@/lib/content';
 import { getDb } from '@/lib/db';
@@ -86,5 +87,16 @@ it('removes an incomplete challenge when reference storage fails', async () => {
   const { user, cookie } = await createTestUser('korean');
   setMediaStoreForTests({ ...createMemoryMediaStore(), put: async () => { throw new Error('storage offline'); } });
   expect((await post(cookie, { media: mediaFile(webmBytes(), 'audio/webm'), durationMs: '1000' })).status).toBe(503);
+  expect((await (await getDb()).query<{ n: number }>('select count(*)::int as n from hanlog.challenges where author_id = $1', [user.id]))[0].n).toBe(0);
+});
+it('removes a reference uploaded after its owner deletes their profile', async () => {
+  const { user, cookie } = await createTestUser('korean');
+  const store = createMemoryMediaStore();
+  setMediaStoreForTests({ ...store, put: async (path, bytes, mime) => {
+    expect((await call(deleteSession, makeRequest('DELETE', '/api/session', { cookie }))).status).toBe(204);
+    await store.put(path, bytes, mime);
+  } });
+  expect((await post(cookie, { media: mediaFile(webmBytes(), 'audio/webm'), durationMs: '1000' })).status).toBe(503);
+  expect(store.paths()).toEqual([]);
   expect((await (await getDb()).query<{ n: number }>('select count(*)::int as n from hanlog.challenges where author_id = $1', [user.id]))[0].n).toBe(0);
 });
