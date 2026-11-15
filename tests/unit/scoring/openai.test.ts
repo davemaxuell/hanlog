@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { getMission } from '@/lib/content';
-import { createOpenAiProvider } from '@/lib/scoring/openai';
+import { createOpenAiProvider, parseOpenAiScore } from '@/lib/scoring/openai';
 import { ScoringFailedError } from '@/lib/scoring/types';
 import { toneWav } from '../../helpers/audio';
 
@@ -41,6 +41,20 @@ it('fails cleanly on malformed output', async () => {
   for (const bad of ['{not json', { heard: 'x' }, { ...good, issues: 'none' }])
     await expect(provider(vi.fn(async () => ok(toolReply(bad))) as unknown as typeof fetch).score({ wav, mission })).rejects.toBeInstanceOf(ScoringFailedError);
   await expect(provider(vi.fn(async () => ok({ choices: [] })) as unknown as typeof fetch).score({ wav, mission })).rejects.toBeInstanceOf(ScoringFailedError);
+});
+it('rejects incomplete, refused, or ambiguous model output even when a score parses', () => {
+  for (const finish_reason of ['length', 'content_filter']) {
+    const body = toolReply(good);
+    expect(() => parseOpenAiScore({ ...body, choices: [{ ...body.choices[0], finish_reason }] })).toThrow(ScoringFailedError);
+  }
+  const refused = toolReply(good);
+  expect(() => parseOpenAiScore({ ...refused, choices: [{ message: { ...refused.choices[0].message, refusal: 'Unable to assess.' } }] })).toThrow(ScoringFailedError);
+  const duplicate = toolReply(good);
+  duplicate.choices[0].message.tool_calls.push(duplicate.choices[0].message.tool_calls[0]);
+  expect(() => parseOpenAiScore(duplicate)).toThrow(ScoringFailedError);
+  const alternatives = toolReply(good);
+  alternatives.choices.push(alternatives.choices[0]);
+  expect(() => parseOpenAiScore(alternatives)).toThrow(ScoringFailedError);
 });
 it('retries once on 429 and 5xx, then gives up', async () => {
   const flaky = vi.fn().mockResolvedValueOnce(new Response('{}', { status: 429 })).mockResolvedValueOnce(ok(toolReply(good)));

@@ -1,4 +1,4 @@
-export function normalizeHangul(s: string): string { return s.replace(/[^\uAC00-\uD7A3]/gu, ''); }
+export function normalizeHangul(s: string): string { return s.normalize('NFC').replace(/[^\uAC00-\uD7A3]/gu, ''); }
 function tokens(s: string): string[] {
   return [...normalizeHangul(s)].flatMap(syllable => {
     const i = syllable.charCodeAt(0) - 0xAC00;

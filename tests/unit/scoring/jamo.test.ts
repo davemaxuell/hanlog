@@ -3,6 +3,10 @@ import { jamoSimilarity, normalizeHangul } from '@/lib/scoring/jamo';
 
 const target = '아이스 아메리카노 한 잔 주세요';
 it('normalizes', () => { expect(normalizeHangul('대박, 이 노래 ABC 12!')).toBe('대박이노래'); });
+it('treats canonical decomposed Hangul as the same spoken syllables', () => {
+  expect(normalizeHangul(target.normalize('NFD'))).toBe(normalizeHangul(target));
+  expect(jamoSimilarity(target.normalize('NFD'), target)).toBe(1);
+});
 it('is 1 for the same syllables regardless of spacing and punctuation', () => {
   expect(jamoSimilarity('안녕하세요.', ' 안녕 하세요!')).toBe(1);
 });

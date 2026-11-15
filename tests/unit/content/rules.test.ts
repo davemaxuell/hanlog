@@ -24,6 +24,10 @@ it('keeps the seed missions untouched', () => {
   expect(seed('slang-daebak')).toMatchObject({ mode: 'use', keyword: '대박' });
   expect(seed('campus-group-roles').korean).toBe('조별 과제 역할을 어떻게 나눌까요?');
 });
+it('keeps h at noun boundaries in Revised Romanization', () => {
+  expect(missions.find(mission => mission.id === 'daily-sohwakhaeng')!.romanization).toContain('sohwakhaengieyo');
+  expect(missions.find(mission => mission.id === 'campus-group-roles')!.romanization).toContain('yeokhareul');
+});
 it.each(missions)('$id follows the writing rules', (m) => {
   expect(m.id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   expect(m.korean).not.toMatch(/[0-9A-Za-z]/);
