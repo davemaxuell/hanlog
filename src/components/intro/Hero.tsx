@@ -6,7 +6,7 @@ export function Hero() {
     <div className={styles.heroText}>
       <p className={styles.heroLabel}>Everyday Korean. Real connection.</p>
       <h1 id="hero-heading">Your day.<br /><span>In Korean.</span></h1>
-      <p className={styles.heroLead}>The café order. The group chat. The thing you finally say out loud. Make a little Korean part of your everyday.</p>
+      <p className={styles.heroLead}>Turn a café order or a group-chat phrase into a short speaking practice—with AI feedback and Korean-speaking peers.</p>
       <div className={styles.actions}><a className="hl-link-button" href="#try">Try a mission now <ArrowUpRight size={21} aria-hidden="true" /></a><Link className={styles.heroLink} href="/app/onboarding?mode=restore">Already here? Come back <ArrowRight size={17} aria-hidden="true" /></Link></div>
     </div>
     <div className={styles.heroArt}>

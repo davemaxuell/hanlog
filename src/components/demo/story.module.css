@@ -1,0 +1,163 @@
+.story {
+  display: grid;
+  gap: clamp(20px, 2.2vw, 32px);
+  width: 100%;
+  min-width: 0;
+  color: var(--color-ink);
+}
+
+.heading { display: grid; gap: 12px; }
+.eyebrow { color: var(--color-text-secondary); font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.heading h2 { max-width: 24ch; font-family: var(--font-title); font-size: clamp(32px, 3.8vw, 56px); line-height: 1.13; letter-spacing: -.04em; }
+.heading > p:last-child:not(.eyebrow) { font-size: clamp(16px, 1.6vw, 21px); color: var(--color-text-secondary); }
+.disclosure { justify-self: start; width: fit-content; max-width: 100%; padding: 9px 14px; border: 1px solid var(--color-ink); border-radius: var(--radius-field); background: var(--color-buttercream); color: var(--color-ink); font-size: 14px; font-weight: 650; line-height: 1.45; }
+.feedbackGrid, .connectionGrid, .progressGrid { display: grid; grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr); gap: clamp(24px, 4vw, 60px); align-items: start; min-width: 0; }
+.scorePanel { display: grid; gap: 24px; padding: clamp(24px, 2.7vw, 36px); }
+.scoreTop { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.label { display: flex; gap: 8px; align-items: center; color: var(--color-text-secondary); font-size: 14px; font-weight: 650; line-height: 1.4; }
+.label svg { flex-shrink: 0; }
+.scoreValue { display: flex; align-items: baseline; gap: 14px; font-variant-numeric: tabular-nums; line-height: 1; }
+.scoreValue strong { font-family: var(--font-title); font-size: clamp(84px, 8.8vw, 124px); font-weight: 700; letter-spacing: -.07em; }
+.scoreValue > span { font-size: 20px; color: var(--color-text-secondary); white-space: nowrap; }
+.scoreMark { color: var(--color-action-stroke); font-size: 64px; line-height: 1; }
+.meters { display: grid; gap: 13px; font-size: 15px; }
+.meters :global(.hl-meter) { gap: 6px; }
+.meters :global(.hl-meter-track) { height: 6px; }
+.meters :global(.hl-meter-label) > span:last-child { font-weight: 650; font-variant-numeric: tabular-nums; }
+.caption { color: var(--color-text-secondary); font-size: 13px; line-height: 1.5; }
+.feedbackCopy { display: grid; gap: 24px; align-self: center; min-width: 0; }
+.transcript { display: grid; gap: 14px; }
+.heard { font-family: var(--font-body); font-size: clamp(24px, 2.8vw, 38px); font-weight: 600; line-height: 1.5; word-break: keep-all; }
+.praise { font-size: 18px; color: var(--color-text-secondary); }
+.nextTip { display: grid; gap: 12px; padding: 24px; border-left: 4px solid var(--color-action-stroke); border-radius: 0 var(--radius-media) var(--radius-media) 0; background: var(--color-action-soft); }
+.nextTip > p:last-child { font-size: clamp(18px, 1.7vw, 23px); line-height: 1.5; }
+.points { width: fit-content; padding: 8px 14px; border: 1px solid var(--color-ink); border-radius: var(--radius-badge); background: var(--color-buttercream); font-size: 15px; font-weight: 650; }
+.connectionCopy, .progressCopy { display: grid; gap: 24px; padding-top: 8px; align-self: center; }
+.lead { max-width: 25ch; font-family: var(--font-title); font-size: clamp(22px, 2.2vw, 32px); font-weight: 600; line-height: 1.45; letter-spacing: -.02em; }
+.context { display: grid; gap: 10px; padding-left: 20px; border-left: 3px solid var(--color-ink); font-size: 18px; line-height: 1.5; }
+.secondary { color: var(--color-text-secondary); font-size: 17px; line-height: 1.6; }
+.linkGroup { display: grid; justify-items: start; gap: 12px; }
+.linkGroup > a { max-width: 100%; font-size: 15px; }
+.linkGroup > a svg { flex-shrink: 0; }
+.exchangePanel { display: grid; gap: 16px; padding: clamp(20px, 2.4vw, 32px); }
+.promptBubble { display: grid; gap: 12px; padding: 20px; background: var(--color-canvas); border-radius: 4px 16px 16px; }
+.role { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; line-height: 1.5; }
+.role svg { flex-shrink: 0; }
+.challengePhrase { font-size: clamp(24px, 2.6vw, 36px); font-weight: 600; line-height: 1.45; word-break: keep-all; }
+.challengeMeaning { color: var(--color-text-secondary); font-size: 15px; line-height: 1.55; }
+.replyBubble { display: grid; gap: 8px; margin-left: 36px; padding: 16px 20px; border: 1px solid var(--color-ink); border-radius: 16px 4px 16px 16px; background: var(--color-action-soft); font-size: 17px; }
+.peerTip { display: grid; gap: 6px; padding: 4px 0 4px 20px; border-left: 2px solid var(--color-line); font-size: 16px; }
+.audienceEntry { display: grid; grid-template-columns: 144px minmax(0, 1fr); align-items: center; gap: 20px; }
+.audienceQr { display: block; width: 144px; height: 144px; background: #fff; }
+.audienceCopy { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.audienceDomain { font-size: 15px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.audienceButton { max-width: 100%; margin-top: 6px; padding: 10px 14px; font-size: 14px; }
+.audienceButton svg { flex-shrink: 0; }
+.audienceCopy .textLink { font-size: 14px; }
+.journalPanel { display: grid; gap: 24px; padding: clamp(24px, 2.7vw, 36px); }
+.savedLabel { display: flex; align-items: center; gap: 8px; width: fit-content; font-size: 14px; font-weight: 650; color: var(--color-action-stroke); }
+.savedLabel svg { flex-shrink: 0; }
+.expressionEntry { display: grid; gap: 12px; }
+.journalPhrase { font-size: clamp(23px, 2.5vw, 34px); font-weight: 600; line-height: 1.5; word-break: keep-all; }
+.journalEntry { display: grid; gap: 12px; padding-top: 20px; border-top: 1px solid var(--color-line); }
+.journalScore { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.journalScore strong { font-family: var(--font-title); font-size: 34px; letter-spacing: -.04em; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.journalScore span { font-size: 13px; font-weight: 650; color: var(--color-action-stroke); }
+.journalTip { padding: 14px 16px; background: var(--color-action-soft); border-radius: var(--radius-field); font-size: 17px; line-height: 1.55; }
+.journalPlaceholder { font-size: 19px; line-height: 1.55; }
+.textLink { display: flex; gap: 8px; align-items: center; justify-self: start; min-height: 48px; font-size: 15px; font-weight: 600; }
+.textLink svg { flex-shrink: 0; }
+.emptyPanel { display: flex; align-items: center; gap: 20px; max-width: 720px; font-size: 20px; }
+.emptyPanel svg { flex-shrink: 0; color: var(--color-action-stroke); }
+
+@media (max-width: 760px) {
+  .feedbackGrid, .connectionGrid, .progressGrid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .connectionCopy, .progressCopy { padding: 0; }
+  .lead { max-width: 32ch; }
+  .scoreTop { align-items: center; }
+  .scorePanel { gap: 20px; }
+  .scoreValue strong { font-size: 96px; }
+  .scoreMark { font-size: 52px; }
+  .feedbackCopy { gap: 20px; }
+}
+
+@media (max-width: 390px) {
+  .heading h2 { font-size: 30px; }
+  .scorePanel, .exchangePanel, .journalPanel { padding: 18px; }
+  .disclosure { font-size: 13px; padding: 8px 10px; }
+  .scoreValue { gap: 10px; }
+  .scoreValue strong { font-size: 82px; }
+  .scoreValue > span { font-size: 17px; }
+  .scoreMark { font-size: 42px; }
+  .promptBubble { padding: 16px; }
+  .replyBubble { margin-left: 14px; padding: 14px; }
+  .nextTip { padding: 18px; }
+  .challengePhrase, .heard, .journalPhrase { font-size: 24px; }
+  .journalPlaceholder { font-size: 17px; }
+  .emptyPanel { align-items: flex-start; font-size: 17px; }
+  .audienceEntry { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .audienceQr { width: 128px; height: 128px; }
+}
+
+/* Keep the complete story in the presenter frame on laptop/projector screens. */
+@media (min-width: 901px) and (max-height: 820px) {
+  .story { gap: 12px; }
+  .heading { gap: 6px; }
+  .heading h2 { max-width: none; font-size: 38px; line-height: 1.08; }
+  .heading > p:last-child:not(.eyebrow) { font-size: 17px; }
+  .disclosure { padding: 4px 10px; font-size: 13px; }
+  .feedbackGrid, .connectionGrid, .progressGrid { gap: 32px; }
+  .label { font-size: 13px; }
+  .story:has(> .feedbackGrid) { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .story:has(> .feedbackGrid) > .disclosure { justify-self: end; }
+  .feedbackGrid { grid-column: 1 / -1; }
+  .scorePanel { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 14px 20px; align-items: center; align-self: center; padding: 20px; }
+  .scorePanel > .caption { grid-column: 1 / -1; }
+  .scoreTop { gap: 8px; }
+  .scoreValue { gap: 8px; }
+  .scoreValue strong { font-size: 84px; }
+  .scoreValue > span { font-size: 16px; }
+  .scoreMark { display: none; }
+  .meters { gap: 10px; font-size: 14px; }
+  .meters :global(.hl-meter) { gap: 4px; }
+  .feedbackCopy { gap: 12px; }
+  .transcript { gap: 8px; }
+  .heard { font-size: 28px; line-height: 1.4; }
+  .praise { font-size: 16px; }
+  .nextTip { gap: 6px; padding: 14px 16px; }
+  .nextTip > p:last-child { font-size: 17px; line-height: 1.45; }
+  .points { padding: 5px 12px; font-size: 14px; }
+  .story:has(> .connectionGrid), .story:has(> .progressGrid) { grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr); column-gap: 32px; align-items: start; }
+  .story:has(> .connectionGrid) > .heading, .story:has(> .progressGrid) > .heading { grid-column: 1; }
+  .connectionGrid, .progressGrid { display: contents; }
+  .connectionCopy, .progressCopy { grid-column: 1; grid-row: 2; align-self: start; gap: 12px; padding: 0; }
+  .lead { max-width: none; font-size: 22px; line-height: 1.35; }
+  .context { gap: 6px; padding-left: 14px; font-size: 16px; line-height: 1.45; }
+  .secondary { font-size: 16px; line-height: 1.5; }
+  .linkGroup { gap: 4px; }
+  .exchangePanel, .journalPanel { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  .exchangePanel { gap: 8px; padding: 14px; }
+  .promptBubble { gap: 6px; padding: 8px 12px; }
+  .challengePhrase { font-size: 26px; line-height: 1.35; }
+  .challengeMeaning { font-size: 14px; line-height: 1.4; }
+  .replyBubble { gap: 4px; padding: 8px 12px; font-size: 15px; }
+  .peerTip { gap: 4px; padding: 0 0 0 12px; font-size: 15px; }
+  .audienceEntry { grid-template-columns: 128px minmax(0, 1fr); gap: 16px; }
+  .audienceQr { width: 128px; height: 128px; }
+  .audienceCopy { gap: 4px; }
+  .audienceButton { margin-top: 4px; }
+  .journalPanel { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 16px; }
+  .journalPanel > .disclosure, .expressionEntry, .journalEntry { grid-column: 1 / -1; }
+  .journalPanel > .textLink { grid-column: 2; grid-row: 1; font-size: 13px; }
+  .savedLabel { align-self: center; font-size: 13px; }
+  .expressionEntry { gap: 6px; }
+  .journalPhrase { font-size: 24px; line-height: 1.35; }
+  .journalEntry { gap: 7px; padding-top: 10px; }
+  .journalScore strong { font-size: 28px; }
+  .journalTip { padding: 10px 12px; font-size: 15px; line-height: 1.4; }
+  .journalPlaceholder { font-size: 17px; line-height: 1.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story *, .story *::before, .story *::after { animation: none; transition: none; }
+}

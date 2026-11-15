@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+/* Runtime classes live under src. Do not watch generated demo/test artifacts. */
+@source "../";
 
 /* Deck-derived Open Window system; docs/design/open-window/tokens.json. */
 @theme {
