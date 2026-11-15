@@ -34,10 +34,16 @@ function firstJsonObject(content: string): unknown {
 export function parseOpenAiScore(body: unknown): RawScore {
   try {
     const root = object(body);
-    const choice = Array.isArray(root.choices) ? object(root.choices[0]) : {};
+    if (!Array.isArray(root.choices) || root.choices.length !== 1) throw new ScoringFailedError();
+    const choice = object(root.choices[0]);
+    // A parseable prefix is not a completed assessment. Omitted metadata remains
+    // compatible with stored fixtures; explicit failure/refusal must fail closed.
+    if (choice.finish_reason !== undefined && !['stop', 'tool_calls'].includes(String(choice.finish_reason))) throw new ScoringFailedError();
     const message = object(choice.message);
+    if (message.refusal != null || (message.role !== undefined && message.role !== 'assistant')) throw new ScoringFailedError();
     let parsed: unknown;
     if (Array.isArray(message.tool_calls) && message.tool_calls.length) {
+      if (message.tool_calls.length !== 1) throw new ScoringFailedError();
       const call = object(message.tool_calls[0]);
       const fn = object(call.function);
       if (call.type !== 'function' || fn.name !== 'submit_score' || typeof fn.arguments !== 'string') throw new ScoringFailedError();
@@ -104,8 +110,8 @@ export function createOpenAiProvider(opts: {
           if (!response.ok) {
             retry = RETRYABLE_STATUS.has(response.status) && attempt < (opts.maxRetries ?? 1);
             // Never include remote error bodies: they can echo credentials or input.
-            if (!retry) throw new ScoringFailedError();
             await response.body?.cancel();
+            if (!retry) throw new ScoringFailedError();
           } else {
             const responseBody: unknown = await response.json();
             const score = parseOpenAiScore(responseBody);

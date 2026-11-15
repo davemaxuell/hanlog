@@ -29,7 +29,7 @@ it('makes no requests and changes no content in the default dry run', async () =
 it('publishes only a verified clip and sends the new plural Korean language hint', async () => {
   const setup = await fixture();
   const fetchImpl = vi.fn<typeof fetch>().mockResolvedValueOnce(clip()).mockResolvedValueOnce(transcript(setup.mission.korean));
-  const result = await generateReferenceAudio({ ...setup, live: true, apiKey: 'test-key', fetchImpl });
+  const result = await generateReferenceAudio({ ...setup, live: true, maxCalls: 4, apiKey: 'test-key', fetchImpl });
   expect(result.generated).toBe(1);
   expect(await readFile(join(setup.outputDir, `${setup.mission.id}.mp3`))).toHaveLength(6_000);
   expect(JSON.parse(await readFile(setup.missionsPath, 'utf8'))[0].referenceAudio).toBe(`/audio/missions/${setup.mission.id}.mp3`);
@@ -43,7 +43,7 @@ it('retries a mismatched transcript once with cedar, then leaves no bad clip', a
   const fetchImpl = vi.fn<typeof fetch>()
     .mockResolvedValueOnce(clip()).mockResolvedValueOnce(transcript('전혀 다른 말이에요'))
     .mockResolvedValueOnce(clip()).mockResolvedValueOnce(transcript('전혀 다른 말이에요'));
-  const result = await generateReferenceAudio({ ...setup, live: true, apiKey: 'test-key', fetchImpl });
+  const result = await generateReferenceAudio({ ...setup, live: true, maxCalls: 4, apiKey: 'test-key', fetchImpl });
   expect(result.failed).toEqual([setup.mission.id]);
   expect(fetchImpl).toHaveBeenCalledTimes(4);
   expect(JSON.parse(fetchImpl.mock.calls[2][1]!.body as string).voice).toBe('cedar');
@@ -56,4 +56,26 @@ it('rejects an unknown id or absent key before sending anything', async () => {
   await expect(generateReferenceAudio({ ...setup, only: 'nope', fetchImpl })).rejects.toThrow(/Unknown mission/);
   await expect(generateReferenceAudio({ ...setup, live: true, fetchImpl })).rejects.toThrow(/OPENAI_API_KEY/);
   expect(fetchImpl).not.toHaveBeenCalled();
+});
+it('requires an explicit request budget before any paid call', async () => {
+  const setup = await fixture();
+  const fetchImpl = vi.fn();
+  await expect(generateReferenceAudio({ ...setup, live: true, apiKey: 'test-key', fetchImpl })).rejects.toThrow(/max.calls|budget/i);
+  await expect(generateReferenceAudio({ ...setup, live: true, apiKey: 'test-key', maxCalls: 1, fetchImpl })).rejects.toThrow(/max.calls|budget/i);
+  expect(fetchImpl).not.toHaveBeenCalled();
+});
+it('stops at the budget when a transcript mismatch would need another voice', async () => {
+  const setup = await fixture();
+  const fetchImpl = vi.fn<typeof fetch>().mockResolvedValueOnce(clip()).mockResolvedValueOnce(transcript('전혀 다른 말이에요'));
+  const result = await generateReferenceAudio({ ...setup, live: true, apiKey: 'test-key', maxCalls: 2, fetchImpl });
+  expect(result).toMatchObject({ generated: 0, requests: 2, stopped: true, failed: [setup.mission.id] });
+  expect(fetchImpl).toHaveBeenCalledTimes(2);
+});
+it('stops the whole batch after a service failure', async () => {
+  const setup = await fixture();
+  await writeFile(setup.missionsPath, JSON.stringify([setup.mission, { ...setup.mission, id: 'second-mission' }]));
+  const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', { status: 429 }));
+  const result = await generateReferenceAudio({ ...setup, live: true, apiKey: 'test-key', maxCalls: 8, fetchImpl });
+  expect(fetchImpl).toHaveBeenCalledTimes(1);
+  expect(result).toMatchObject({ requests: 1, stopped: true, generated: 0 });
 });
