@@ -1,0 +1,5 @@
+import styles from './intro.module.css';
+import Link from 'next/link';
+export function Questions() {
+  return <section data-section="questions" className={styles.section} aria-labelledby="questions-heading"><div className={styles.sectionHead}><h2 id="questions-heading">Questions</h2></div><details className={styles.question}><summary>Is the score official?</summary><p>No. It is practice feedback from an AI model, not an exam result.</p></details><details className={styles.question}><summary>What happens to my recording?</summary><p>A practice recording is sent to OpenAI to be scored and is not saved. A recording you send to another person is stored for up to 14 days so they can rate it, then deleted. <Link href="/privacy">Read the privacy notice</Link></p></details><details className={styles.question}><summary>Does it cost anything?</summary><p>No. This is a concept demo.</p></details><details className={styles.question}><summary>Which browsers work?</summary><p>Recent Chrome, Safari, Edge, and Firefox on phone or computer. You need a microphone.</p></details></section>;
+}
