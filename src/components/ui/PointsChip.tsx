@@ -1,0 +1,1 @@
+export function PointsChip({ balance }: { balance: number | null }) { return <span className="hl-points" aria-label={balance === null ? 'Points loading' : `${balance} points`} data-testid="points-balance">{balance === null ? '★ …' : `★ ${balance} points`}</span>; }
