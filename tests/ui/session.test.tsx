@@ -138,7 +138,17 @@ it('renders the app for a signed-in user with balance and navigation', async () 
   expect(await screen.findByText('★ 120 points')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Progress' })).toHaveAttribute('aria-current', 'page');
   expect(screen.getByRole('link', { name: 'Your points and milestones' })).toHaveAttribute('href', '/app/rewards');
-  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(expect.arrayContaining(['/app', '/app/missions', '/app/challenges', '/app/progress', '/app/me']));
+  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(expect.arrayContaining(['/app', '/app/missions', '/app/feed', '/app/progress', '/app/me']));
+});
+it('keeps Community highlighted across the feed, challenges, groups and ranks', async () => {
+  mockApi.getSession.mockResolvedValue(samples.user);
+  mockApi.getPoints.mockResolvedValue({ balance: 0, events: [] });
+  for (const path of ['/app/feed', '/app/challenges/abc', '/app/groups', '/app/leaderboard']) {
+    nav.pathname = path;
+    const { unmount } = render(<RecoveryKeyProvider><SessionProvider><AppShell><p>Page</p></AppShell></SessionProvider></RecoveryKeyProvider>);
+    expect(await screen.findByRole('link', { name: 'Community' })).toHaveAttribute('aria-current', 'page');
+    unmount();
+  }
 });
 it('onboards with nickname, role, and consent', async () => {
   mockApi.getSession.mockResolvedValue(null);

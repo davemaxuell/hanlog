@@ -49,10 +49,12 @@ export async function deleteUserCascade(id: string, removeMedia?: (paths: string
     // Answer uploads hold a share lock on their parent; lock parents before collecting paths.
     await db.query('select id from hanlog.challenges where author_id = $1 order by id for update', [id]);
     await db.query('select id from hanlog.challenge_responses where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1) order by id for update', [id]);
+    await db.query('select id from hanlog.posts where author_id = $1 order by id for update', [id]);
     const paths = await db.query<{ path: string | null }>(`
       select reference_path as path from hanlog.challenges where author_id = $1
       union select media_path as path from hanlog.challenge_responses
       where responder_id = $1 or challenge_id in (select id from hanlog.challenges where author_id = $1)
+      union select image_path as path from hanlog.posts where author_id = $1
       union select path from hanlog.pending_media_deletions where owner_id = $1 or challenge_author_id = $1`, [id]);
     const mediaPaths = paths.flatMap(r => r.path ? [r.path] : []);
     await lockMediaPaths(db, mediaPaths);

@@ -75,16 +75,36 @@
   animation: settle var(--motion-scene,320ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) both;
 }
 .scorePanel, .exchangePanel, .journalPanel { animation-delay:40ms; }
+.scoreMark { transition:transform 280ms var(--ease-out,cubic-bezier(.22,1,.36,1)); animation: starSettle var(--motion-scene,320ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 70ms both; }
+.meters > :global(.hl-meter) { animation: settle var(--motion-ui,220ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) both; }
+.meters > :global(.hl-meter):nth-child(1) { animation-delay: 30ms; }
+.meters > :global(.hl-meter):nth-child(2) { animation-delay: 75ms; }
+.meters > :global(.hl-meter):nth-child(3) { animation-delay: 120ms; }
 .meters :global(.hl-meter-track) { transform-origin:center; animation: meterSettle var(--motion-scene,320ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 60ms both; }
+.nextTip, .points, .journalEntry { animation: settle var(--motion-scene,320ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 70ms both; }
+.points { animation-delay: 120ms; }
+.promptBubble { animation: settle var(--motion-ui,220ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 40ms both; transition:transform var(--motion-fast,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)); }
+.replyBubble { animation: settle var(--motion-ui,220ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 100ms both; transition:transform var(--motion-fast,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)), box-shadow var(--motion-fast,140ms) ease; }
+.peerTip { animation: settle var(--motion-ui,220ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) 160ms both; }
+.savedLabel svg { animation: checkPop 280ms var(--ease-out,cubic-bezier(.22,1,.36,1)) 60ms both; }
+.audienceQr { border:1px solid var(--color-line); border-radius:8px; transition:transform var(--motion-fast,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)), box-shadow var(--motion-fast,140ms) ease; }
 .textLink svg, .linkGroup > a svg, .audienceButton svg { transition:transform var(--motion-fast,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)); }
 @keyframes settle { from { transform:translateY(6px); } to { transform:translateY(0); } }
 @keyframes meterSettle { from { transform:scaleY(.6); } to { transform:scaleY(1); } }
+@keyframes starSettle { from { transform:rotate(-16deg) scale(.86); } to { transform:rotate(0) scale(1); } }
+@keyframes checkPop { 0% { transform:scale(.75); } 60% { transform:scale(1.18); } 100% { transform:scale(1); } }
 @media (hover:hover) and (pointer:fine) {
   .textLink:hover svg, .linkGroup > a:hover svg, .audienceButton:hover svg { transform:translate(2px,-2px); }
+  .scorePanel:hover .scoreMark { transform:rotate(22deg) scale(1.1); }
+  .promptBubble:hover, .replyBubble:hover { transform:translateY(-2px); }
+  .replyBubble:hover { box-shadow:3px 3px 0 var(--color-ink); }
+  .audienceQr:hover { transform:translateY(-2px); box-shadow:3px 3px 0 var(--color-ink); }
 }
 .textLink:focus-visible svg, .linkGroup > a:focus-visible svg, .audienceButton:focus-visible svg { transition:none; transform:none !important; }
-:global([data-demo-motion=keyboard]) .story, :global([data-demo-motion=keyboard]) .story * { animation:none; transition:none; }
-:global(html[data-motion=reduce]) .textLink svg, :global(html[data-motion=reduce]) .linkGroup > a svg, :global(html[data-motion=reduce]) .audienceButton svg { transform:none !important; }
+:global([data-demo-motion=keyboard]) .story, :global([data-demo-motion=keyboard]) .story * { animation:none; transition:none; transform:none !important; }
+:global(html[data-motion=reduce]) .story *, :global(html[data-motion=reduce]) .story *::before, :global(html[data-motion=reduce]) .story *::after { animation:none !important; transition:none !important; }
+:global(html[data-motion=reduce]) .textLink svg, :global(html[data-motion=reduce]) .linkGroup > a svg, :global(html[data-motion=reduce]) .audienceButton svg,
+:global(html[data-motion=reduce]) .scorePanel:hover .scoreMark, :global(html[data-motion=reduce]) .promptBubble:hover, :global(html[data-motion=reduce]) .replyBubble:hover, :global(html[data-motion=reduce]) .audienceQr:hover { transform:none !important; }
 
 @media (max-width: 760px) {
   .feedbackGrid, .connectionGrid, .progressGrid { grid-template-columns: minmax(0, 1fr); gap: 24px; }

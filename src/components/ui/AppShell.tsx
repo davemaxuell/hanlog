@@ -9,10 +9,12 @@ import { Button, Ko, PointsChip, StatusNote } from './index';
 import { BrandMark } from './BrandMark';
 import { MotionToggle } from '@/components/motion/MotionPreference';
 import { RouteEntrance } from '@/components/motion/RouteEntrance';
-const links = [
+import { motion } from 'motion/react';
+import { springs } from '@/components/motion/kit';
+const links: { label: string; href: string; icon: typeof HouseLine; also?: string[] }[] = [
   { label: 'Today', href: '/app', icon: HouseLine },
   { label: 'Practice', href: '/app/missions', icon: Books },
-  { label: 'Community', href: '/app/challenges', icon: ChatsCircle },
+  { label: 'Community', href: '/app/feed', icon: ChatsCircle, also: ['/app/challenges', '/app/groups', '/app/leaderboard'] },
   { label: 'Progress', href: '/app/progress', icon: ChartBar },
   { label: 'Me', href: '/app/me', icon: UserCircle },
 ];
@@ -37,9 +39,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     <header className="hl-app-header">
       <Link href={user ? '/app' : '/'} className="hl-wordmark"><BrandMark />HanLog <Ko>한록</Ko></Link>
       {!onboarding && <>
-        <nav className="hl-app-nav" aria-label="Main navigation">{links.map(({ label, href, icon: Icon }) => {
-          const active = href === '/app' ? pathname === href : pathname.startsWith(href);
-          return <Link key={href} href={href} aria-current={active ? 'page' : undefined}><Icon size={21} weight={active ? 'fill' : 'regular'} aria-hidden="true" /><span>{label}</span></Link>;
+        <nav className="hl-app-nav" aria-label="Main navigation">{links.map(({ label, href, icon: Icon, also = [] }) => {
+          const active = href === '/app' ? pathname === href : [href, ...also].some(path => pathname.startsWith(path));
+          // The active pill slides between destinations (motion.dev "Tab select" shared layout).
+          return <Link key={href} href={href} aria-current={active ? 'page' : undefined}>{active && <motion.span layoutId="app-nav-active" className="hl-nav-pill" transition={springs.snappy} aria-hidden="true" />}<Icon size={21} weight={active ? 'fill' : 'regular'} aria-hidden="true" /><span>{label}</span></Link>;
         })}</nav>
         <Link href="/app/rewards" className="hl-points-link" aria-label="Your points and milestones"><PointsChip balance={balance} unavailable={!!balanceError} /></Link>
       </>}

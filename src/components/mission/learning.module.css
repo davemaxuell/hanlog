@@ -5,25 +5,25 @@
 .sectionHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .sectionHeading h2 { font-size: clamp(23px, 3vw, 28px); font-weight: 700; line-height: 1.25; }
 .sectionHeading a { min-height: 48px; display: inline-flex; align-items: center; font-weight: 600; }
-.hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(200px, 1fr); gap: 32px; padding: clamp(24px, 4vw, 40px); border: 1.5px solid var(--color-ink); border-radius: 24px; background: var(--color-buttercream); box-shadow: 5px 5px 0 var(--color-ink); overflow: hidden; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(200px, 1fr); gap: 32px; padding: clamp(24px, 4vw, 40px); border: 1.5px solid var(--color-ink); border-radius: 24px; background: var(--color-buttercream); box-shadow: 5px 5px 0 var(--color-ink); overflow: hidden; transition: box-shadow var(--motion-ui, 220ms) var(--ease-out, ease-out); }
 .heroCopy { display: grid; gap: 18px; align-content: start; min-width: 0; }
 .heroCopy h2 { font-family: var(--font-title); font-size: clamp(28px, 4vw, 42px); font-weight: 700; line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; }
 .heroCopy > p { max-width: 46ch; }
 .heroLabel { display: inline-flex; align-items: center; gap: 10px; width: fit-content; font-weight: 700; font-size: 13px; color: var(--color-action-stroke); }
-.heroArt { display: grid; place-items: center; align-content: center; gap: 14px; background: var(--color-canvas); border: 1.5px solid var(--color-ink); border-radius: 120px 120px 18px 18px; padding: 32px 20px 24px; min-width: 0; text-align: center; }
+.heroArt { display: grid; place-items: center; align-content: center; gap: 14px; background: var(--color-canvas); border: 1.5px solid var(--color-ink); border-radius: 120px 120px 18px 18px; padding: 32px 20px 24px; min-width: 0; text-align: center; transition: transform var(--motion-ui, 220ms) var(--ease-out, ease-out), box-shadow var(--motion-ui, 220ms) ease; }
 .heroArt strong { font-family: var(--font-title); font-size: clamp(40px, 5vw, 64px); font-weight: 700; line-height: 1; }
 .heroArt > span { display: block; font-size: 14px; max-width: 18ch; }
 .wave { display: flex; align-items: center; gap: 7px; height: 50px; }
-.wave i { width: 9px; height: 20px; border-radius: 9px; background: var(--color-action-stroke); }
-.wave i:nth-child(2n) { height: 38px; background: var(--color-ink); }
-.wave i:nth-child(3n) { height: 48px; background: var(--color-action); }
+.wave i { width: 9px; height: 20px; border-radius: 9px; background: var(--color-action-stroke); transition: transform 200ms var(--ease-out, ease-out); }
+.wave i:nth-child(2n) { height: 38px; background: var(--color-ink); transition-delay: 35ms; }
+.wave i:nth-child(3n) { height: 48px; background: var(--color-action); transition-delay: 70ms; }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
-.stat { padding: 20px; border-radius: 18px; background: var(--color-surface); border: 1px solid var(--color-ink); display: flex; flex-direction: column-reverse; gap: 5px; }
+.stat { padding: 20px; border-radius: 18px; background: var(--color-surface); border: 1px solid var(--color-ink); display: flex; flex-direction: column-reverse; gap: 5px; transition: transform var(--motion-fast, 140ms) var(--ease-out, ease-out), box-shadow var(--motion-fast, 140ms) ease; }
 .stat dt { font-size: 13px; color: var(--color-text-secondary); }
 .stat dd { font-family: var(--font-title); font-size: 30px; line-height: 1.1; font-weight: 700; margin: 0; font-variant-numeric: tabular-nums; }
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 0; list-style: none; margin: 0; }
 .grid > li { min-width: 0; }
-.card { display: flex; flex-direction: column; height: 100%; border: 1.5px solid var(--color-ink); border-radius: 18px; background: var(--color-surface); box-shadow: 3px 3px 0 var(--color-ink); overflow: hidden; transition: transform var(--motion-ui, 220ms) var(--ease-out, ease-out); }
+.card { display: flex; flex-direction: column; height: 100%; border: 1.5px solid var(--color-ink); border-radius: 18px; background: var(--color-surface); box-shadow: 3px 3px 0 var(--color-ink); overflow: hidden; transition: transform var(--motion-ui, 220ms) var(--ease-out, ease-out), box-shadow var(--motion-ui, 220ms) ease; }
 .cardTop { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--color-ink); background: var(--color-canvas); }
 .card[data-level="2"] .cardTop { background: var(--color-action-soft); }
 .card[data-level="3"] .cardTop { background: var(--color-buttercream); }
@@ -48,7 +48,7 @@
 .filterRow label { display: grid; gap: 7px; font-size: 12px; font-weight: 600; min-width: 0; }
 .filterRow select { min-height: 48px; width: 100%; min-width: 0; font: inherit; font-size: 14px; padding: 9px 28px 9px 11px; border: 1px solid var(--color-control-edge); border-radius: 9px; background: var(--color-surface); color: var(--color-ink); }
 .filterActions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.filterActions button { min-height: 48px; padding: 10px 16px; border: 1px solid var(--color-ink); border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--color-ink); background: var(--color-surface); }
+.filterActions button { min-height: 48px; padding: 10px 16px; border: 1px solid var(--color-ink); border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--color-ink); background: var(--color-surface); transition: transform var(--motion-fast, 140ms) var(--ease-out, ease-out), background-color var(--motion-fast, 140ms) ease, box-shadow var(--motion-fast, 140ms) ease; }
 .filterActions button[aria-pressed="true"] { background: var(--color-buttercream); box-shadow: 2px 2px 0 var(--color-ink); }
 .filterActions .clear { border-color: transparent; text-decoration: underline; color: var(--color-action-stroke); }
 .resultCount { font-size: 14px; color: var(--color-text-secondary); }
@@ -60,17 +60,18 @@
 .panel h2 { font-size: 25px; font-weight: 700; }
 .peer { background: var(--color-action-soft); }
 .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; padding: 0; list-style: none; margin: 0; }
-.week li { display: grid; justify-items: center; gap: 8px; font-size: 11px; color: var(--color-text-secondary); min-width: 0; }
-.day { width: 100%; max-width: 48px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-surface); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--color-ink); }
+.week li { display: grid; justify-items: center; gap: 8px; font-size: 11px; color: var(--color-text-secondary); min-width: 0; animation: day-enter var(--motion-ui, 220ms) var(--ease-out, ease-out) backwards; animation-delay: calc(var(--day-i, 0) * 35ms); }
+.day { width: 100%; max-width: 48px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-surface); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--color-ink); transition: transform var(--motion-fast, 140ms) var(--ease-out, ease-out), box-shadow var(--motion-fast, 140ms) ease, border-color var(--motion-fast, 140ms) ease; }
 .day[data-active="true"] { border-color: var(--color-ink); background: var(--color-buttercream); box-shadow: 2px 2px 0 var(--color-ink); }
 .day[data-today="true"] { outline: 2px solid var(--color-action-stroke); outline-offset: 3px; }
 .history { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.historyItem { border: 1px solid var(--color-ink); border-radius: 18px; background: var(--color-surface); overflow: hidden; }
+.historyItem { border: 1px solid var(--color-ink); border-radius: 18px; background: var(--color-surface); overflow: hidden; transition: box-shadow var(--motion-fast, 140ms) ease; }
 .historyItem summary { display: flex; align-items: center; gap: 16px; padding: 20px; cursor: pointer; min-height: 80px; list-style: none; }
 .historyItem summary::-webkit-details-marker { display: none; }
-.historyItem summary::after { content: '+'; font-size: 25px; margin-left: auto; flex-shrink: 0; }
-.historyItem[open] summary::after { content: '−'; }
-.historyScore { display: grid; place-items: center; width: 56px; height: 56px; flex-shrink: 0; border: 1px solid var(--color-ink); border-radius: 14px; background: var(--color-buttercream); font-family: var(--font-title); font-size: 25px; font-weight: 700; }
+.historyItem summary::after { content: '+'; font-size: 25px; margin-left: auto; flex-shrink: 0; transition: transform var(--motion-ui, 220ms) var(--ease-out, ease-out); }
+.historyItem[open] summary::after { content: '−'; transform: rotate(180deg); }
+.historyScore { display: grid; place-items: center; width: 56px; height: 56px; flex-shrink: 0; border: 1px solid var(--color-ink); border-radius: 14px; background: var(--color-buttercream); font-family: var(--font-title); font-size: 25px; font-weight: 700; transition: transform var(--motion-fast, 140ms) var(--ease-out, ease-out); }
+.historyItem[open] .historyScore { animation: saved-settle var(--motion-ui, 220ms) var(--ease-out, ease-out); }
 .historyTitle { display: grid; gap: 5px; min-width: 0; }
 .historyTitle strong { font-size: 16px; word-break: keep-all; overflow-wrap: anywhere; }
 .historyTitle small { color: var(--color-text-secondary); font-size: 12px; }
@@ -91,18 +92,38 @@
 .missionTop > a { min-height: 48px; display: inline-flex; align-items: center; }
 .missionTop .save { margin: 0; border: 1px solid var(--color-ink); background: var(--color-surface); }
 .loading { display: grid; gap: 14px; padding: 26px; min-height: 220px; border: 1px solid var(--color-line); border-radius: 20px; background: var(--color-surface); align-content: start; }
-.loading span { display: block; height: 16px; border-radius: 5px; background: var(--color-canvas); width: 85%; }
+.loading span { display: block; height: 16px; border-radius: 5px; background: var(--color-canvas); width: 85%; animation: loading-pulse 1.3s ease-in-out infinite alternate; }
 .loading span:first-child { width: 50%; height: 28px; }
-.loading span:last-child { width: 65%; }
+.loading span:last-child { width: 65%; animation-delay: 180ms; }
 @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .page { gap: 26px; } .hero { grid-template-columns: 1fr; gap: 22px; } .heroArt { display: none; } .twoColumns { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } .stats { gap: 9px; } .stat { padding: 16px 12px; } .stat dd { font-size: 26px; } .stat dt { font-size: 11px; } .filterRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .filters { padding: 20px; } .panel { padding: 22px; } .historyItem summary { padding: 16px; gap: 12px; } .historyBody { padding: 0 18px 20px; } .historyBody dl { gap: 6px; } .historyBody dl > div { padding: 10px 8px; } }
 @keyframes saved-settle { from { transform: scale(.85) rotate(-8deg); } to { transform: scale(1) rotate(0); } }
+@keyframes day-enter { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes loading-pulse { from { opacity: .55; } to { opacity: 1; } }
 @keyframes journal-open { from { transform: translateY(6px); } to { transform: translateY(0); } }
 @media (hover: hover) and (pointer: fine) {
-  .save:hover:not(:disabled) { background: var(--color-surface); }
-  .card:has(.cardLink:hover) { transform: translateY(-2px); }
+  .hero:hover .wave i { transform: scaleY(1.24); }
+  .hero:hover .wave i:nth-child(2n) { transform: scaleY(.72); }
+  .hero:hover .wave i:nth-child(3n) { transform: scaleY(1.16); }
+  .hero:hover .heroArt { transform: translateY(-2px); box-shadow: 3px 3px 0 var(--color-ink); }
+  .stat:hover { transform: translateY(-2px); box-shadow: 3px 3px 0 var(--color-ink); }
+  .save:hover:not(:disabled) { background: var(--color-surface); transform: scale(1.08); }
+  .filterActions button:hover:not(:disabled) { transform: translateY(-1px); background: var(--color-action-soft); }
+  .day:hover { transform: translateY(-2px) scale(1.06); border-color: var(--color-ink); }
+  .historyItem:hover { box-shadow: 3px 3px 0 var(--color-ink); }
+  .card:has(.cardLink:hover) { transform: translateY(-2px); box-shadow: 5px 5px 0 var(--color-ink); }
   .cardLink:hover .cardExpression { color: var(--color-action-stroke); }
-  .cardLink:hover .arrow { transform: translateX(3px); }
+  .cardLink:hover .arrow { transform: translateX(3px); background: var(--color-action-soft); }
 }
-:global(html[data-motion="reduce"]) .card, :global(html[data-motion="reduce"]) .save, :global(html[data-motion="reduce"]) .arrow { transform: none !important; }
-@media (prefers-reduced-motion: reduce) { .save, .cardExpression, .card, .arrow { transition: none; } .save, .card, .arrow { transform: none !important; } .save > span, .historyBody { animation: none !important; } }
+:global(html[data-motion="reduce"]) .card, :global(html[data-motion="reduce"]) .save, :global(html[data-motion="reduce"]) .arrow,
+:global(html[data-motion="reduce"]) .heroArt, :global(html[data-motion="reduce"]) .stat, :global(html[data-motion="reduce"]) .day,
+:global(html[data-motion="reduce"]) .wave i, :global(html[data-motion="reduce"]) .filterActions button,
+:global(html[data-motion="reduce"]) .historyItem summary::after { transform: none !important; }
+:global(html[data-motion="reduce"]) .loading span, :global(html[data-motion="reduce"]) .week li { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .save, .cardExpression, .card, .arrow, .heroArt, .stat, .day, .wave i, .filterActions button, .historyItem summary::after { transition: none; }
+  .save, .card, .arrow, .heroArt, .stat, .day, .wave i, .filterActions button, .historyItem summary::after { transform: none !important; }
+  .save > span, .historyBody, .loading span, .week li, .historyScore { animation: none !important; }
+}
+/* iOS Safari zooms the page when a focused field is smaller than 16px; keep filter menus at 16px on phones. */
+@media (max-width: 767px) { .filterRow select { font-size: 16px; } }

@@ -5,6 +5,7 @@ export const LIMITS = {
   situationEn: { max: 200 }, comment: { max: 200 },
   scoringWav: { sampleRate: 16000, minMs: 500, maxMs: 20000, maxBytes: 700_000 },
   peerMedia: { maxBytes: 4_000_000, maxMs: 20000 }, recorder: { maxSeconds: 15, minMs: 500 }, silenceRms: 0.01,
+  postImage: { maxBytes: 1_500_000, minSide: 120, maxSide: 2048, clientSide: 1280 }, postNote: { max: 200 }, groupName: { min: 2, max: 40 },
 } as const;
 export const SHARE_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 export const SYSTEM_USER_ID = '00000000-0000-4000-8000-000000000001';
@@ -53,7 +54,7 @@ export const AttemptSchema = z.object({ id: uuid, missionId: slug, score: ScoreS
 export type Attempt = z.infer<typeof AttemptSchema>;
 export const AttemptResultSchema = z.object({ attempt: AttemptSchema, balance: integer, bestOverall: scoreNumber, attemptsLeftToday: integer });
 export type AttemptResult = z.infer<typeof AttemptResultSchema>;
-export const PointReasonSchema = z.enum(['mission', 'peer_response', 'peer_rating', 'peer_feedback']);
+export const PointReasonSchema = z.enum(['mission', 'peer_response', 'peer_rating', 'peer_feedback', 'post']);
 export type PointReason = z.infer<typeof PointReasonSchema>;
 export const PointEventSchema = z.object({ id: uuid, delta: z.number().int(), reason: PointReasonSchema, label: z.string(), createdAt: timestamp });
 export type PointEvent = z.infer<typeof PointEventSchema>;

@@ -25,6 +25,7 @@ test('a Korean speaker and a learner complete one exchange in two browsers', asy
   await expect(learner.getByText('Sent. Minji will rate it.')).toBeVisible();
 
   await korean.getByRole('link', { name: 'Community', exact: true }).click();
+  await korean.getByRole('navigation', { name: 'Community' }).getByRole('link', { name: 'Challenges' }).click();
   await expect(korean.getByRole('heading', { name: /To rate \([1-9]\d*\)/ })).toBeVisible();
   await korean.getByRole('region', { name: /To rate/ }).getByRole('link').filter({ hasText: '이거 완전 꿀잼이야.' }).click();
   const card = korean.getByRole('article', { name: 'Answer from Aisha' });
@@ -56,6 +57,7 @@ test('a Korean speaker and a learner complete one exchange in two browsers', asy
   await expect(learner.getByText('Thanks. Your feedback was sent.')).toBeVisible();
 
   await learner.getByRole('link', { name: 'Community', exact: true }).click();
+  await learner.getByRole('navigation', { name: 'Community' }).getByRole('link', { name: 'Challenges' }).click();
   await expect(learner.getByRole('region', { name: 'Your feedback inbox' }).getByText('Your answer was rated')).toBeVisible();
   await learner.getByRole('region', { name: 'Your feedback inbox' }).getByRole('link').click();
   await expect(learner.getByText('Thanks. Your feedback was sent.')).toBeVisible();

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getMission, getRewards } from '@/lib/content';
 import { Hero, HowItWorks, IntroFooter, IntroHeader, PeerExchange, Questions, RewardsPreview, Why } from '@/components/intro';
 import { TryNow } from '@/components/intro/TryNow';
+import { LandingMotion } from '@/components/intro/LandingMotion';
 import styles from '@/components/intro/intro.module.css';
 
 export const metadata: Metadata = {
@@ -12,5 +13,5 @@ export const metadata: Metadata = {
 };
 export default function IntroPage() {
   const mission = getMission('cafe-iced-americano')!;
-  return <div className={styles.page}><a className="hl-skip-link" href="#try">Skip to the practice mission</a><IntroHeader /><main><Hero /><HowItWorks /><Why /><PeerExchange /><TryNow mission={mission} /><RewardsPreview rewards={getRewards()} /><Questions /></main><IntroFooter /></div>;
+  return <div className={styles.page}><a className="hl-skip-link" href="#try">Skip to the practice mission</a><LandingMotion /><IntroHeader /><main><Hero /><HowItWorks /><Why /><PeerExchange /><TryNow mission={mission} /><RewardsPreview rewards={getRewards()} /><Questions /></main><IntroFooter /></div>;
 }

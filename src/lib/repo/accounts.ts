@@ -147,6 +147,11 @@ export async function createAccountExport(user: User): Promise<ReadableStream<Ui
     ['responses', 'select id,challenge_id as "challengeId",media_kind as "mediaKind",duration_ms as "durationMs",status,rating_pronunciation as "ratingPronunciation",rating_naturalness as "ratingNaturalness",rating_comment as "ratingComment",rated_at as "ratedAt",feedback_helpfulness as "feedbackHelpfulness",feedback_comment as "feedbackComment",feedback_at as "feedbackAt",created_at as "createdAt" from hanlog.challenge_responses where responder_id = $1'],
     ['ratingsGiven', 'select id,challenge_id as "challengeId",rating_pronunciation as "pronunciation",rating_naturalness as "naturalness",rating_comment as "comment",rated_at as "ratedAt" from hanlog.challenge_responses where rater_id = $1'],
     ...(reportsTable.present ? [['reports', 'select id,challenge_id as "challengeId",response_id as "responseId",reason,status,created_at as "createdAt",reviewed_at as "reviewedAt" from hanlog.community_reports where reporter_id = $1']] : []),
+    ['posts', 'select id,korean,meaning_en as "meaningEn",note,width,height,status,(image_path is not null) as "photoAvailable",created_at as "createdAt" from hanlog.posts where author_id = $1'],
+    // The pager appends "and id::text > $2", so joined sections expose one unambiguous id through a derived table.
+    ['likedPosts', 'select id,"likedAt" from (select post_id as id,created_at as "likedAt",user_id from hanlog.post_likes) liked where user_id = $1'],
+    ['postReports', 'select id,post_id as "postId",reason,status,created_at as "createdAt" from hanlog.post_reports where reporter_id = $1'],
+    ['groups', 'select id,name,code,"isOwner","joinedAt" from (select g.id,g.name,g.code,(g.owner_id = m.user_id) as "isOwner",m.joined_at as "joinedAt",m.user_id from hanlog.group_members m join hanlog.groups g on g.id = m.group_id) joined where user_id = $1'],
   ];
   async function* document() {
     yield JSON.stringify({ formatVersion: 1, exportedAt: new Date().toISOString(), profile: user, savedMissions: saved }).slice(0, -1);

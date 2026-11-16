@@ -1,0 +1,27 @@
+/* A phone drawn in the Open Window language: ink body, pink offset shadow, the real app chrome inside. */
+.device { position:relative; width:300px; aspect-ratio:300 / 620; padding:9px; border-radius:46px; background:var(--color-ink); box-shadow:10px 10px 0 var(--color-action); color:var(--color-ink); text-align:left; user-select:none; }
+.device::before, .device::after { content:''; position:absolute; width:4px; border-radius:4px 0 0 4px; background:var(--color-ink); left:-4px; }
+.device::before { top:112px; height:34px; }
+.device::after { top:156px; height:56px; }
+.screen { position:relative; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; height:100%; overflow:hidden; border-radius:37px; background:var(--color-canvas); }
+
+.status { position:relative; display:flex; align-items:center; justify-content:space-between; height:34px; padding:0 24px 0 28px; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+.island { position:absolute; top:9px; left:50%; width:82px; height:22px; margin-left:-41px; border-radius:999px; background:var(--color-ink); }
+.indicators { display:flex; align-items:flex-end; gap:2px; height:10px; }
+.indicators i { display:block; width:3px; border-radius:1px; background:var(--color-ink); }
+.indicators i:nth-child(1) { height:4px; } .indicators i:nth-child(2) { height:7px; } .indicators i:nth-child(3) { height:10px; }
+.indicators b { display:block; width:18px; height:9px; margin-left:4px; border:1.5px solid var(--color-ink); border-radius:3px; background:linear-gradient(90deg,var(--color-ink) 70%,transparent 70%) content-box; padding:1px; }
+
+.appHeader { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 14px 9px; border-bottom:1.5px solid var(--color-ink); }
+.wordmark { display:inline-flex; align-items:center; gap:5px; font:700 16px/1 var(--font-title); letter-spacing:-.05em; }
+.brand { width:20px; height:20px; }
+.points { padding:4px 9px; border:1.5px solid var(--color-ink); border-radius:999px; background:var(--color-buttercream); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; animation:pointsBump 420ms var(--ease-out); }
+.body { min-height:0; overflow:hidden; padding:12px; }
+
+.tabbar { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; padding:6px 8px 16px; border-top:1.5px solid var(--color-ink); background:var(--color-surface); }
+.tabbar span { display:grid; justify-items:center; gap:2px; padding:5px 0; border-radius:9px; color:var(--color-text-secondary); font-size:9px; font-weight:600; }
+.tabbar .activeTab { background:var(--color-action-soft); color:var(--color-action-stroke); }
+
+@keyframes pointsBump { 0% { transform:scale(1); } 40% { transform:scale(1.14); background:var(--color-action-soft); } 100% { transform:scale(1); } }
+:global(html[data-motion=reduce]) .points { animation:none; }
+@media (prefers-reduced-motion:reduce) { .points { animation:none; } }

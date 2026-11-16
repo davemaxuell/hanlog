@@ -40,9 +40,9 @@ export function TryNow({ mission, convert, deps }: { mission: Mission; convert?:
     {!consent || !ready ? <Surface tone="apricot"><div className={styles.tryIntro}><Ko className={styles.trySentence}>{mission.korean}</Ko><p>{mission.meaningEn}</p></div></Surface> : null}
     <div><label className={styles.consent}><input type="checkbox" checked={consent} onChange={event => { const checked = event.target.checked; setConsent(checked); if (checked) prepare(); else setScored(false); }} /><span>{consentCopy}</span></label><Link className={styles.textLink} href="/privacy">Read the privacy notice</Link></div>
     {!consent && <p className={styles.muted}>Tick the box to turn on the recorder.</p>}
-    {consent && busy && <p role="status">Getting your practice space ready…</p>}
+    {consent && busy && <p role="status" className={styles.tryStatus}>Getting your practice space ready…</p>}
     {consent && error && <div className="hl-stack-sm"><StatusNote tone="error">{errorCopy(error) || errorCopy('internal')}</StatusNote>{error === 'daily_limit' && <p className={styles.muted}>The guest limit can be shared by people on the same network. You can still explore this page.</p>}<div><Button variant="secondary" onClick={prepare}>Try again</Button></div></div>}
-    {consent && ready && <MissionFlow mission={mission} convert={convert} deps={deps} onScored={() => setScored(true)} {...{ headingLevel: 2 as const }} />}
-    {consent && scored && <Link className="hl-link-button" href="/app">Keep going in the app</Link>}
+    {consent && ready && <div className={styles.tryStageReveal}><MissionFlow mission={mission} convert={convert} deps={deps} onScored={() => setScored(true)} {...{ headingLevel: 2 as const }} /></div>}
+    {consent && scored && <div className={styles.keepGoingReveal}><Link className="hl-link-button" href="/app">Keep going in the app</Link></div>}
   </div></IntroReveal>;
 }

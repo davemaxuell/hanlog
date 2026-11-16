@@ -10,7 +10,7 @@ it('creates every table in schema hanlog with row level security on', async () =
   const rows = await db.query<{ relname: string; relrowsecurity: boolean }>(
     `select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace
      where n.nspname = 'hanlog' and c.relkind = 'r' order by c.relname`);
-  expect(rows.map((r) => r.relname)).toEqual(['attempts', 'challenge_responses', 'challenges', 'community_reports', 'pending_media_deletions', 'point_events', 'recovery_attempt_limits', 'saved_missions', 'schema_migrations', 'scoring_calls', 'session_creation_limits', 'users']);
+  expect(rows.map((r) => r.relname)).toEqual(['attempts', 'challenge_responses', 'challenges', 'community_reports', 'group_members', 'groups', 'pending_media_deletions', 'point_events', 'post_likes', 'post_reports', 'posts', 'recovery_attempt_limits', 'saved_missions', 'schema_migrations', 'scoring_calls', 'session_creation_limits', 'users']);
   expect(rows.filter((r) => r.relname !== 'schema_migrations').every((r) => r.relrowsecurity)).toBe(true);
 });
 it('is idempotent', async () => {

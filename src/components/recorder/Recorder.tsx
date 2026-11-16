@@ -10,7 +10,7 @@ function Preview({ blob, kind }: { blob: Blob; kind: MediaKind }) {
     if (element) element.src = url;
     return () => { element?.removeAttribute('src'); URL.revokeObjectURL(url); };
   }, [blob]);
-  return kind === 'video' ? <video ref={element => { media.current = element; }} controls playsInline aria-label="Recording preview" className="hl-media" /> : <audio ref={element => { media.current = element; }} controls aria-label="Recording preview" className="hl-media" />;
+  return kind === 'video' ? <video ref={element => { media.current = element; }} controls playsInline aria-label="Recording preview" className="hl-media hl-media-enter" /> : <audio ref={element => { media.current = element; }} controls aria-label="Recording preview" className="hl-media hl-media-enter" />;
 }
 function LiveVideo({ stream }: { stream: MediaStream }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -52,7 +52,7 @@ export function Recorder({ modes, submitLabel, onSubmit, onReset, onActivityChan
     {recorded && <Preview blob={recorded.blob} kind={recorded.kind} />}
     <div className="hl-capture-panel" data-state={captureState}>
       <div aria-live="polite" className="hl-recording-status">{recorder.status === 'recording' && <span className="hl-recording-dot" aria-hidden="true" />}{recorder.status === 'requesting' ? 'Allow microphone access to begin.' : recorder.status === 'recording' ? 'Recording your voice…' : recorded ? guardPendingRecording ? `Choose ${submitLabel}, or Retake to discard this clip before changing scenes.` : 'Ready when you are. Listen back before sending.' : 'Your next conversation starts here.'}</div>
-      {recorder.status === 'recording' && <><span className="hl-timer">0:{String(Math.floor(recorder.elapsedMs / 1000)).padStart(2, '0')} / 0:15</span><div className="hl-level" role="meter" aria-label="Microphone level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(inputLevel * 100)}><span style={{ transform: `scaleX(${inputLevel})` }} /></div></>}
+      {recorder.status === 'recording' && <><span className="hl-timer">0:{String(Math.floor(recorder.elapsedMs / 1000)).padStart(2, '0')} / 0:15</span><div className="hl-level-row"><div className="hl-level" role="meter" aria-label="Microphone level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(inputLevel * 100)}><span style={{ transform: `scaleX(${inputLevel})` }} /></div><div className="hl-level-bars" aria-hidden="true">{[0.65, 0.9, 1.0, 0.85, 0.6].map((weight, idx) => <i key={idx} style={{ transform: `scaleY(${(0.22 + inputLevel * weight * 0.78).toFixed(3)})` }} />)}</div></div></>}
       <div className="hl-actions">
         {recorder.status === 'recording' ? <Button onClick={recorder.stop}><span aria-hidden="true" className="hl-stop-icon" />Stop</Button> : !recorded && <Button busy={recorder.status === 'requesting' || recorder.status === 'stopping'} busyLabel={recorder.status === 'stopping' ? 'Finishing recording…' : 'Asking for permission…'} disabled={busy} onClick={() => void recorder.start()}><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="7" y="2" width="6" height="10" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v3m-3 0h6" stroke="currentColor" strokeWidth="1.5"/></svg>Record</Button>}
         {recorder.status === 'requesting' && <Button variant="secondary" onClick={reset}>Cancel microphone request</Button>}

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { onboard } from './helpers';
 
 const PUBLIC = ['/', '/privacy', '/help', '/app/onboarding'];
-const SIGNED_IN = ['/app', '/app/missions', '/app/progress', '/app/challenges', '/app/rewards', '/app/me'];
+const SIGNED_IN = ['/app', '/app/missions', '/app/progress', '/app/challenges', '/app/rewards', '/app/me', '/app/feed', '/app/feed/new', '/app/leaderboard', '/app/groups'];
 const WIDTHS = [320, 390, 768, 1440];
 
 const check = async (page: import('@playwright/test').Page, path: string) => {

@@ -5,7 +5,7 @@ import Privacy from '@/app/privacy/page';
 it('says what is collected, where it goes, how long it stays, and how to delete it', () => {
   const { container } = render(<Privacy />);
   expect(screen.getByRole('heading', { level: 1, name: 'Privacy notice' })).toBeInTheDocument();
-  expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Who runs this', 'What we collect', 'Recovery keys and sessions', 'Where it goes', 'How long we keep it', 'Export or delete your data', 'Age']);
+  expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Who runs this', 'What we collect', 'Feed, leaderboards and groups', 'Recovery keys and sessions', 'Where it goes', 'How long we keep it', 'Export or delete your data', 'Age']);
   const text = container.textContent ?? '';
   for (const fact of ['nickname', 'OpenAI', 'Supabase', 'Vercel', '14 days', 'Delete my data', '14 or older', 'not saved'])
     expect(text).toContain(fact);

@@ -20,11 +20,24 @@ export async function queueMediaRemoval(path: string, ownership: MediaOwnership,
     await insert(tx);
   });
 }
+/** Registers a post photo before upload, so a crash between storage and the database row cannot leave an owned orphan. */
+export async function queuePostMediaRemoval(path: string, ownerId: string, db?: Db): Promise<void> {
+  assertSafeMediaPath(path);
+  const insert = (tx: Db) => tx.query(`insert into hanlog.pending_media_deletions(path, owner_id) values ($1,$2)
+    on conflict(path) do update set owner_id = excluded.owner_id, challenge_id = null, challenge_author_id = null`, [path, ownerId]);
+  if (db) { await insert(db); return; }
+  await (await getDb()).tx(async tx => {
+    await tx.query('select pg_advisory_xact_lock(hashtext($1))', [ownerId]);
+    if (!(await tx.query('select id from hanlog.users where id = $1', [ownerId])).length) throw new ApiError('unauthenticated');
+    await insert(tx);
+  });
+}
 export async function finishMediaRemoval(path: string): Promise<boolean> {
   return (await getDb()).tx(async db => {
     await lockMediaPaths(db, [path]);
     const [row] = await db.query<{ referenced: boolean }>(`select exists(select 1 from hanlog.challenges where reference_path = $1)
-      or exists(select 1 from hanlog.challenge_responses where media_path = $1) as referenced`, [path]);
+      or exists(select 1 from hanlog.challenge_responses where media_path = $1)
+      or exists(select 1 from hanlog.posts where image_path = $1) as referenced`, [path]);
     // A lost COMMIT reply does not mean rollback. Never compensate a committed file.
     if (row.referenced) return false;
     await getMediaStore().remove([path]);

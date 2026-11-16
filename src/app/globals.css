@@ -86,10 +86,12 @@ h1, h2, h3, p { margin: 0; }
 .hl-status--success .hl-status-icon { background: var(--color-action-stroke); color: var(--color-surface); }
 .hl-star-field { min-width: 0; border: 0; padding: 0; margin: 0; }
 .hl-stars { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.hl-stars label { position: relative; min-width: 48px; flex: 1; display: grid; place-items: center; min-height: 48px; border: 1px solid var(--color-control-edge); border-radius: var(--radius-field); background: var(--color-surface); cursor: pointer; }
+.hl-stars label { position: relative; min-width: 48px; flex: 1; display: grid; place-items: center; min-height: 48px; border: 1px solid var(--color-control-edge); border-radius: var(--radius-field); background: var(--color-surface); cursor: pointer; transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
 .hl-stars input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 .hl-stars label:has(:focus-visible) { outline: 3px solid var(--color-action-stroke); outline-offset: 3px; }
-.hl-stars label.is-selected { border: 2px solid var(--color-action-stroke); background: var(--color-action-soft); }
+.hl-stars label.is-filled { background: var(--color-action-soft); border-color: var(--color-action); }
+.hl-stars label.is-preview { border-color: var(--color-action-stroke); background: var(--color-buttercream); transform: translateY(-2px); }
+.hl-stars label.is-selected { border: 2px solid var(--color-action-stroke); background: var(--color-action-soft); animation: hl-star-pop var(--motion-ui) var(--ease-out); }
 .hl-stars-read { display: grid; gap: 4px; color: var(--color-action-stroke); font-size: 24px; }
 .hl-caption { color: var(--color-text-secondary); font-size: 13px; }
 .hl-meter { display: grid; gap: 8px; }
@@ -111,8 +113,12 @@ h1, h2, h3, p { margin: 0; }
 .hl-capture-panel { display:grid; gap:16px; padding:24px; border:1px solid var(--color-control-edge); border-radius:var(--radius-sheet); background:var(--color-surface); }
 .hl-recording-status { color:var(--color-text-secondary); font-size:14px; }
 .hl-timer { font-variant-numeric:tabular-nums; font-size:24px; }
-.hl-level { max-width:240px; height:6px; border-radius:3px; background:var(--color-line); }
+.hl-level-row { display:flex; align-items:center; gap:12px; max-width:296px; }
+.hl-level { flex:1; max-width:240px; height:6px; border-radius:3px; background:var(--color-line); overflow:hidden; }
 .hl-level span { display:block; width:100%; height:100%; border-radius:3px; background:var(--color-action-stroke); transform-origin:left center; transition:transform 110ms linear; }
+.hl-level-bars { display:flex; align-items:center; gap:3px; height:22px; flex:none; }
+.hl-level-bars i { display:block; width:4px; height:100%; border-radius:3px; background:var(--color-action-stroke); transform-origin:center; transition:transform 90ms ease-out; }
+.hl-media-enter { animation:hl-arrive var(--motion-ui) var(--ease-out); }
 .hl-stop-icon { width:12px; height:12px; background:currentColor; }
 .hl-media { display:block; width:100%; max-width:100%; border-radius:var(--radius-media); }
 video.hl-media { max-height:420px; object-fit:contain; background:var(--color-ink); }
@@ -135,7 +141,8 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-fit { justify-self:start; }
 .hl-empty { padding:24px; border:1px dashed var(--color-control-edge); border-radius:var(--radius-media); color:var(--color-text-secondary); }
 .hl-sample-label { display:inline-block; margin-left:8px; padding:2px 6px; border:1px solid var(--color-control-edge); border-radius:var(--radius-badge); background:var(--color-buttercream); color:var(--color-ink); font-size:12px; }
-.hl-share-code { font-size:clamp(32px,7vw,48px); font-weight:600; letter-spacing:.12em; font-variant-numeric:tabular-nums; }
+.hl-share-code { display:inline-block; width:fit-content; padding:2px 6px; margin:-2px -6px; border-radius:var(--radius-field); font-size:clamp(32px,7vw,48px); font-weight:600; letter-spacing:.12em; font-variant-numeric:tabular-nums; }
+.hl-share-code[data-copied=true] { animation:hl-code-flash 460ms var(--ease-out); }
 .hl-form-fields { margin:0; padding:0; border:0; min-width:0; }
 .hl-dialog { width:min(480px,calc(100% - 32px)); max-height:calc(100dvh - 48px); overflow:auto; margin:auto; padding:24px; border:1px solid var(--color-control-edge); border-radius:var(--radius-sheet); background:var(--color-surface); color:var(--color-ink); }
 .hl-dialog::backdrop { background:rgb(30 36 54 / .45); }
@@ -196,13 +203,17 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-role-options input, .hl-consent input { flex:0 0 20px; width:20px; height:20px; accent-color:var(--color-action-stroke); }
 .hl-consent { display:flex; align-items:flex-start; gap:12px; min-height:48px; padding:12px 0; font-size:14px; line-height:1.6; cursor:pointer; }
 @media (min-width:768px) { .hl-margin-row { grid-template-columns:64px minmax(0,1fr); gap:24px; } }
-@media (max-width:359px) { .hl-margin-row { grid-template-columns:minmax(0,1fr); gap:8px; } .hl-margin-label { flex-direction:row; align-items:center; } .hl-surface { padding:16px; } }
+/* Phones: a 32px margin cannot hold "Level 1 · 10 pt" or "Points", so the label sits above its content. */
+@media (max-width:767px) { .hl-margin-row { grid-template-columns:minmax(0,1fr); gap:8px; } .hl-margin-label { flex-direction:row; align-items:center; flex-wrap:wrap; } }
+@media (max-width:359px) { .hl-surface { padding:16px; } }
 :focus-visible { outline: 3px solid var(--color-action-stroke); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 .hl-points-link { text-decoration:none; display:flex; align-items:center; min-height:48px; }
-.hl-points-link .hl-points { border:1.5px solid var(--color-ink); border-radius:100px; min-height:38px; padding:6px 12px; }
+.hl-points-link .hl-points { border:1.5px solid var(--color-ink); border-radius:100px; min-height:38px; padding:6px 12px; transition:transform var(--motion-fast) var(--ease-out), background-color var(--motion-fast) ease, box-shadow var(--motion-fast) var(--ease-out); }
+.hl-points--bump { animation:hl-points-bump 420ms var(--ease-out); }
+.hl-brand-mark path:last-child { transform-box:fill-box; transform-origin:center; transition:transform var(--motion-ui) var(--ease-out); }
 .hl-app-footer { display:flex; gap:20px; flex-wrap:wrap; align-items:center; margin-top:48px; padding-top:24px; border-top:1px solid var(--color-line); color:var(--color-text-secondary); font-size:13px; }
 .hl-app-footer a { min-height:44px; display:flex; align-items:center; }
 .hl-app-footer > span { margin-right:auto; }
@@ -210,6 +221,11 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-recovery-nudge { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; margin-bottom:28px; border:1px solid var(--color-ink); border-radius:12px; background:var(--color-buttercream); font-size:13px; }
 .hl-recovery-nudge a { display:flex; align-items:center; min-height:44px; font-weight:600; flex-shrink:0; }
 @media (min-width:1024px) { .hl-app-header { padding:16px 32px; flex-wrap:nowrap; } .hl-app-nav { position:static; border:0; padding:0; background:transparent; display:flex; gap:4px; order:0; } .hl-app-nav a { flex-direction:row; gap:7px; padding:8px 12px; font-size:13px; min-height:44px; } .hl-app-main { padding:40px 32px 64px; } }
+/* Phones and tablets: the page reaches the screen edges (viewport-fit=cover), so keep content and the tab bar clear of notches and the home indicator. */
+body { padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); }
+@media (max-width:1023px) { .hl-app-nav { padding-left:max(8px,env(safe-area-inset-left)); padding-right:max(8px,env(safe-area-inset-right)); } }
+/* A phone held sideways has little height: icon and label share one line so the tab bar stays slim. */
+@media (max-width:1023px) and (orientation:landscape) and (max-height:500px) { .hl-app-nav { padding-top:4px; padding-bottom:max(4px,env(safe-area-inset-bottom)); } .hl-app-nav a { flex-direction:row; gap:6px; min-height:44px; padding:4px 8px; font-size:12px; } .hl-app-main { padding-bottom:84px; } }
 @media (max-width:359px) { .hl-app-header { padding:12px 16px; gap:8px; } .hl-app-main { padding:24px 16px 112px; } .hl-wordmark { font-size:24px; } .hl-wordmark .hl-ko { display:none; } .hl-points-link .hl-points { font-size:12px; padding:4px 8px; } .hl-recovery-nudge { align-items:flex-start; flex-direction:column; gap:4px; } }
 
 /* A small, shared motion vocabulary. Controls never wait for these effects. */
@@ -219,8 +235,8 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-motion-toggle:disabled { opacity:1; cursor:default; }
 .hl-motion-toggle svg { flex-shrink:0; }
 .hl-busy-indicator { display:inline-block; flex:0 0 15px; width:15px; height:15px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:hl-spin 800ms linear infinite; }
-.hl-field input, .hl-field textarea, .hl-role-options label, .hl-mode-switch label, .hl-stars label { transition:background var(--motion-ui) ease, border-color var(--motion-fast) ease; }
-.hl-field input:focus, .hl-field textarea:focus { background:var(--color-surface); border-color:var(--color-action-stroke); }
+.hl-field input, .hl-field textarea, .hl-role-options label, .hl-mode-switch label, .hl-stars label { transition:background var(--motion-ui) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
+.hl-field input:focus, .hl-field textarea:focus { background:var(--color-surface); border-color:var(--color-action-stroke); box-shadow:0 0 0 3px var(--color-action-soft); }
 .hl-app-nav a svg, .hl-row-meta > span { transition:transform var(--motion-ui) var(--ease-out); }
 .hl-app-nav a[aria-current=page] svg { animation:hl-settle var(--motion-ui) var(--ease-out); }
 .hl-status:not(.hl-status--error), .hl-score-card { animation:hl-arrive var(--motion-scene) var(--ease-out); }
@@ -230,13 +246,21 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 .hl-score-card .hl-meter:nth-child(3) .hl-meter-track { animation-delay:90ms; }
 .hl-dialog[open] { animation:hl-dialog-enter var(--motion-ui) var(--ease-out); }
 .hl-dialog[open]::backdrop { animation:hl-backdrop var(--motion-ui) ease; }
-.hl-capture-panel { transition:border-color var(--motion-ui) ease, background var(--motion-ui) ease; }
-.hl-capture-panel[data-state=recording] { border-color:var(--color-action-stroke); background:var(--color-action-soft); }
-.hl-capture-panel[data-state=ready] { border-color:var(--color-action-stroke); }
+.hl-reveal-line { animation:hl-arrive var(--motion-ui) var(--ease-out); }
+.hl-score-card .hl-issue-list li { animation:hl-arrive var(--motion-ui) var(--ease-out) backwards; }
+.hl-score-card .hl-issue-list li:nth-child(2) { animation-delay:45ms; }
+.hl-score-card .hl-issue-list li:nth-child(3) { animation-delay:90ms; }
+.hl-score-card .hl-marker--filled { animation:hl-settle var(--motion-ui) var(--ease-out) 110ms backwards; }
+.hl-capture-panel { transition:border-color var(--motion-ui) ease, background var(--motion-ui) ease, box-shadow var(--motion-ui) ease; }
+.hl-capture-panel[data-state=recording] { border-color:var(--color-action-stroke); background:var(--color-action-soft); box-shadow:0 0 0 3px var(--color-action-soft); }
+.hl-capture-panel[data-state=ready] { border-color:var(--color-action-stroke); animation:hl-capture-ready var(--motion-ui) var(--ease-out); }
 .hl-capture-panel[data-state=busy] { background:var(--color-buttercream); }
 .hl-recording-dot { display:inline-block; width:8px; height:8px; margin-right:8px; vertical-align:middle; border-radius:50%; background:var(--color-action-stroke); animation:hl-recording 1600ms ease-in-out infinite; }
 @media (hover:hover) and (pointer:fine) {
   .hl-motion-toggle:hover:not(:disabled) { background:var(--color-surface); }
+  .hl-wordmark:hover .hl-brand-mark path:last-child { transform:rotate(28deg) scale(1.12); }
+  .hl-points-link:hover .hl-points { transform:translateY(-2px); box-shadow:0 3px 0 var(--color-ink); }
+  .hl-role-options label:hover, .hl-mode-switch label:hover { border-color:var(--color-ink); transform:translateY(-1px); }
   .hl-button:hover:not(:disabled):not(:active):not(:focus-visible), .hl-link-button:hover:not(:active):not(:focus-visible) { transform:translateY(-1px); }
   .hl-button--text:hover:not(:disabled):not(:active) { transform:none; }
   .hl-app-nav a:hover:not(:focus-visible) svg { transform:translateY(-2px); }
@@ -245,12 +269,28 @@ video.hl-media { max-height:420px; object-fit:contain; background:var(--color-in
 @keyframes hl-spin { to { transform:rotate(360deg); } }
 @keyframes hl-arrive { from { transform:translateY(7px); } to { transform:translateY(0); } }
 @keyframes hl-settle { from { transform:scale(.91); } to { transform:scale(1); } }
+@keyframes hl-star-pop { 0% { transform:scale(.93); } 55% { transform:scale(1.04); } 100% { transform:scale(1); } }
+@keyframes hl-points-bump { 0% { transform:scale(1); } 45% { transform:scale(1.1); background:var(--color-action-soft); } 100% { transform:scale(1); } }
+@keyframes hl-code-flash { 0% { background:transparent; transform:scale(1); } 40% { background:var(--color-action-soft); transform:scale(1.03); } 100% { background:transparent; transform:scale(1); } }
+@keyframes hl-capture-ready { 0% { box-shadow:0 0 0 0 var(--color-action-soft); } 60% { box-shadow:0 0 0 4px var(--color-action-soft); } 100% { box-shadow:0 0 0 0 transparent; } }
 @keyframes hl-fill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 @keyframes hl-dialog-enter { from { transform:translateY(8px) scale(.985); } to { transform:translateY(0) scale(1); } }
 @keyframes hl-backdrop { from { opacity:0; } to { opacity:1; } }
 @keyframes hl-recording { 50% { transform:scale(1.25); opacity:.65; } }
 html[data-motion=reduce] *, html[data-motion=reduce] *::before, html[data-motion=reduce] *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
-html[data-motion=reduce] :is(.hl-button,.hl-link-button):is(:active,:hover), html[data-motion=reduce] .hl-app-nav a svg, html[data-motion=reduce] .hl-row-meta > span { transform:none !important; }
+html[data-motion=reduce] :is(.hl-button,.hl-link-button,.hl-stars label,.hl-role-options label,.hl-mode-switch label):is(:active,:hover), html[data-motion=reduce] .hl-app-nav a svg, html[data-motion=reduce] .hl-row-meta > span, html[data-motion=reduce] .hl-points-link:hover .hl-points, html[data-motion=reduce] .hl-wordmark:hover .hl-brand-mark path:last-child { transform:none !important; }
 @media (prefers-reduced-motion:reduce) {
-  :is(.hl-button,.hl-link-button):is(:active,:hover), .hl-app-nav a svg, .hl-row-meta > span { transform:none !important; }
+  :is(.hl-button,.hl-link-button,.hl-stars label,.hl-role-options label,.hl-mode-switch label):is(:active,:hover), .hl-app-nav a svg, .hl-row-meta > span, .hl-points-link:hover .hl-points, .hl-wordmark:hover .hl-brand-mark path:last-child { transform:none !important; }
 }
+/* Motion library layer: shared nav pill and loading dots. */
+.hl-app-nav a { position:relative; isolation:isolate; }
+.hl-app-nav a[aria-current=page] { background:transparent; }
+.hl-nav-pill { position:absolute; inset:0; z-index:-1; border-radius:12px; background:var(--color-action-soft); }
+.hl-jumping { display:inline-flex; align-items:center; gap:10px; color:var(--color-text-secondary); }
+.hl-jumping > span[aria-hidden] { display:inline-flex; gap:5px; }
+.hl-jumping i { width:8px; height:8px; border-radius:50%; background:var(--color-action-stroke); animation:hl-jump 900ms var(--ease-out) infinite; }
+.hl-jumping i:nth-child(2) { animation-delay:120ms; } .hl-jumping i:nth-child(3) { animation-delay:240ms; }
+.hl-jumping > span[aria-hidden]:last-child { display:inline; }
+@keyframes hl-jump { 0%, 60%, 100% { transform:translateY(0); } 30% { transform:translateY(-7px); } }
+html[data-motion=reduce] .hl-jumping i { animation:none; }
+@media (prefers-reduced-motion: reduce) { .hl-jumping i { animation:none; } }

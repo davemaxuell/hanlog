@@ -7,6 +7,7 @@ import { SHARE_CODE_ALPHABET } from '@/lib/contracts';
 import { Button, Ko } from '@/components/ui';
 import { ChallengeSection, FeedbackInbox } from '@/components/challenge/CommunitySections';
 import styles from '@/components/challenge/community.module.css';
+import { CommunityTabs } from '@/components/social/SocialParts';
 
 export default function Challenges() {
   const { user } = useSession(); const korean = user.role === 'korean'; const router = useRouter();
@@ -14,6 +15,7 @@ export default function Challenges() {
   const [code, setCode] = useState(''); const [codeError, setCodeError] = useState('');
   const firstScope = korean ? 'to-rate' : 'open'; const secondScope = korean ? 'mine' : 'answered';
   return <div className="hl-stack">
+    <CommunityTabs />
     <header className={styles.hero}>
       <div className={styles.heroCopy}><p className="hl-eyebrow">Korean, between people</p><h1>Small words.<br />Real connections.</h1><p>{korean ? 'Share the expressions you actually use. Give someone the confidence to join in.' : 'Try an everyday expression. Share your voice and learn from a Korean-speaking peer.'}</p>
         {korean ? <Link className="hl-button hl-button--primary hl-fit" href="/app/challenges/new">Post a challenge</Link> : <a className="hl-button hl-button--primary hl-fit" href="#challenges-first">Find a challenge</a>}

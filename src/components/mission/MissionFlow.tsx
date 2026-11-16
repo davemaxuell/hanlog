@@ -47,10 +47,10 @@ export function MissionFlow({ mission, nextHref, onScored, onActivityChange, bef
         {romanizationToggle}
         {referenceControls}
       </div>
-      {romanization && <p className="hl-caption">{mission.romanization}</p>}
+      {romanization && <p className="hl-caption hl-reveal-line">{mission.romanization}</p>}
       {referenceAudio}
     </> : <>
-      <MarginRow label={<>Level {mission.level}<span className="hl-caption">{mission.basePoints} pt</span></>}><header className="hl-stack-sm"><p className="hl-eyebrow">{mission.mode === 'repeat' ? 'One sentence. Your own voice.' : 'Your words, your way.'}</p><Ko as={headingLevel === 1 ? 'h1' : 'h2'} className="hl-mission-expression">{mission.korean}</Ko>{romanizationToggle}{romanization && <p className="hl-caption">{mission.romanization}</p>}<p className="hl-meaning">{mission.meaningEn}</p></header></MarginRow>
+      <MarginRow label={<>Level {mission.level}<span className="hl-caption">{mission.basePoints} pt</span></>}><header className="hl-stack-sm"><p className="hl-eyebrow">{mission.mode === 'repeat' ? 'One sentence. Your own voice.' : 'Your words, your way.'}</p><Ko as={headingLevel === 1 ? 'h1' : 'h2'} className="hl-mission-expression">{mission.korean}</Ko>{romanizationToggle}{romanization && <p className="hl-caption hl-reveal-line">{mission.romanization}</p>}<p className="hl-meaning">{mission.meaningEn}</p></header></MarginRow>
       <CornerMark><Surface tone="apricot"><div className="hl-stack-sm"><h2 className="hl-note-heading">Where to say it</h2><p>{mission.situationEn}</p></div></Surface></CornerMark>
       <p className="hl-instruction">{mission.promptEn}</p>
       {mission.referenceAudio && <div className="hl-stack-sm">{referenceControls}{referenceAudio}</div>}

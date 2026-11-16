@@ -1,12 +1,12 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, ArrowUpRight, ArrowsOut, ArrowsIn, Microphone, ArrowCounterClockwise, CheckCircle, SlidersHorizontal } from '@phosphor-icons/react';
 import type { AttemptResult, Mission } from '@/lib/contracts';
 import type { SampleChallenge } from '@/lib/content';
 import { BrandMark } from '@/components/ui/BrandMark';
 import { Button, Ko } from '@/components/ui';
-import { MotionToggle } from '@/components/motion/MotionPreference';
+import { MotionToggle, useMotionPreference } from '@/components/motion/MotionPreference';
 import { LivePractice } from './LivePractice';
 import { DemoPreparation } from './DemoPreparation';
 import { DemoFeedback } from './DemoFeedback';
@@ -25,7 +25,30 @@ export function DemoExperience({ mission, challenge, missionCount }: { mission: 
   const [profileNotice, setProfileNotice] = useState('');
   const [fullscreen, setFullscreen] = useState(false); const [canFullscreen, setCanFullscreen] = useState(false); const [screenError, setScreenError] = useState('');
   const shell = useRef<HTMLDivElement>(null); const stage = useRef<HTMLElement>(null); const setupDialog = useRef<HTMLDialogElement>(null); const setupButton = useRef<HTMLButtonElement>(null);
+  const windowRef = useRef<HTMLDivElement>(null);
+  const motionPref = useMotionPreference();
+  const reducedMotion = motionPref?.reduced ?? false;
   const previousScene = useRef('example-0');
+  const isReducedMotion = () =>
+    reducedMotion || Boolean(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const handleWindowMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || isReducedMotion() || !windowRef.current) return;
+    const rect = windowRef.current.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const nx = (event.clientX - rect.left) / rect.width - 0.5;
+    const ny = (event.clientY - rect.top) / rect.height - 0.5;
+    windowRef.current.style.setProperty('--tilt-x', `${(-ny * 5).toFixed(2)}deg`);
+    windowRef.current.style.setProperty('--tilt-y', `${(nx * 6).toFixed(2)}deg`);
+    windowRef.current.style.setProperty('--sky-x', `${(nx * 14).toFixed(1)}px`);
+    windowRef.current.style.setProperty('--sky-y', `${(ny * 10).toFixed(1)}px`);
+  };
+  const resetWindowTilt = () => {
+    if (!windowRef.current) return;
+    windowRef.current.style.setProperty('--tilt-x', '0deg');
+    windowRef.current.style.setProperty('--tilt-y', '0deg');
+    windowRef.current.style.setProperty('--sky-x', '0px');
+    windowRef.current.style.setProperty('--sky-y', '0px');
+  };
   const canVisit = useCallback((index: number) => !(mode === 'live' && !result && (index === 1 || index === 3)), [mode, result]);
   const go = useCallback((index: number, source: MotionSource = 'pointer') => {
     if (active || preparing || index === scene || index < 0 || index >= scenes.length || !canVisit(index)) return;
@@ -109,7 +132,7 @@ export function DemoExperience({ mission, challenge, missionCount }: { mission: 
             <div className={styles.facts}><p><strong>15s</strong><span>to say something</span></p><p><strong>{missionCount}</strong><span>everyday expressions</span></p></div>
             {mode === 'live' && <p className={styles.liveContext}>{mission.situationEn}</p>}
           </div>
-          {mode === 'example' ? <div className={styles.window}>
+          {mode === 'example' ? <div ref={windowRef} className={styles.window} onPointerMove={handleWindowMove} onPointerLeave={resetWindowTilt}>
             <div className={styles.arch} aria-hidden="true"><span className={styles.sun} /><span className={styles.star}>✦</span><div className={styles.mullion} /></div>
             <div className={styles.expression}>
               <p className={styles.context}>A moment at the café</p>

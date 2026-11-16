@@ -12,6 +12,7 @@ import { Button, Field, Ko, StatusNote } from '@/components/ui';
 import { downloadBlob } from '@/components/account/RecoveryKeyNotice';
 import { useRecoveryKey } from '@/components/account/RecoveryKeyProvider';
 import styles from '@/components/account/account.module.css';
+import { LeaderboardSettings } from '@/components/social/LeaderboardSettings';
 
 export default function Me() {
   const { user, setUser, endSession } = useSession(); const sessionExpired = useSessionExpired();
@@ -70,6 +71,7 @@ export default function Me() {
           <Link href="/help#recovery">How recovery works</Link>
         </>
       </section>
+      <LeaderboardSettings className={styles.section} headerClassName={styles.sectionHeader} />
       <section className={styles.section} aria-labelledby="data-heading"><div className={styles.sectionHeader}><DownloadSimple size={28} aria-hidden="true" /><h2 id="data-heading">Your learning, to keep</h2></div><p>Download your profile, practice history, points, and written contributions as a JSON file. Recovery keys and recordings are not included.</p><div><Button variant="secondary" disabled={busy} onClick={() => void exportData()}>Download my data</Button></div><div className={styles.inlineLinks}><Link href="/app/progress">View my progress →</Link><Link href="/app/rewards">Points & milestones →</Link></div></section>
       <section className={styles.section} aria-labelledby="session-heading"><div className={styles.sectionHeader}><SignOut size={28} aria-hidden="true" /><h2 id="session-heading">Take a break</h2></div><p>Sign out on every device without deleting your progress. You will need your saved recovery key to come back.</p><div><Button variant="secondary" disabled={busy || !account?.recoveryEnabled || !!recoveryKey} onClick={() => { setError(''); logoutDialog.current?.showModal(); }}>Sign out everywhere</Button></div>{!account?.recoveryEnabled && <p className="hl-caption">Set up recovery first so you can find your way back.</p>}</section>
       <section className={`${styles.section} ${styles.danger} ${styles.full}`} aria-labelledby="delete-section-heading"><h2 id="delete-section-heading">Your data. Your choice.</h2><p>Leaving for good? You can delete your profile and its stored data. Clearing browser cookies alone does not delete it.</p><div className="hl-actions"><Button variant="secondary" disabled={busy} onClick={() => { setDeleteError(''); dialog.current?.showModal(); }}>Delete my data</Button><Link href="/privacy">Privacy notice</Link></div></section>
