@@ -35,6 +35,7 @@ export async function cleanupExpiredMedia(now = new Date()): Promise<number> {
     await db.query("delete from hanlog.scoring_calls where created_at < $1 and (outcome <> 'pending' or created_at <= $2)", [kstDayStartIso(now), abandonedBefore]);
     await db.query('delete from hanlog.recovery_attempt_limits where window_start < $1', [new Date(now.getTime() - 86_400_000).toISOString()]);
     await db.query('delete from hanlog.session_creation_limits where day < $1::date', [kstDateString(now)]);
+    await db.query('delete from hanlog.group_join_failures where window_start < $1', [new Date(now.getTime() - 86_400_000).toISOString()]);
     const paths = [...new Set([...references.map(r => r.reference_path), ...answers.map(r => r.media_path), ...photos.map(r => r.image_path), ...abandoned.map(r => r.path)])];
     if (!paths.length) return 0;
     // Keep the DB pointers on failure, allowing the next job to retry partial removal.

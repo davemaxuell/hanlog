@@ -15,14 +15,14 @@ Choices (the spec is silent on these):
 - **Moderation:** when an OpenAI key is set, the photo and its text are checked together with `omni-moderation-latest`. Links are always rejected.
 - **Storage:** photos use the existing private media store, deletion queue, cleanup job and account deletion, and expire after 14 days like recordings. Exports now include posts, liked posts, post reports and groups.
 - **Points:** the first 3 posts each Korea day earn 5 points each. Likes earn nothing, so they can't be farmed.
-- **Limits:**
+- **Limits** (plus at most 10 wrong group codes per profile per hour, so codes cannot be guessed):
   - posts: 6 per day
   - groups: 5 started per day, 10 memberships per person, 50 members per group
   - reports: the existing daily cap applies
 
 The privacy notice has a new section, "Feed, leaderboards and groups", and updated retention, deletion and processor lines.
 
-**Deployment:** migration `db/migrations/008_social.sql` must be applied to the hosted database (`npm run db:migrate`) before deploying. It has not been run against production.
+**Deployment:** migrations `008_social.sql` and `009_group_join_limits.sql` must be applied to the hosted database (`npm run db:migrate`) before deploying. It has not been run against production.
 
 ## Motion (motion.dev, `motion@14.14.0`)
 

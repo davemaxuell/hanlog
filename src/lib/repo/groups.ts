@@ -35,11 +35,19 @@ export async function createGroup(owner: User, name: string): Promise<Group> {
   });
 }
 
+export const GROUP_JOIN_FAILURES_PER_HOUR = 10;
 export async function joinGroup(user: User, code: string): Promise<Group> {
-  return (await getDb()).tx(async db => {
+  const joined = await (await getDb()).tx(async db => {
     await db.query('select pg_advisory_xact_lock(hashtext($1))', [user.id]);
+    const [failures] = await db.query<{ attempts: number }>("select attempts from hanlog.group_join_failures where user_id = $1 and window_start = date_trunc('hour', now())", [user.id]);
+    if ((failures?.attempts ?? 0) >= GROUP_JOIN_FAILURES_PER_HOUR) throw new ApiError('daily_limit');
     const [group] = await db.query<{ id: string }>('select id from hanlog.groups where code = $1 for update', [code]);
-    if (!group) throw new ApiError('not_found');
+    if (!group) {
+      // Recorded in this committed transaction; the not-found error is raised after commit.
+      await db.query(`insert into hanlog.group_join_failures (user_id, window_start, attempts) values ($1, date_trunc('hour', now()), 1)
+        on conflict (user_id, window_start) do update set attempts = hanlog.group_join_failures.attempts + 1`, [user.id]);
+      return null;
+    }
     const member = (await db.query('select 1 from hanlog.group_members where group_id = $1 and user_id = $2', [group.id, user.id])).length > 0;
     if (!member) {
       const [{ count }] = await db.query<{ count: number }>('select count(*)::int as count from hanlog.group_members where group_id = $1', [group.id]);
@@ -48,6 +56,8 @@ export async function joinGroup(user: User, code: string): Promise<Group> {
     }
     return present((await db.query<Row>(`${select} where g.id = $1`, [group.id]))[0], user.id);
   });
+  if (!joined) throw new ApiError('not_found');
+  return joined;
 }
 
 export async function listMyGroups(userId: string): Promise<Group[]> {

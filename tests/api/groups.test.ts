@@ -96,3 +96,14 @@ it('includes posts, likes and groups in the profile data export', async () => {
   expect(data.groups).toEqual([expect.objectContaining({ id: group.id, name: 'Export check', isOwner: true })]);
   expect(JSON.stringify(data)).not.toContain('posts/');
 });
+
+it('limits wrong join codes so codes cannot be guessed', async () => {
+  const owner = await createTestUser(); const guesser = await createTestUser();
+  const group = await create(owner.cookie);
+  const wrong = group.code === '222222' ? '333333' : '222222';
+  for (let i = 0; i < 10; i++) expect((await join(guesser.cookie, wrong)).status).toBe(404);
+  const blocked = await join(guesser.cookie, group.code);
+  expect(blocked.status).toBe(429);
+  expect((await blocked.json()).error.code).toBe('daily_limit');
+  expect((await join(owner.cookie, group.code)).status).toBe(200);
+});

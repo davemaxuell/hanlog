@@ -17,7 +17,7 @@ function groupError(cause: unknown, joining: boolean): string {
   const code = cause instanceof ApiClientError ? cause.code : 'internal';
   if (code === 'not_found') return 'No group uses that code. Check it with the person who invited you.';
   if (code === 'conflict') return joining ? 'That group is full, or you are already in ten groups.' : 'You are already in ten groups. Leave one to start another.';
-  if (code === 'daily_limit') return 'You have started five groups today. Try again tomorrow.';
+  if (code === 'daily_limit') return joining ? 'Too many codes that did not match. Wait an hour, then check the code and try again.' : 'You have started five groups today. Try again tomorrow.';
   return errorCopy(code) || errorCopy('internal');
 }
 const validCode = (value: string) => value.length === 6 && [...value].every(letter => SHARE_CODE_ALPHABET.includes(letter));
