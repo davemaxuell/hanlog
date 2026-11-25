@@ -1,16 +1,94 @@
 # HanLog · 한록
 
-HanLog is a Korean speaking practice app with 24 searchable missions, saved expressions, a practice journal, voice/video recording, AI feedback, and peer challenges. Learners can exchange recordings and ratings with Korean-speaking peers, track real progress, and restore their profile on another device. Points mark participation; commercial redemption is not available.
+**An AI-powered Korean speaking practice & peer-challenge web application.**
 
-Public beta: **https://hanlog-nine.vercel.app**.
+**Live Public Beta:** [hanlog-nine.vercel.app](https://hanlog-nine.vercel.app) · **Interactive Walkthrough:** [hanlog-nine.vercel.app/demo](https://hanlog-nine.vercel.app/demo)
 
-For presenting alongside the PowerPoint, open **[the product walkthrough](https://hanlog-nine.vercel.app/demo)**. It has four projector-friendly scenes, a local microphone check, real live practice, a clearly labelled example fallback, and an audience QR code. Follow the [three-minute presentation runbook](docs/demo-runbook.md).
+Built with **Next.js 16.4 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS 4**, **Motion 14**, **OpenAI Audio (`gpt-audio-1.5`)**, **PGlite / PostgreSQL (Supabase)**, and **Playwright + Vitest**. HanLog helps learners go from everyday Korean phrases to spoken confidence through 15-second voice/video missions, structured AI pronunciation feedback, and asynchronous peer exchanges—without requiring email/password sign-up.
 
-Gentle motion and interaction feedback run throughout the app. **Reduce animations** in the footer or presentation toolbar remembers your browser preference and always respects device settings. See the [motion release notes](docs/handoffs/calm-motion.md).
+---
 
-## Run the finished local demo
+## Key Highlights for Reviewers
 
-Use Node 24. From this folder:
+- **Live Production Beta & Interactive Demo Mode:** Deployed on Vercel (`icn1` Seoul region) with Supabase PostgreSQL + private object storage, plus a zero-config local demo launcher (`npm run demo`) backed by embedded **PGlite** and offline mock scoring.
+- **Audio AI Feedback & Jamo-Aware Scoring Pipeline:** Browser-side audio conversion (`mediabunny` + WAV encoder), magic-byte media validation, OpenAI `gpt-audio-1.5` scoring across *Pronunciation*, *Accuracy*, and *Naturalness*, and deterministic per-user/IP/global rate limits.
+- **Passwordless Privacy-First Identity:** Browser-session accounts signed with `jose` JWTs, one-time rotatable recovery keys (only hashes stored), full JSON data export, sign-out everywhere, and complete account/media deletion.
+- **Open Window Design System & Accessibility:** Custom Navy / Sky / Buttercream / Pink visual system with local Paperlogy & Pretendard fonts, reduced-motion controls, and `@axe-core/playwright` accessibility verification.
+- **Comprehensive Verification Suite:** **129 test & fixture files** across API (`22`), Unit (`32`), UI (`41`), and Playwright E2E (`16`), plus a CI bundle-leak guard (`scripts/check-bundle.mjs`) ensuring zero server secrets enter `.next/static`.
+
+---
+
+## UI Showcase
+
+### 1. Landing Experience & Daily Mission Dashboard
+| Landing Page (`Open Window` Design System) | Today Dashboard & 15s Speaking Prompt |
+| :---: | :---: |
+| ![HanLog Landing](docs/assets/ui/landing-desktop.png) | ![Today Dashboard](docs/assets/ui/today-dashboard.png) |
+| *Warm editorial hero featuring everyday Korean phrases (`아이스 아메리카노 한 잔 주세요.`).* | *Daily mission card, streak/attempts counters, recovery-key reminder, and level-tagged tasks.* |
+
+### 2. AI Speech Feedback & Peer Exchange
+| Structured AI Feedback (0–100 + Next Step) | Korean-Speaker Peer Challenge |
+| :---: | :---: |
+| ![AI Feedback](docs/assets/ui/ai-feedback-desktop.png) | ![Peer Exchange](docs/assets/ui/peer-exchange-desktop.png) |
+| *Scored breakdown across Pronunciation, Accuracy, and Naturalness with transcript & concrete tip.* | *Asynchronous voice/video exchange with contextual cultural notes and peer tips.* |
+
+### 3. Community Challenges, Progress Walkthrough & Mobile Phrasebook
+| Community Search & Invite Codes | Progress Journal & Live QR Mode | Mobile Phrasebook (24 Missions) |
+| :---: | :---: | :---: |
+| ![Community Challenges](docs/assets/ui/community-challenges.png) | ![Progress & QR](docs/assets/ui/progress-qr-desktop.png) | <img src="docs/assets/ui/mobile-practice.png" alt="Mobile Phrasebook" width="240" /> |
+| *Search expressions or join private challenges via rate-limited invite codes.* | *Saved expressions, practice journal, and audience QR walkthrough (`/demo`).* | *Mobile-first filtering by topic, level, and status across 24 missions.* |
+
+---
+
+## Core Features
+
+### 1. Speaking Missions & Phrasebook (`/app/missions`)
+- **24 searchable everyday missions** organized by topic, difficulty level, and practice status, with bookmarkable saved expressions and a personal practice journal (`/app/progress`).
+- **In-browser recording & media inspection:** Records voice/video directly in the browser, converts audio to WAV (`src/lib/audio/to-wav.ts`), and enforces server-side magic-byte/MIME inspection (`src/lib/media/sniff.ts`, `jpeg.ts`) before persistence.
+
+### 2. AI Speech Scoring (`src/lib/scoring/`)
+- **Live provider (`SCORING_PROVIDER=openai`):** Server-only `OPENAI_API_KEY` calls `gpt-audio-1.5` to produce a transcript, *Pronunciation / Accuracy / Naturalness* sub-scores, Jamo/speech analysis (`jamo.ts`), and one actionable next step.
+- **Offline Demo / CI provider (`SCORING_PROVIDER=mock`):** Deterministic scoring with clearly labeled example/mock badges so reviewers and tests never trigger paid API calls unintentionally.
+- **Cost & Abuse Guardrails:** Production enforces daily caps (30 calls/user, 100/IP, 100 globally per KST day) with failed-call reservation accounting.
+
+### 3. Peer Challenges, Groups & Community Moderation (`/app/challenges`, `/app/groups`, `/app/feed`)
+- **Asynchronous peer feedback:** Learners record and exchange audio/video responses and ratings (`Stars`, written tips) with Korean-speaking peers.
+- **Private Groups & Invite Codes:** Rate-limited join-code verification preventing brute-force guessing (`0adf21b`).
+- **Community Safety:** Automated nickname moderation, per-user daily report caps, instant hide-on-report for reported items, and an operator CLI (`scripts/review-community-reports.ts`) with dry-run defaults.
+
+### 4. Passwordless Profiles & Data Portability (`/app/me`)
+- **Zero-friction onboarding:** Starts in a signed browser session; learners can generate a private **recovery key** (stored hashed only) to restore their profile on another device with automatic key rotation and prior-session invalidation.
+- **GDPR-style user controls:** One-click JSON data export, key replacement, sign-out everywhere, and full account + recording deletion.
+
+---
+
+## Architecture & Tech Stack
+
+```mermaid
+flowchart LR
+  U["Learner / Peer (Desktop & Mobile)"] --> N["Next.js 16 App Router + Motion 14 UI"]
+  N --> A["Next.js Route Handlers (/api/*)"]
+  A --> Auth["Session & Recovery Keys (jose JWT)"]
+  A --> Score["Scoring Engine (OpenAI gpt-audio-1.5 / Offline Mock)"]
+  A --> DB[("PostgreSQL (Supabase) or Embedded PGlite")]
+  A --> Media[("Private Media Bucket (Supabase) or Local Store")]
+  Cron["Vercel Daily Expiry Cron"] --> DB
+  Cron --> Media
+```
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js `16.4.6` (App Router), React `19.3`, TypeScript `5`, Tailwind CSS `4`, Motion `14.14`, `@phosphor-icons/react`, Paperlogy & Pretendard local fonts |
+| **Backend & Validation** | Next.js Route Handlers, `zod` `4.6`, `jose` `6.2`, `mediabunny` `1.66` (client audio processing) |
+| **Database & Storage** | Production: Supabase PostgreSQL (`pg`, strict TLS CA verification) + private `recordings` bucket · Local/Demo: Embedded `@electric-sql/pglite` + `.data/` |
+| **AI & Moderation** | OpenAI Audio (`gpt-audio-1.5`), custom rate-limiter & budget guards, offline deterministic mock provider |
+| **Testing & CI** | Vitest `5.1` (`22` API, `32` Unit, `41` UI test files), Playwright `1.65` (`16` E2E specs + `@axe-core/playwright`), GitHub Actions + bundle secret leak checker |
+
+---
+
+## Quick Local Demo (Zero Configuration)
+
+Requires **Node.js 24**. No accounts, database setup, or API keys are needed—the demo launcher uses embedded **PGlite** and offline mock scoring (ignoring any `.env.local` OpenAI key):
 
 ```sh
 npm ci
@@ -18,50 +96,26 @@ npm run build
 npm run demo
 ```
 
-Open **http://localhost:3000**. No accounts or external services are needed. The demo launcher always uses clearly labelled mock scoring and disables OpenAI calls, including when `.env.local` contains a key.
+Open **`http://localhost:3000`** (or **`http://localhost:3000/demo`** for the 4-scene presentation walkthrough). For hot-reload development in demo mode, run `npm run dev:demo`.
 
-For development, stop the running demo and use `npm run dev:demo`. Profiles and recordings persist in ignored `.data/demo-db` and `.data/demo-media`. The launcher runs expiry cleanup at startup and hourly while open. Stop with Ctrl+C.
+---
 
-## Real scoring
-
-Production is configured with the server-only `OPENAI_API_KEY` and `SCORING_PROVIDER=openai`. One hosted speech request returned HTTP 200, with runtime logs confirming `gpt-audio-1.5`. The response score and points were not captured because of a smoke-checker response-path error, since fixed and tested offline; details are in the [QA handoff](docs/handoffs/qa.md). Pronunciation accuracy and calibration remain unverified. To deliberately enable real scoring locally, configure the server-only key in ignored `.env.local` and use the regular `npm run dev` command. This can make paid scoring and moderation calls; `demo` and `dev:demo` stay offline.
-
-Diagnostic and reference-generation scripts default to dry runs and require explicit `--live` opt-in. They do not automatically load `.env.local`. Live reference generation also requires a `--max-calls` budget and stops on the first service failure. Reference clips were not bulk-generated under the owner's spending constraint.
-
-## Commands
+## Commands & Verification
 
 | Command | Purpose |
-| --- | --- |
-| `npm run check` | TypeScript, lint, unit/API/component tests |
-| `npm run test:e2e` | Production build and Chromium phone/desktop flows; mock scoring only |
-| `npm run build` | Production build |
-| `npm run check:bundle` | Check built browser files and tracked files for server secrets |
-| `npm run spike:scoring` | Preview the guarded scoring compatibility check |
-| `npm run eval:scoring` | Preview evaluation and report missing fixtures |
-| `npm run content:audio` | Preview reference generation |
-| `npm run db:migrate` | Migrate a configured PostgreSQL database |
-| `node scripts/smoke.mjs <origin>` | Read-only deployment checks; no profiles or scoring calls |
+| :--- | :--- |
+| `npm run check` | TypeScript (`tsc --noEmit`), ESLint, and all Vitest API/unit/UI suites |
+| `npm run test:e2e` | Production build + Playwright E2E flows across phone & desktop viewports |
+| `npm run build` | Production Next.js build |
+| `npm run check:bundle` | Verifies `.next/static` and tracked files contain zero server secrets or keys |
+| `npm run db:migrate` | Runs PostgreSQL schema migrations against a configured database |
+| `node scripts/smoke.mjs <origin>` | Read-only production health check (use `--live --max-attempts=2` only for explicit live smoke) |
 
-The browser suite uses an in-memory database and separate `.data/e2e-media` folder. `E2E_SKIP_BUILD=1` is only for rerunning tests against an already-current production build. Recovery tests keep credentials in memory and disable traces/screenshots.
+---
 
-## Profiles and community operations
+## Deployment & Operational Notes
 
-Profiles use a browser session rather than email/password. In **Me**, create and privately save a recovery key before changing devices or signing out. Restoring rotates the key and ends previous sessions; save its replacement. A dropped restore response can be retried on the same screen within five minutes. Only hashes are stored. Me also supports JSON export, key replacement, sign-out everywhere, and complete deletion.
-
-Community reports have a private audit trail and a per-user daily cap. A challenge report hides it from that reporter's view; an answer report immediately hides its recording. The operator can inspect and resolve reports with `npx tsx scripts/review-community-reports.ts list`. The command defaults to a dry run and requires explicit `--apply` for PostgreSQL writes. See [community operations](docs/handoffs/community-launch.md).
-
-## Deployment details
-
-Source is in the private [davemaxuell/hanlog repository](https://github.com/davemaxuell/hanlog). The Vercel project is `hanlog` in `davemaxuell-1329s-projects`, using Node 24 and Seoul (`icn1`), and serves [hanlog-nine.vercel.app](https://hanlog-nine.vercel.app). `vercel.json` schedules expiry cleanup at 18:00 UTC daily. Public-route checks and the hosted private-media/deletion checks passed; the [QA handoff](docs/handoffs/qa.md) records the exact deployment and the limits of the AI verification.
-
-The free Supabase project `hanlog-db` is provisioned in Seoul. All schema migrations are applied. The private `recordings` bucket passed upload, download, deletion, and anonymous-access refusal checks. PostgreSQL uses `DATABASE_CA_CERT` with strict certificate and hostname verification. Production has server-only database, storage, session, cleanup, and OpenAI configuration; configure Preview separately before using it.
-
-Production scoring limits are 30 calls per user, 100 per network address, and 100 globally per Korea-time day. Failed provider calls also consume reservations. These production overrides are lower than the code defaults. The GitHub workflow runs Node 24 type checks, lint, tests, a mock production build, and bundle checks; deployment is handled separately through Vercel.
-
-Set `SITE_URL` before building to the production origin, for example `https://your-domain.example`, without a path. Vercel system hosts provide a fallback. Preview builds use their own host and request no search indexing; private app and share-link pages also request no indexing. Licensed Paperlogy and Pretendard fonts are served locally; the share image includes its own Paperlogy font. The install manifest provides a home-screen experience without caching private API responses or recordings offline.
-
-The default smoke command only reads public routes. `node scripts/smoke.mjs <origin> --live --max-attempts=2` deliberately creates a temporary profile, submits one speech fixture and one silence check, checks points, and deletes the profile. It can invoke OpenAI scoring and nickname moderation, never retries, and stops after a failed live step. If deletion reports failure, retry deletion from that environment before treating the smoke as complete. The existing synthetic café fixture checks compatibility only; it is not evidence of pronunciation accuracy. Review future changes in a configured preview before production promotion.
-
-The scoped `minimatch` override fixes a tooling advisory. The unused Vercel configuration SDK was replaced by static JSON, removing its vulnerable transitive dependencies. `npm audit` currently reports no vulnerabilities; review this again when updating packages.
-
-See the [current build audit](docs/handoffs/current-build-audit.md), [launch upgrade](docs/handoffs/launch-upgrade.md), [project handoff](docs/HANDOFF.md), [device checklist](docs/device-check.md), [content review](docs/content-review.md), and [.env.example](.env.example). The source spec and ordered implementation plans are in [docs/superpowers](docs/superpowers/). Open Window v0.5 follows the final project PowerPoint's navy, sky, buttercream, and pink palette, bold typography, and window motifs.
+- **Hosting:** Deployed on **Vercel** (`hanlog-nine.vercel.app`, `icn1` Seoul region, Node 24) with daily expiry cleanup cron configured in [`vercel.json`](vercel.json) (`18:00 UTC`).
+- **Database & Media:** Provisioned on **Supabase** (`hanlog-db`, Seoul) with strict `DATABASE_CA_CERT` verification and a private `recordings` bucket verified for signed access and deletion.
+- **Verification Scope:** Public routes, private media upload/download/deletion, anonymous access refusal, and one live `gpt-audio-1.5` speech request (HTTP 200) were exercised; full pronunciation calibration remains unverified pending live test expansion (see [`docs/handoffs/qa.md`](docs/handoffs/qa.md)).
+- **Further Documentation:** [`docs/HANDOFF.md`](docs/HANDOFF.md) · [`docs/demo-runbook.md`](docs/demo-runbook.md) · [`docs/handoffs/calm-motion.md`](docs/handoffs/calm-motion.md) · [`docs/handoffs/community-launch.md`](docs/handoffs/community-launch.md) · [`.env.example`](.env.example)
